@@ -224,6 +224,7 @@ const SignInForm = () => {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
               onFocus={(e) => {
                 e.target.style.borderColor = colors.primary;
               }}

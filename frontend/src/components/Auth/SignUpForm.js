@@ -377,6 +377,7 @@ const SignUpForm = () => {
               placeholder="••••••••••••"
               value={formData.password}
               onChange={handleChange}
+              autoComplete="new-password"
               onFocus={(e) => {
                 e.target.style.borderColor = colors.primary;
               }}
@@ -412,6 +413,7 @@ const SignUpForm = () => {
               placeholder="••••••••••••"
               value={formData.confirmPassword}
               onChange={handleChange}
+              autoComplete="new-password"
               onFocus={(e) => {
                 e.target.style.borderColor = colors.primary;
               }}

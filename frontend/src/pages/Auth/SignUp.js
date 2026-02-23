@@ -30,9 +30,6 @@ const SignUp = () => {
       top: 0,
       height: '100vh',
       overflow: 'hidden',
-      '@media (max-width: 768px)': {
-        display: 'none',
-      },
     },
     brandSection: {
       textAlign: 'center',
@@ -80,9 +77,6 @@ const SignUp = () => {
       padding: spacing['4xl'],
       backgroundColor: colors.white,
       overflowY: 'auto',
-      '@media (max-width: 768px)': {
-        padding: spacing['2xl'],
-      },
     },
     backButton: {
       position: 'absolute',
