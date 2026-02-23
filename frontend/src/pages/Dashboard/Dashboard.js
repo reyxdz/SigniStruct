@@ -345,7 +345,7 @@ const Dashboard = () => {
               e.currentTarget.style.transform = 'translateY(0)';
             }}
           >
-            <div style={{ ...dashboardStyles.statValue, color: colors.accent }}>
+            <div style={dashboardStyles.statValue}>
               {documentsData.assignedToSign}
             </div>
             <div style={dashboardStyles.statLabel}>Assigned to Sign</div>
