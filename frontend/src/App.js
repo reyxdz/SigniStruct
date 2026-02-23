@@ -1,59 +1,43 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Header from './components/Navigation/Header';
+import Dashboard from './pages/Dashboard/Dashboard';
+import Forms from './pages/Forms/Forms';
+import Documents from './pages/Documents/Documents';
+import FormBuilder from './pages/FormBuilder/FormBuilder';
+import DocumentSign from './pages/DocumentSign/DocumentSign';
+import { colors, spacing } from './theme';
 import './App.css';
 
 function App() {
-  const [status, setStatus] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [user] = useState({
+    name: 'John Doe',
+    email: 'john@example.com'
+  });
 
-  useEffect(() => {
-    const checkHealth = async () => {
-      try {
-        const response = await fetch('/api/health');
-        const data = await response.json();
-        setStatus(data);
-      } catch (error) {
-        setStatus({ error: 'Unable to connect to backend' });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkHealth();
-  }, []);
+  const handleLogout = () => {
+    // Handle logout logic
+    console.log('User logged out');
+  };
 
   return (
-    <div className="App">
-      <header className="App-header">
-        <h1>Welcome to SigniStruct</h1>
-        <p>MERN Stack Application</p>
-      </header>
-
-      <main className="App-main">
-        <div className="status-card">
-          <h2>Backend Status</h2>
-          {loading ? (
-            <p>Checking connection...</p>
-          ) : status?.error ? (
-            <p className="error">{status.error}</p>
-          ) : (
-            <div>
-              <p className="success">✓ {status?.status}</p>
-              <p className="timestamp">{new Date(status?.timestamp).toLocaleString()}</p>
-            </div>
-          )}
-        </div>
-
-        <section className="info-section">
-          <h2>Get Started</h2>
-          <p>This is your MERN stack application with MongoDB, Express, React, and Node.js.</p>
-          <ul>
-            <li>Backend API running on port 5000</li>
-            <li>Frontend React app running on port 3000</li>
-            <li>MongoDB for data persistence</li>
-          </ul>
-        </section>
-      </main>
-    </div>
+    <Router>
+      <div className="App" style={{ backgroundColor: colors.lightGray, minHeight: '100vh' }}>
+        <Header user={user} onLogout={handleLogout} />
+        
+        <main style={{ paddingTop: spacing.md }}>
+          <Routes>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/forms" element={<Forms />} />
+            <Route path="/documents" element={<Documents />} />
+            <Route path="/form-builder/:formId" element={<FormBuilder />} />
+            <Route path="/document-sign/:documentId" element={<DocumentSign />} />
+            <Route path="*" element={<Navigate to="/dashboard" />} />
+          </Routes>
+        </main>
+      </div>
+    </Router>
   );
 }
 
