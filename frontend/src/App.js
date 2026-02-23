@@ -27,7 +27,7 @@ function App() {
   const authenticatedRoutes = ['/dashboard', '/forms', '/documents', '/form-builder', '/document-sign'];
   
   return (
-    <Router>
+    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AppContent user={user} handleLogout={handleLogout} authenticatedRoutes={authenticatedRoutes} />
     </Router>
   );
