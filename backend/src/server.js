@@ -5,6 +5,7 @@ require('dotenv').config();
 
 const authRoutes = require('./routes/authRoutes');
 const certificateRoutes = require('./routes/certificateRoutes');
+const { initializeDatabaseSchema } = require('./utils/databaseInit');
 
 const app = express();
 
@@ -18,6 +19,9 @@ const connectDB = async () => {
   try {
     await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/signistruct');
     console.log('MongoDB connected successfully');
+    
+    // Initialize database schema and create indexes
+    await initializeDatabaseSchema();
   } catch (error) {
     console.error('MongoDB connection error:', error);
     process.exit(1);
