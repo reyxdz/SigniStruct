@@ -134,6 +134,9 @@ const Dashboard = () => {
       fontWeight: typography.weights.medium,
       cursor: 'pointer',
       transition: transitions.fast,
+      backgroundColor: 'transparent',
+      border: 'none',
+      padding: 0,
     },
     activityContainer: {
       backgroundColor: colors.white,
@@ -261,7 +264,7 @@ const Dashboard = () => {
               {formsData.published}
             </div>
             <div style={dashboardStyles.statLabel}>Published Forms</div>
-            <a style={dashboardStyles.viewLink}>View all →</a>
+            <button style={dashboardStyles.viewLink} onClick={(e) => e.preventDefault()}>View all →</button>
             <p style={dashboardStyles.sectionSubtitle}>
               Active and collecting responses
             </p>
@@ -282,7 +285,7 @@ const Dashboard = () => {
               {formsData.draft}
             </div>
             <div style={dashboardStyles.statLabel}>Draft Forms</div>
-            <a style={dashboardStyles.viewLink}>View all →</a>
+            <button style={dashboardStyles.viewLink} onClick={(e) => e.preventDefault()}>View all →</button>
             <p style={dashboardStyles.sectionSubtitle}>
               Still in progress
             </p>
@@ -303,7 +306,7 @@ const Dashboard = () => {
               {formsData.totalResponses}
             </div>
             <div style={dashboardStyles.statLabel}>Total Responses</div>
-            <a style={dashboardStyles.viewLink}>View responses →</a>
+            <button style={dashboardStyles.viewLink} onClick={(e) => e.preventDefault()}>View responses →</button>
             <p style={dashboardStyles.sectionSubtitle}>
               Collected from all forms
             </p>
@@ -328,7 +331,7 @@ const Dashboard = () => {
               {documentsData.published}
             </div>
             <div style={dashboardStyles.statLabel}>Published Documents</div>
-            <a style={dashboardStyles.viewLink}>View all →</a>
+            <button style={dashboardStyles.viewLink} onClick={(e) => e.preventDefault()}>View all →</button>
             <p style={dashboardStyles.sectionSubtitle}>
               Ready for signing
             </p>
@@ -349,7 +352,7 @@ const Dashboard = () => {
               {documentsData.assignedToSign}
             </div>
             <div style={dashboardStyles.statLabel}>Assigned to Sign</div>
-            <a style={dashboardStyles.viewLink}>Sign now →</a>
+            <button style={dashboardStyles.viewLink} onClick={(e) => e.preventDefault()}>Sign now →</button>
             <p style={dashboardStyles.sectionSubtitle}>
               Waiting for your signature
             </p>
@@ -370,7 +373,7 @@ const Dashboard = () => {
               {documentsData.draft}
             </div>
             <div style={dashboardStyles.statLabel}>Draft Documents</div>
-            <a style={dashboardStyles.viewLink}>View all →</a>
+            <button style={dashboardStyles.viewLink} onClick={(e) => e.preventDefault()}>View all →</button>
             <p style={dashboardStyles.sectionSubtitle}>
               Not yet published
             </p>

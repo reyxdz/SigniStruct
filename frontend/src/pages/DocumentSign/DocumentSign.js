@@ -106,7 +106,7 @@ const DocumentSign = ({ documentId }) => {
       fontSize: typography.sizes.sm,
       color: colors.gray600,
     },
-    content: {
+    docContent: {
       fontSize: typography.sizes.sm,
       lineHeight: '1.6',
       color: colors.gray700,
@@ -319,7 +319,7 @@ const DocumentSign = ({ documentId }) => {
               <p style={signStyles.docMeta}>Created: {document.createdAt}</p>
             </div>
 
-            <div style={signStyles.content}>
+            <div style={signStyles.docContent}>
               {document.content}
             </div>
 

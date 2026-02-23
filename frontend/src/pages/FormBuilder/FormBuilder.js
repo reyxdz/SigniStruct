@@ -399,7 +399,7 @@ const FormBuilder = ({ formId }) => {
                   onChange={(e) => updateField(selectedFieldId, { required: e.target.checked })}
                   style={{ cursor: 'pointer' }}
                 />
-                <span style={builderStyles.propertyLabel} style={{ margin: 0 }}>
+                <span style={{ ...builderStyles.propertyLabel, margin: 0 }}>
                   Required Field
                 </span>
               </label>

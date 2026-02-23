@@ -380,5 +380,3 @@ const Documents = () => {
 };
 
 export default Documents;
-
-export default Documents;
