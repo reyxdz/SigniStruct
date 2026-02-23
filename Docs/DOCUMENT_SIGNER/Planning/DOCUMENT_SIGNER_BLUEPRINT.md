@@ -3,6 +3,24 @@
 ## Project Overview
 Implementation of a complete document signing system with PKI support, ensuring secure digital signatures, signature ownership, and compliance with document signing standards.
 
+**Document Format**: PDF Only - The system exclusively supports PDF documents for signing and verification.
+
+---
+
+## Key Components
+
+### Backend Services
+- **CertificateService**: RSA key pair generation, certificate creation, encryption/decryption
+- **PDFService**: PDF validation, hashing, signature embedding, dimension tracking (NEW)
+- **SigningService**: Document signing with RSA, signature verification
+- **EncryptionService**: AES-256 encryption/decryption for private keys
+
+### Frontend Components
+- **PDF Viewer**: React-PDF for displaying PDF documents
+- **Signature Pad**: Canvas-based signature drawing
+- **Signature Uploader**: Upload pre-drawn or typed signatures
+- **Document Signer**: Place signatures on specific PDF pages
+
 ---
 
 ## 1. ARCHITECTURE & FLOW
@@ -12,7 +30,7 @@ Implementation of a complete document signing system with PKI support, ensuring 
 Dashboard
     ↓
     ├── View Documents (List of documents to sign)
-    ├── Upload Document (PDF/DOC support)
+    ├── Upload Document (PDF only)
     ├── Create Signature (or use existing)
     │   ├── Signature Pad (Draw signature)
     │   ├── Upload Signature Image
@@ -491,7 +509,7 @@ User Private Keys (Encrypted)
 
 ### Backend
 - **Crypto**: `node-rsa`, `crypto` (Node.js built-in)
-- **PDF**: `PDFKit` (generation), `pdf-parse` (reading)
+- **PDF**: `pdf-lib` (manipulation), `pdfkit` (generation), `pdf-parse` (reading)
 - **Certificates**: `node-forge` or `pkijs`
 - **Encryption**: `crypto-js` / `tweetnacl.js`
 - **Timestamps**: NTP client library

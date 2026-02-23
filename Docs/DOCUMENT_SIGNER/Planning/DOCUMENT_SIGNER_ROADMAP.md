@@ -2,9 +2,17 @@
 
 ## Quick Reference: What's Needed
 
-### Phase 1: PKI Foundation (Current Focus)
+### ✅✅✅ PHASE 1: COMPLETE ✅✅✅
+### Phase 1: PKI Foundation
 
-#### Task 1.1: Setup Certificate Generation Service
+**Status**: All 4 tasks completed successfully!
+- Task 1.1: Certificate Generation Service ✅
+- Task 1.2: Certificate API Endpoints ✅
+- Task 1.3: User Model Update ✅
+- Task 1.4: Database Schema & Indexes ✅
+- **NEW**: PDF-only Document Support ✅
+
+#### ✅ Task 1.1: Setup Certificate Generation Service --- DONE
 **Files to create:**
 - `backend/src/services/certificateService.js`
 
@@ -26,7 +34,7 @@ npm install node-rsa node-forge
 
 ---
 
-#### Task 1.2: Create Certificate API Endpoints
+#### ✅ Task 1.2: Create Certificate API Endpoints --- DONE
 **Files to create:**
 - `backend/src/routes/certificateRoutes.js`
 - `backend/src/controllers/certificateController.js`
@@ -48,7 +56,7 @@ GET    /api/certificates/verify/:certificateId
 
 ---
 
-#### Task 1.3: Update User Model
+#### ✅ Task 1.3: Update User Model --- DONE
 **File to modify:**
 - `backend/src/models/User.js`
 
@@ -63,7 +71,7 @@ certificate_id: {
 
 ---
 
-#### Task 1.4: Update Database Schema
+#### ✅ Task 1.4: Update Database Schema --- DONE
 **Create migrations or create indexes:**
 ```javascript
 db.users_certificates.createIndex({ user_id: 1 }, { unique: false })
@@ -78,7 +86,7 @@ db.signature_audit_log.createIndex({ timestamp: -1 })
 
 ---
 
-### Phase 2: Signature Management
+### Phase 2: Signature Management (Next in Priority)
 
 #### Task 2.1: Create Signature Model
 **File to create:**
@@ -371,11 +379,11 @@ generateAuditLog(action, userId, details)
 ```powershell
 # Backend
 cd backend
-npm install node-rsa node-forge crypto-js multer express-validator
+npm install node-rsa node-forge crypto-js multer express-validator pdf-lib pdfkit pdf-parse
 
 # Frontend
 cd ../frontend
-npm install react-pdf react-signature-canvas axios
+npm install react-pdf pdfjs-dist react-signature-canvas axios
 ```
 
 ---
@@ -390,7 +398,7 @@ JWT_EXPIRY=7d
 DOCUMENT_UPLOAD_DIR=./uploads/documents
 SIGNATURE_UPLOAD_DIR=./uploads/signatures
 MAX_FILE_SIZE=52428800  # 50MB
-ALLOWED_FILE_TYPES=pdf,doc,docx,txt,jpg,png
+ALLOWED_FILE_TYPES=pdf
 ```
 
 ---
@@ -458,7 +466,7 @@ app.use('/api/signatures', signatureRoutes);
 3. Draw/upload signature
 4. Save signature
 5. Click "Upload Document"
-6. Upload a document (PDF)
+6. Upload a PDF document
 7. Click "Sign Document"
 8. Place signature on document
 9. Click "Sign"
