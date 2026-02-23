@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
-import { FiFileText, FiEdit, FiCheckCircle, FiShield, FiZap, FiArrowRight, FiCheckSquare } from 'react-icons/fi';
+import { FiFileText, FiEdit, FiCheckCircle, FiShield, FiZap, FiArrowRight } from 'react-icons/fi';
+import logoImg from '../../assets/images/signify_logo.png';
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -25,25 +26,14 @@ const LandingPage = () => {
     logoContainer: {
       display: 'flex',
       alignItems: 'center',
-      gap: spacing.sm,
       cursor: 'pointer',
       textDecoration: 'none',
+      height: '40px',
     },
-    logoIcon: {
-      width: '32px',
-      height: '32px',
-      backgroundColor: colors.primary,
-      borderRadius: borderRadius.md,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      color: colors.white,
-      fontSize: '1.2rem',
-    },
-    logoText: {
-      fontSize: typography.sizes.xl,
-      fontWeight: typography.weights.bold,
-      color: colors.primary,
+    logoImg: {
+      height: '100%',
+      width: 'auto',
+      maxWidth: '150px',
     },
     navButtons: {
       display: 'flex',
@@ -238,10 +228,7 @@ const LandingPage = () => {
       {/* Navbar */}
       <nav style={landingStyles.navbar}>
         <div style={landingStyles.logoContainer} onClick={() => navigate('/')}>
-          <div style={landingStyles.logoIcon}>
-            <FiCheckSquare size={18} />
-          </div>
-          <div style={landingStyles.logoText}>SigniStruct</div>
+          <img src={logoImg} alt="SigniStruct" style={landingStyles.logoImg} />
         </div>
         <div style={landingStyles.navButtons}>
           <button
