@@ -1,28 +1,29 @@
 // SigniStruct Color Palette
-// Primary: Deep Blue (inspired by professional signing/document theme)
-// Secondary: Teal (for signatures and actions)
-// Accent: Coral/Orange (for highlights and important elements)
+// Professional and Modern Design System
+// Primary: Professional Blue (document & signing theme)
+// Accent: Dynamic color scheme with supporting colors
 
 export const colors = {
-  // Primary Colors
-  primary: '#1E3A8A',      // Deep Blue
-  primaryLight: '#3B82F6',  // Light Blue
-  primaryDark: '#1E40AF',   // Darker Blue
-  primaryVeryLight: '#EFF6FF', // Very Light Blue
+  // Primary Colors (Professional Blue)
+  primary: '#2563EB',       // Professional Blue
+  primaryLight: '#60A5FA',  // Light Blue
+  primaryDark: '#1E40AF',   // Dark Blue
+  primaryVeryLight: '#F0F9FF', // Very Light Blue background
 
-  // Secondary Colors  
-  secondary: '#0D9488',     // Teal
-  secondaryLight: '#14B8A6', // Light Teal
-  secondaryDark: '#0F766E', // Dark Teal
+  // Secondary Colors (Supporting Teal)
+  secondary: '#0891B2',     // Cyan/Teal
+  secondaryLight: '#06B6D4', // Light Teal
+  secondaryDark: '#0E7490', // Dark Teal
 
-  // Accent Colors
-  accent: '#EA580C',        // Coral/Orange (signature highlight)
-  accentLight: '#FB923C',   // Light Orange
-  accentDark: '#C2410C',    // Dark Orange
+  // Accent Colors (Energetic - for signatures/actions)
+  accent: '#DC2626',        // Dynamic Red (signature/action highlight)
+  accentLight: '#FEE2E2',   // Light Red background
+  accentDark: '#991B1B',    // Dark Red
 
-  // Neutral Colors
+  // Neutral Colors (Light backgrounds for modern look)
   white: '#FFFFFF',
-  lightGray: '#F9FAFB',     // Very light background
+  lightGray: '#F8FAFC',     // Lightest background
+  gray50: '#F9FAFB',
   gray100: '#F3F4F6',
   gray200: '#E5E7EB',
   gray300: '#D1D5DB',
@@ -35,16 +36,19 @@ export const colors = {
   black: '#000000',
 
   // Status Colors
-  success: '#10B981',
-  warning: '#F59E0B',
-  error: '#EF4444',
-  info: '#3B82F6',
+  success: '#059669',
+  successLight: '#ECFDF5',
+  warning: '#D97706',
+  warningLight: '#FFFBEB',
+  error: '#DC2626',
+  errorLight: '#FEE2E2',
+  info: '#2563EB',
 
-  // Shadows
-  shadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-  shadowMd: '0 4px 6px rgba(0, 0, 0, 0.1)',
-  shadowLg: '0 10px 15px rgba(0, 0, 0, 0.1)',
-  shadowXl: '0 20px 25px rgba(0, 0, 0, 0.1)',
+  // Shadows (subtle for modern look)
+  shadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)',
+  shadowMd: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+  shadowLg: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+  shadowXl: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
 };
 
 export const typography = {

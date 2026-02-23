@@ -8,15 +8,15 @@ const Header = ({ user, onLogout }) => {
     header: {
       backgroundColor: colors.white,
       borderBottom: `1px solid ${colors.gray200}`,
-      boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+      boxShadow: colors.shadowMd,
       position: 'sticky',
       top: 0,
       zIndex: 100,
     },
     container: {
-      maxWidth: '1280px',
+      maxWidth: '1400px',
       margin: '0 auto',
-      padding: `${spacing.md} ${spacing.lg}`,
+      padding: `${spacing.md} ${spacing['2xl']}`,
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
@@ -25,27 +25,33 @@ const Header = ({ user, onLogout }) => {
     brand: {
       display: 'flex',
       alignItems: 'center',
-      gap: spacing.sm,
+      gap: spacing.md,
       cursor: 'pointer',
+      textDecoration: 'none',
+      color: colors.primary,
+      fontWeight: typography.weights.bold,
+      fontSize: typography.sizes.lg,
     },
     logo: {
       height: '40px',
       width: 'auto',
+      display: 'flex',
+      alignItems: 'center',
     },
-    brandName: {
-      fontSize: typography.sizes.xl,
+    brandText: {
+      fontSize: typography.sizes.lg,
       fontWeight: typography.weights.bold,
-      color: colors.primary,
-      display: 'none',
-    },
-    brandNameMobile: {
-      display: 'inline',
+      background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.secondary} 100%)`,
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
+      backgroundClip: 'text',
     },
     nav: {
       display: 'flex',
-      gap: spacing.lg,
+      gap: spacing.xl,
       flex: 1,
       justifyContent: 'center',
+      alignItems: 'center',
     },
     navLink: {
       color: colors.gray700,
@@ -53,20 +59,17 @@ const Header = ({ user, onLogout }) => {
       fontSize: typography.sizes.sm,
       padding: `${spacing.sm} ${spacing.md}`,
       borderRadius: borderRadius.md,
-      transition: transitions.base,
+      transition: transitions.fast,
       background: 'none',
       border: 'none',
       cursor: 'pointer',
       textDecoration: 'none',
-      display: 'block',
-    },
-    navLinkHover: {
-      backgroundColor: colors.primaryVeryLight,
-      color: colors.primary,
+      display: 'inline-block',
     },
     userSection: {
       display: 'flex',
       alignItems: 'center',
+      gap: spacing.md,
       position: 'relative',
     },
     userMenuTrigger: {
@@ -74,17 +77,17 @@ const Header = ({ user, onLogout }) => {
       alignItems: 'center',
       gap: spacing.sm,
       background: 'none',
-      border: 'none',
+      border: `1px solid ${colors.gray200}`,
       color: colors.gray700,
       cursor: 'pointer',
       padding: `${spacing.sm} ${spacing.md}`,
-      borderRadius: borderRadius.md,
-      transition: transitions.base,
+      borderRadius: borderRadius.lg,
+      transition: transitions.fast,
       fontSize: typography.sizes.sm,
     },
     userAvatar: {
-      width: '32px',
-      height: '32px',
+      width: '36px',
+      height: '36px',
       borderRadius: '50%',
       backgroundColor: colors.primary,
       color: colors.white,
@@ -93,12 +96,13 @@ const Header = ({ user, onLogout }) => {
       justifyContent: 'center',
       fontWeight: typography.weights.bold,
       fontSize: typography.sizes.sm,
+      flexShrink: 0,
     },
     userName: {
       fontSize: typography.sizes.sm,
       fontWeight: typography.weights.medium,
       color: colors.gray800,
-      maxWidth: '120px',
+      maxWidth: '140px',
       overflow: 'hidden',
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
@@ -107,40 +111,35 @@ const Header = ({ user, onLogout }) => {
       width: '16px',
       height: '16px',
       color: colors.gray500,
+      transition: transitions.fast,
     },
     userDropdown: {
       position: 'absolute',
-      top: `calc(100% + ${spacing.sm})`,
+      top: `calc(100% + ${spacing.md})`,
       right: 0,
       backgroundColor: colors.white,
       border: `1px solid ${colors.gray200}`,
       borderRadius: borderRadius.lg,
-      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-      minWidth: '200px',
+      boxShadow: colors.shadowLg,
+      minWidth: '220px',
       zIndex: 200,
       overflow: 'hidden',
     },
     dropdownItem: {
       display: 'block',
       width: '100%',
-      padding: spacing.md,
+      padding: `${spacing.sm} ${spacing.lg}`,
       textAlign: 'left',
       background: 'none',
       border: 'none',
       color: colors.gray700,
       cursor: 'pointer',
       fontSize: typography.sizes.sm,
-      transition: transitions.base,
-    },
-    dropdownItemHover: {
-      backgroundColor: colors.gray100,
-      color: colors.primary,
+      transition: transitions.fast,
     },
     logoutBtn: {
       color: colors.error,
-    },
-    logoutBtnHover: {
-      backgroundColor: 'rgba(239, 68, 68, 0.1)',
+      borderTop: `1px solid ${colors.gray200}`,
     },
   };
 
@@ -148,35 +147,142 @@ const Header = ({ user, onLogout }) => {
     <header style={headerStyles.header}>
       <div style={headerStyles.container}>
         {/* Logo and Brand */}
-        <div style={headerStyles.brand}>
-          <img src="../../../assets/images/signify_logo.png" alt="SigniStruct" style={headerStyles.logo} />
-          <span style={headerStyles.brandName}>SigniStruct</span>
-        </div>
+        <a href="/dashboard" style={{ textDecoration: 'none' }}>
+          <div style={headerStyles.brand}>
+            <img
+              src={require('../../assets/images/signify_logo.png')}
+              alt="SigniStruct"
+              style={headerStyles.logo}
+            />
+            <span style={headerStyles.brandText}>SigniStruct</span>
+          </div>
+        </a>
 
         {/* Navigation Menu */}
         <nav style={headerStyles.nav}>
-          <a href="/dashboard" style={headerStyles.navLink}>Dashboard</a>
-          <a href="/forms" style={headerStyles.navLink}>Forms</a>
-          <a href="/documents" style={headerStyles.navLink}>Documents</a>
+          <a
+            href="/dashboard"
+            style={headerStyles.navLink}
+            onMouseOver={(e) => {
+              e.target.style.color = colors.primary;
+              e.target.style.backgroundColor = colors.primaryVeryLight;
+            }}
+            onMouseOut={(e) => {
+              e.target.style.color = colors.gray700;
+              e.target.style.backgroundColor = 'transparent';
+            }}
+          >
+            Dashboard
+          </a>
+          <a
+            href="/forms"
+            style={headerStyles.navLink}
+            onMouseOver={(e) => {
+              e.target.style.color = colors.primary;
+              e.target.style.backgroundColor = colors.primaryVeryLight;
+            }}
+            onMouseOut={(e) => {
+              e.target.style.color = colors.gray700;
+              e.target.style.backgroundColor = 'transparent';
+            }}
+          >
+            Forms
+          </a>
+          <a
+            href="/documents"
+            style={headerStyles.navLink}
+            onMouseOver={(e) => {
+              e.target.style.color = colors.primary;
+              e.target.style.backgroundColor = colors.primaryVeryLight;
+            }}
+            onMouseOut={(e) => {
+              e.target.style.color = colors.gray700;
+              e.target.style.backgroundColor = 'transparent';
+            }}
+          >
+            Documents
+          </a>
         </nav>
 
         {/* User Menu */}
         <div style={headerStyles.userSection}>
-          <button style={headerStyles.userMenuTrigger} onClick={() => setDropdownOpen(!dropdownOpen)}>
+          <button
+            style={headerStyles.userMenuTrigger}
+            onClick={() => setDropdownOpen(!dropdownOpen)}
+            onMouseOver={(e) => {
+              e.currentTarget.style.borderColor = colors.primary;
+              e.currentTarget.style.backgroundColor = colors.primaryVeryLight;
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.borderColor = colors.gray200;
+              e.currentTarget.style.backgroundColor = 'transparent';
+            }}
+          >
             <div style={headerStyles.userAvatar}>
               {user?.name?.charAt(0).toUpperCase() || 'U'}
             </div>
             <span style={headerStyles.userName}>{user?.name || 'User'}</span>
-            <svg style={headerStyles.dropdownIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <path d="M19 14l-7 7m0 0l-7-7m7 7V3" strokeWidth="2" strokeLinecap="round" />
+            <svg
+              style={{
+                ...headerStyles.dropdownIcon,
+                transform: dropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+              }}
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+            >
+              <path d="M6 9l6 6 6-6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
 
           {dropdownOpen && (
             <div style={headerStyles.userDropdown}>
-              <a href="/profile" style={headerStyles.dropdownItem}>Profile Settings</a>
-              <a href="/account" style={headerStyles.dropdownItem}>Account</a>
-              <button onClick={onLogout} style={{...headerStyles.dropdownItem, ...headerStyles.logoutBtn}}>Logout</button>
+              <a
+                href="/profile"
+                style={headerStyles.dropdownItem}
+                onMouseOver={(e) => {
+                  e.target.style.backgroundColor = colors.gray50;
+                  e.target.style.color = colors.primary;
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.backgroundColor = 'transparent';
+                  e.target.style.color = colors.gray700;
+                }}
+              >
+                👤 Profile Settings
+              </a>
+              <a
+                href="/account"
+                style={headerStyles.dropdownItem}
+                onMouseOver={(e) => {
+                  e.target.style.backgroundColor = colors.gray50;
+                  e.target.style.color = colors.primary;
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.backgroundColor = 'transparent';
+                  e.target.style.color = colors.gray700;
+                }}
+              >
+                ⚙️ Account Settings
+              </a>
+              <button
+                onClick={() => {
+                  setDropdownOpen(false);
+                  onLogout && onLogout();
+                }}
+                style={{
+                  ...headerStyles.dropdownItem,
+                  ...headerStyles.logoutBtn,
+                }}
+                onMouseOver={(e) => {
+                  e.target.style.backgroundColor = 'rgba(220, 38, 38, 0.05)';
+                }}
+                onMouseOut={(e) => {
+                  e.target.style.backgroundColor = 'transparent';
+                }}
+              >
+                🚪 Logout
+              </button>
             </div>
           )}
         </div>

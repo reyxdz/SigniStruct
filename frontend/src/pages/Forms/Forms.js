@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
 
 const Forms = () => {
   const [activeTab, setActiveTab] = useState('published');
@@ -22,79 +23,320 @@ const Forms = () => {
     );
   };
 
+  const formsStyles = {
+    container: {
+      minHeight: '100vh',
+      backgroundColor: colors.lightGray,
+      padding: `${spacing.xl} ${spacing['2xl']}`,
+    },
+    content: {
+      maxWidth: '1200px',
+      margin: '0 auto',
+    },
+    header: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: spacing['3xl'],
+    },
+    title: {
+      fontSize: typography.sizes['3xl'],
+      fontWeight: typography.weights.bold,
+      color: colors.gray900,
+    },
+    createButton: {
+      backgroundColor: colors.primary,
+      color: colors.white,
+      padding: `${spacing.sm} ${spacing.lg}`,
+      border: 'none',
+      borderRadius: borderRadius.md,
+      fontSize: typography.sizes.sm,
+      fontWeight: typography.weights.medium,
+      cursor: 'pointer',
+      transition: transitions.fast,
+    },
+    tabs: {
+      display: 'flex',
+      gap: spacing.lg,
+      marginBottom: spacing.xl,
+      borderBottom: `2px solid ${colors.gray200}`,
+    },
+    tab: {
+      background: 'none',
+      border: 'none',
+      padding: `${spacing.md} 0`,
+      fontSize: typography.sizes.sm,
+      fontWeight: typography.weights.medium,
+      color: colors.gray600,
+      cursor: 'pointer',
+      transition: transitions.fast,
+      borderBottom: `3px solid transparent`,
+      marginBottom: '-2px',
+    },
+    tabActive: {
+      color: colors.primary,
+      borderBottomColor: colors.primary,
+    },
+    searchContainer: {
+      marginBottom: spacing.xl,
+    },
+    searchInput: {
+      width: '100%',
+      maxWidth: '400px',
+      padding: `${spacing.sm} ${spacing.md}`,
+      fontSize: typography.sizes.sm,
+      border: `1px solid ${colors.gray300}`,
+      borderRadius: borderRadius.md,
+      backgroundColor: colors.white,
+      transition: transitions.fast,
+    },
+    grid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+      gap: spacing.lg,
+    },
+    card: {
+      backgroundColor: colors.white,
+      borderRadius: borderRadius.lg,
+      padding: spacing.lg,
+      boxShadow: colors.shadowMd,
+      transition: transitions.fast,
+      cursor: 'pointer',
+    },
+    cardHeader: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: spacing.lg,
+    },
+    cardTitle: {
+      fontSize: typography.sizes.lg,
+      fontWeight: typography.weights.bold,
+      color: colors.gray900,
+      margin: 0,
+    },
+    menuButton: {
+      background: 'none',
+      border: 'none',
+      fontSize: typography.sizes.lg,
+      cursor: 'pointer',
+      color: colors.gray500,
+      transition: transitions.fast,
+    },
+    cardContent: {
+      display: 'flex',
+      gap: spacing.lg,
+      marginBottom: spacing.lg,
+      paddingBottom: spacing.lg,
+      borderBottom: `1px solid ${colors.gray200}`,
+    },
+    stat: {
+      flex: 1,
+    },
+    statLabel: {
+      fontSize: typography.sizes.xs,
+      color: colors.gray600,
+      marginBottom: spacing.xs,
+      display: 'block',
+    },
+    statValue: {
+      fontSize: typography.sizes.xl,
+      fontWeight: typography.weights.bold,
+      color: colors.primary,
+    },
+    cardFooter: {
+      display: 'flex',
+      gap: spacing.md,
+    },
+    action: {
+      flex: 1,
+      padding: `${spacing.sm} ${spacing.md}`,
+      fontSize: typography.sizes.sm,
+      fontWeight: typography.weights.medium,
+      textAlign: 'center',
+      borderRadius: borderRadius.md,
+      textDecoration: 'none',
+      transition: transitions.fast,
+      border: 'none',
+      cursor: 'pointer',
+    },
+    actionPrimary: {
+      backgroundColor: colors.primaryVeryLight,
+      color: colors.primary,
+    },
+    actionSecondary: {
+      backgroundColor: colors.gray100,
+      color: colors.gray700,
+    },
+    emptyState: {
+      textAlign: 'center',
+      padding: `${spacing['3xl']} ${spacing['2xl']}`,
+      backgroundColor: colors.white,
+      borderRadius: borderRadius.lg,
+      boxShadow: colors.shadowMd,
+    },
+    emptyText: {
+      fontSize: typography.sizes.lg,
+      color: colors.gray600,
+      marginBottom: spacing.lg,
+    },
+  };
+
   return (
-    <div className="forms-container">
-      <div className="forms-header">
-        <h1>Forms</h1>
-        <button className="create-form-btn">+ Create New Form</button>
-      </div>
+    <div style={formsStyles.container}>
+      <div style={formsStyles.content}>
+        {/* Header */}
+        <div style={formsStyles.header}>
+          <h1 style={formsStyles.title}>📋 Forms</h1>
+          <button
+            style={formsStyles.createButton}
+            onMouseOver={(e) => {
+              e.target.style.opacity = '0.9';
+            }}
+            onMouseOut={(e) => {
+              e.target.style.opacity = '1';
+            }}
+          >
+            + Create New Form
+          </button>
+        </div>
 
-      {/* Tab Navigation */}
-      <div className="forms-tabs">
-        <button
-          className={`tab ${activeTab === 'published' ? 'active' : ''}`}
-          onClick={() => setActiveTab('published')}
-        >
-          Published Forms ({forms.published.length})
-        </button>
-        <button
-          className={`tab ${activeTab === 'draft' ? 'active' : ''}`}
-          onClick={() => setActiveTab('draft')}
-        >
-          Draft Forms ({forms.draft.length})
-        </button>
-      </div>
+        {/* Tabs */}
+        <div style={formsStyles.tabs}>
+          <button
+            style={{
+              ...formsStyles.tab,
+              ...(activeTab === 'published' && formsStyles.tabActive),
+            }}
+            onClick={() => setActiveTab('published')}
+          >
+            Published Forms ({forms.published.length})
+          </button>
+          <button
+            style={{
+              ...formsStyles.tab,
+              ...(activeTab === 'draft' && formsStyles.tabActive),
+            }}
+            onClick={() => setActiveTab('draft')}
+          >
+            Draft Forms ({forms.draft.length})
+          </button>
+        </div>
 
-      {/* Search */}
-      <div className="forms-search">
-        <input
-          type="text"
-          placeholder="Search forms..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="search-input"
-        />
-      </div>
+        {/* Search */}
+        <div style={formsStyles.searchContainer}>
+          <input
+            type="text"
+            placeholder="🔍 Search forms..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={formsStyles.searchInput}
+            onFocus={(e) => {
+              e.target.style.borderColor = colors.primary;
+              e.target.style.boxShadow = `0 0 0 3px ${colors.primaryVeryLight}`;
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = colors.gray300;
+              e.target.style.boxShadow = 'none';
+            }}
+          />
+        </div>
 
-      {/* Forms Grid */}
-      <div className="forms-grid">
-        {getCurrentForms().length > 0 ? (
-          getCurrentForms().map(form => (
-            <div key={form.id} className="form-card">
-              <div className="form-card-header">
-                <h3>{form.name}</h3>
-                <div className="form-menu">
-                  <button className="menu-btn">⋯</button>
+        {/* Forms Grid */}
+        <div style={formsStyles.grid}>
+          {getCurrentForms().length > 0 ? (
+            getCurrentForms().map(form => (
+              <div
+                key={form.id}
+                style={formsStyles.card}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.boxShadow = colors.shadowLg;
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.boxShadow = colors.shadowMd;
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                <div style={formsStyles.cardHeader}>
+                  <h3 style={formsStyles.cardTitle}>{form.name}</h3>
+                  <button
+                    style={formsStyles.menuButton}
+                    onMouseOver={(e) => {
+                      e.target.style.color = colors.gray700;
+                    }}
+                    onMouseOut={(e) => {
+                      e.target.style.color = colors.gray500;
+                    }}
+                  >
+                    ⋯
+                  </button>
+                </div>
+
+                <div style={formsStyles.cardContent}>
+                  <div style={formsStyles.stat}>
+                    <span style={formsStyles.statLabel}>Responses</span>
+                    <span style={formsStyles.statValue}>{form.responses}</span>
+                  </div>
+                  <div style={formsStyles.stat}>
+                    <span style={formsStyles.statLabel}>Created</span>
+                    <span style={formsStyles.statValue}>
+                      {new Date(form.created).toLocaleDateString()}
+                    </span>
+                  </div>
+                </div>
+
+                <div style={formsStyles.cardFooter}>
+                  <a
+                    href={`/forms/${form.id}`}
+                    style={{
+                      ...formsStyles.action,
+                      ...formsStyles.actionPrimary,
+                    }}
+                    onMouseOver={(e) => {
+                      e.target.style.backgroundColor = colors.primary;
+                      e.target.style.color = colors.white;
+                    }}
+                    onMouseOut={(e) => {
+                      e.target.style.backgroundColor = colors.primaryVeryLight;
+                      e.target.style.color = colors.primary;
+                    }}
+                  >
+                    View Details
+                  </a>
+                  <a
+                    href={`/form-builder/${form.id}`}
+                    style={{
+                      ...formsStyles.action,
+                      ...formsStyles.actionSecondary,
+                    }}
+                    onMouseOver={(e) => {
+                      e.target.style.backgroundColor = colors.gray200;
+                      e.target.style.color = colors.gray900;
+                    }}
+                    onMouseOut={(e) => {
+                      e.target.style.backgroundColor = colors.gray100;
+                      e.target.style.color = colors.gray700;
+                    }}
+                  >
+                    {activeTab === 'draft' ? 'Edit' : 'Duplicate'}
+                  </a>
                 </div>
               </div>
-
-              <div className="form-card-content">
-                <div className="form-stat">
-                  <span className="stat-label">Responses</span>
-                  <span className="stat-value">{form.responses}</span>
-                </div>
-                <div className="form-stat">
-                  <span className="stat-label">Created</span>
-                  <span className="stat-value">{new Date(form.created).toLocaleDateString()}</span>
-                </div>
-              </div>
-
-              <div className="form-card-footer">
-                <a href={`/forms/${form.id}`} className="form-action">View Details</a>
-                <a href={`/form-builder/${form.id}`} className="form-action edit">
-                  {activeTab === 'draft' ? 'Edit' : 'Duplicate'}
-                </a>
-              </div>
+            ))
+          ) : (
+            <div style={{ ...formsStyles.emptyState, gridColumn: '1/-1' }}>
+              <p style={formsStyles.emptyText}>
+                📭 No {activeTab} forms found
+              </p>
+              {activeTab === 'published' && (
+                <button style={formsStyles.createButton}>
+                  Create your first form
+                </button>
+              )}
             </div>
-          ))
-        ) : (
-          <div className="empty-state">
-            <p>No {activeTab} forms found</p>
-            {activeTab === 'published' && (
-              <button className="create-form-btn">Create your first form</button>
-            )}
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

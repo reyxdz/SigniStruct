@@ -1,149 +1,428 @@
 import React, { useState } from 'react';
+import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
 
 const Dashboard = () => {
-  const [user] = useState({
-    name: 'John Doe',
-    email: 'john@example.com'
+  const [formsData] = useState({
+    published: 5,
+    draft: 2,
+    totalResponses: 24,
   });
 
-  // Sample data
-  const stats = {
-    publishedForms: 5,
-    draftForms: 2,
-    publishedDocuments: 8,
-    assignedDocuments: 3,
-    draftDocuments: 1,
-    formResponses: 24,
-    pendingSignatures: 3
+  const [documentsData] = useState({
+    published: 8,
+    assignedToSign: 3,
+    draft: 1,
+  });
+
+  const [recentActivity] = useState([
+    {
+      id: 1,
+      type: 'form',
+      title: 'Customer Feedback Form',
+      action: 'created',
+      timestamp: '2 hours ago',
+      icon: '📋',
+    },
+    {
+      id: 2,
+      type: 'document',
+      title: 'Employment Contract',
+      action: 'signed',
+      timestamp: '4 hours ago',
+      icon: '📄',
+    },
+    {
+      id: 3,
+      type: 'form',
+      title: 'Event Registration',
+      action: 'received 5 responses',
+      timestamp: '1 day ago',
+      icon: '📋',
+    },
+    {
+      id: 4,
+      type: 'document',
+      title: 'NDA Agreement',
+      action: 'pending signature',
+      timestamp: '2 days ago',
+      icon: '📄',
+    },
+  ]);
+
+  const dashboardStyles = {
+    container: {
+      minHeight: '100vh',
+      backgroundColor: colors.lightGray,
+      padding: `${spacing.xl} ${spacing['2xl']}`,
+    },
+    content: {
+      maxWidth: '1400px',
+      margin: '0 auto',
+    },
+    header: {
+      marginBottom: spacing['3xl'],
+    },
+    greeting: {
+      fontSize: typography.sizes['3xl'],
+      fontWeight: typography.weights.bold,
+      color: colors.gray900,
+      marginBottom: spacing.xs,
+    },
+    subtitle: {
+      fontSize: typography.sizes.base,
+      color: colors.gray600,
+      marginBottom: spacing.lg,
+    },
+    actionButtons: {
+      display: 'flex',
+      gap: spacing.md,
+      flexWrap: 'wrap',
+    },
+    button: {
+      padding: `${spacing.sm} ${spacing.lg}`,
+      fontSize: typography.sizes.sm,
+      fontWeight: typography.weights.medium,
+      border: 'none',
+      borderRadius: borderRadius.md,
+      cursor: 'pointer',
+      transition: transitions.fast,
+    },
+    primaryButton: {
+      backgroundColor: colors.primary,
+      color: colors.white,
+    },
+    secondaryButton: {
+      backgroundColor: colors.white,
+      color: colors.primary,
+      border: `2px solid ${colors.primary}`,
+    },
+    sectionTitle: {
+      fontSize: typography.sizes['2xl'],
+      fontWeight: typography.weights.bold,
+      color: colors.gray900,
+      marginBottom: spacing.lg,
+      marginTop: spacing['2xl'],
+    },
+    cardsGrid: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+      gap: spacing.lg,
+      marginBottom: spacing['3xl'],
+    },
+    statCard: {
+      backgroundColor: colors.white,
+      borderRadius: borderRadius.lg,
+      padding: spacing.lg,
+      boxShadow: colors.shadowMd,
+      transition: transitions.fast,
+    },
+    statValue: {
+      fontSize: typography.sizes['4xl'],
+      fontWeight: typography.weights.bold,
+      color: colors.primary,
+      marginBottom: spacing.xs,
+    },
+    statLabel: {
+      fontSize: typography.sizes.sm,
+      color: colors.gray600,
+      marginBottom: spacing.md,
+    },
+    viewLink: {
+      fontSize: typography.sizes.sm,
+      color: colors.primary,
+      textDecoration: 'none',
+      fontWeight: typography.weights.medium,
+      cursor: 'pointer',
+      transition: transitions.fast,
+    },
+    activityContainer: {
+      backgroundColor: colors.white,
+      borderRadius: borderRadius.lg,
+      padding: spacing.lg,
+      boxShadow: colors.shadowMd,
+    },
+    activityTitle: {
+      fontSize: typography.sizes.lg,
+      fontWeight: typography.weights.bold,
+      color: colors.gray900,
+      marginBottom: spacing.lg,
+      borderBottom: `2px solid ${colors.gray200}`,
+      paddingBottom: spacing.md,
+    },
+    activityList: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: spacing.md,
+    },
+    activityItem: {
+      display: 'flex',
+      alignItems: 'flex-start',
+      padding: spacing.md,
+      borderRadius: borderRadius.base,
+      backgroundColor: colors.gray50,
+      transition: transitions.fast,
+    },
+    activityIcon: {
+      fontSize: '1.5rem',
+      marginRight: spacing.md,
+      flexShrink: 0,
+    },
+    activityContent: {
+      flex: 1,
+    },
+    activityItemTitle: {
+      fontSize: typography.sizes.sm,
+      fontWeight: typography.weights.medium,
+      color: colors.gray900,
+      marginBottom: spacing.xs,
+    },
+    activityItemAction: {
+      fontSize: typography.sizes.sm,
+      color: colors.gray600,
+    },
+    activityTimestamp: {
+      fontSize: typography.sizes.xs,
+      color: colors.gray500,
+      marginTop: spacing.xs,
+    },
+    sectionSubtitle: {
+      fontSize: typography.sizes.sm,
+      color: colors.gray600,
+      marginTop: spacing.xs,
+    },
+    colorIndicator: {
+      width: '4px',
+      height: '100%',
+      borderRadius: `${borderRadius.base} 0 0 ${borderRadius.base}`,
+      marginRight: spacing.md,
+      flexShrink: 0,
+    },
   };
 
-  const recentForms = [
-    { id: 1, name: 'Contact Form', responses: 8, created: '2 days ago' },
-    { id: 2, name: 'Feedback Survey', responses: 12, created: '1 week ago' },
-  ];
-
-  const recentDocuments = [
-    { id: 1, name: 'Service Agreement', signers: 2, status: 'pending', created: '3 days ago' },
-    { id: 2, name: 'Proposal Document', signers: 1, status: 'signed', created: '1 week ago' },
-  ];
+  const formCardColor = colors.primary;
+  const docCardColor = colors.secondary;
 
   return (
-    <div className="dashboard">
-      {/* Welcome Section */}
-      <div className="dashboard-welcome">
-        <h1>Welcome back, {user.name}!</h1>
-        <p>Manage your forms and documents in one place</p>
-      </div>
+    <div style={dashboardStyles.container}>
+      <div style={dashboardStyles.content}>
+        {/* Header Section */}
+        <div style={dashboardStyles.header}>
+          <h1 style={dashboardStyles.greeting}>Welcome back, John Doe! 👋</h1>
+          <p style={dashboardStyles.subtitle}>
+            Manage your forms and documents in one place
+          </p>
+          <div style={dashboardStyles.actionButtons}>
+            <button
+              style={{
+                ...dashboardStyles.button,
+                ...dashboardStyles.primaryButton,
+              }}
+              onMouseOver={(e) => {
+                e.target.style.opacity = '0.9';
+              }}
+              onMouseOut={(e) => {
+                e.target.style.opacity = '1';
+              }}
+            >
+              + Create Form
+            </button>
+            <button
+              style={{
+                ...dashboardStyles.button,
+                ...dashboardStyles.secondaryButton,
+              }}
+              onMouseOver={(e) => {
+                e.target.style.backgroundColor = colors.gray50;
+              }}
+              onMouseOut={(e) => {
+                e.target.style.backgroundColor = colors.white;
+              }}
+            >
+              📤 Upload Document
+            </button>
+          </div>
+        </div>
 
-      {/* Quick Actions */}
-      <div className="quick-actions">
-        <button className="action-btn primary-btn">
-          <span className="icon">+</span>
-          <span className="text">Create Form</span>
-        </button>
-        <button className="action-btn secondary-btn">
-          <span className="icon">📄</span>
-          <span className="text">Upload Document</span>
-        </button>
-      </div>
-
-      {/* Stats Grid */}
-      <div className="stats-grid">
         {/* Forms Section */}
-        <div className="stats-section forms-section">
-          <h2>Forms</h2>
-          <div className="stats-cards">
-            <div className="stat-card">
-              <div className="stat-number">{stats.publishedForms}</div>
-              <div className="stat-label">Published Forms</div>
-              <a href="/forms?filter=published" className="stat-link">View all →</a>
+        <h2 style={dashboardStyles.sectionTitle}>📋 Forms Statistics</h2>
+        <div style={dashboardStyles.cardsGrid}>
+          <div
+            style={dashboardStyles.statCard}
+            onMouseOver={(e) => {
+              e.currentTarget.style.boxShadow = colors.shadowLg;
+              e.currentTarget.style.transform = 'translateY(-4px)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.boxShadow = colors.shadowMd;
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            <div style={dashboardStyles.statValue}>
+              {formsData.published}
             </div>
-            <div className="stat-card">
-              <div className="stat-number">{stats.draftForms}</div>
-              <div className="stat-label">Draft Forms</div>
-              <a href="/forms?filter=draft" className="stat-link">View all →</a>
+            <div style={dashboardStyles.statLabel}>Published Forms</div>
+            <a style={dashboardStyles.viewLink}>View all →</a>
+            <p style={dashboardStyles.sectionSubtitle}>
+              Active and collecting responses
+            </p>
+          </div>
+
+          <div
+            style={dashboardStyles.statCard}
+            onMouseOver={(e) => {
+              e.currentTarget.style.boxShadow = colors.shadowLg;
+              e.currentTarget.style.transform = 'translateY(-4px)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.boxShadow = colors.shadowMd;
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            <div style={dashboardStyles.statValue}>
+              {formsData.draft}
             </div>
-            <div className="stat-card accent">
-              <div className="stat-number">{stats.formResponses}</div>
-              <div className="stat-label">Total Responses</div>
-              <a href="/forms/responses" className="stat-link">View responses →</a>
+            <div style={dashboardStyles.statLabel}>Draft Forms</div>
+            <a style={dashboardStyles.viewLink}>View all →</a>
+            <p style={dashboardStyles.sectionSubtitle}>
+              Still in progress
+            </p>
+          </div>
+
+          <div
+            style={dashboardStyles.statCard}
+            onMouseOver={(e) => {
+              e.currentTarget.style.boxShadow = colors.shadowLg;
+              e.currentTarget.style.transform = 'translateY(-4px)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.boxShadow = colors.shadowMd;
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            <div style={dashboardStyles.statValue}>
+              {formsData.totalResponses}
             </div>
+            <div style={dashboardStyles.statLabel}>Total Responses</div>
+            <a style={dashboardStyles.viewLink}>View responses →</a>
+            <p style={dashboardStyles.sectionSubtitle}>
+              Collected from all forms
+            </p>
           </div>
         </div>
 
         {/* Documents Section */}
-        <div className="stats-section documents-section">
-          <h2>Documents</h2>
-          <div className="stats-cards">
-            <div className="stat-card">
-              <div className="stat-number">{stats.publishedDocuments}</div>
-              <div className="stat-label">Published Documents</div>
-              <a href="/documents?filter=published" className="stat-link">View all →</a>
+        <h2 style={dashboardStyles.sectionTitle}>📄 Documents Statistics</h2>
+        <div style={dashboardStyles.cardsGrid}>
+          <div
+            style={dashboardStyles.statCard}
+            onMouseOver={(e) => {
+              e.currentTarget.style.boxShadow = colors.shadowLg;
+              e.currentTarget.style.transform = 'translateY(-4px)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.boxShadow = colors.shadowMd;
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            <div style={dashboardStyles.statValue}>
+              {documentsData.published}
             </div>
-            <div className="stat-card">
-              <div className="stat-number">{stats.assignedDocuments}</div>
-              <div className="stat-label">Assigned to Sign</div>
-              <a href="/documents?filter=assigned" className="stat-link">Sign now →</a>
+            <div style={dashboardStyles.statLabel}>Published Documents</div>
+            <a style={dashboardStyles.viewLink}>View all →</a>
+            <p style={dashboardStyles.sectionSubtitle}>
+              Ready for signing
+            </p>
+          </div>
+
+          <div
+            style={dashboardStyles.statCard}
+            onMouseOver={(e) => {
+              e.currentTarget.style.boxShadow = colors.shadowLg;
+              e.currentTarget.style.transform = 'translateY(-4px)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.boxShadow = colors.shadowMd;
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            <div style={{ ...dashboardStyles.statValue, color: colors.accent }}>
+              {documentsData.assignedToSign}
             </div>
-            <div className="stat-card accent">
-              <div className="stat-number">{stats.draftDocuments}</div>
-              <div className="stat-label">Draft Documents</div>
-              <a href="/documents?filter=draft" className="stat-link">View all →</a>
+            <div style={dashboardStyles.statLabel}>Assigned to Sign</div>
+            <a style={dashboardStyles.viewLink}>Sign now →</a>
+            <p style={dashboardStyles.sectionSubtitle}>
+              Waiting for your signature
+            </p>
+          </div>
+
+          <div
+            style={dashboardStyles.statCard}
+            onMouseOver={(e) => {
+              e.currentTarget.style.boxShadow = colors.shadowLg;
+              e.currentTarget.style.transform = 'translateY(-4px)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.boxShadow = colors.shadowMd;
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            <div style={dashboardStyles.statValue}>
+              {documentsData.draft}
             </div>
+            <div style={dashboardStyles.statLabel}>Draft Documents</div>
+            <a style={dashboardStyles.viewLink}>View all →</a>
+            <p style={dashboardStyles.sectionSubtitle}>
+              Not yet published
+            </p>
           </div>
         </div>
-      </div>
 
-      {/* Recent Activity */}
-      <div className="activity-section">
-        <div className="activity-column">
-          <h3>Recent Forms</h3>
-          <div className="activity-list">
-            {recentForms.map(form => (
-              <div key={form.id} className="activity-item form-item">
-                <div className="activity-icon">📋</div>
-                <div className="activity-content">
-                  <div className="activity-title">{form.name}</div>
-                  <div className="activity-meta">{form.responses} responses · {form.created}</div>
+        {/* Activity Section */}
+        <h2 style={dashboardStyles.sectionTitle}>🕐 Recent Activity</h2>
+        <div style={dashboardStyles.activityContainer}>
+          <div style={dashboardStyles.activityTitle}>
+            Latest Updates
+          </div>
+          <div style={dashboardStyles.activityList}>
+            {recentActivity.map((activity) => (
+              <div
+                key={activity.id}
+                style={{
+                  ...dashboardStyles.activityItem,
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.backgroundColor = colors.gray100;
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.backgroundColor = colors.gray50;
+                }}
+              >
+                <div
+                  style={{
+                    ...dashboardStyles.colorIndicator,
+                    backgroundColor:
+                      activity.type === 'form' ? formCardColor : docCardColor,
+                  }}
+                />
+                <div style={dashboardStyles.activityIcon}>
+                  {activity.icon}
                 </div>
-                <a href={`/forms/${form.id}`} className="activity-action">Open →</a>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="activity-column">
-          <h3>Recent Documents</h3>
-          <div className="activity-list">
-            {recentDocuments.map(doc => (
-              <div key={doc.id} className="activity-item document-item">
-                <div className="activity-icon">📄</div>
-                <div className="activity-content">
-                  <div className="activity-title">{doc.name}</div>
-                  <div className="activity-meta">
-                    {doc.signers} signer{doc.signers > 1 ? 's' : ''} · 
-                    <span className={`status ${doc.status}`}>{doc.status}</span> · {doc.created}
+                <div style={dashboardStyles.activityContent}>
+                  <div style={dashboardStyles.activityItemTitle}>
+                    {activity.title}
+                  </div>
+                  <div style={dashboardStyles.activityItemAction}>
+                    {activity.action}
+                  </div>
+                  <div style={dashboardStyles.activityTimestamp}>
+                    {activity.timestamp}
                   </div>
                 </div>
-                <a href={`/documents/${doc.id}`} className="activity-action">View →</a>
               </div>
             ))}
           </div>
         </div>
       </div>
-
-      {/* Pending Actions Alert */}
-      {stats.pendingSignatures > 0 && (
-        <div className="pending-alert">
-          <div className="alert-content">
-            <strong>⚠️ {stats.pendingSignatures} documents waiting for your signature</strong>
-            <p>Sign them now to keep your work up to date</p>
-          </div>
-          <a href="/documents?filter=assigned" className="alert-action">
-            View Pending Signatures →
-          </a>
-        </div>
-      )}
     </div>
   );
 };
