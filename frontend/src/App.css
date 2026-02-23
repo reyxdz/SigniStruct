@@ -1,0 +1,104 @@
+.App {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.App-header {
+  text-align: center;
+  color: white;
+  margin-bottom: 40px;
+  padding: 40px 20px;
+}
+
+.App-header h1 {
+  font-size: 3rem;
+  margin-bottom: 10px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.App-header p {
+  font-size: 1.2rem;
+  opacity: 0.9;
+}
+
+.App-main {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.status-card {
+  background: white;
+  border-radius: 8px;
+  padding: 30px;
+  margin-bottom: 30px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.status-card h2 {
+  color: #333;
+  margin-bottom: 15px;
+  font-size: 1.5rem;
+}
+
+.status-card p {
+  font-size: 1.1rem;
+  margin: 10px 0;
+}
+
+.success {
+  color: #27ae60;
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.error {
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+.timestamp {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  margin-top: 10px;
+}
+
+.info-section {
+  background: white;
+  border-radius: 8px;
+  padding: 30px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.info-section h2 {
+  color: #333;
+  margin-bottom: 15px;
+  font-size: 1.5rem;
+}
+
+.info-section p {
+  color: #555;
+  margin-bottom: 15px;
+  line-height: 1.6;
+}
+
+.info-section ul {
+  list-style: none;
+  margin: 20px 0;
+}
+
+.info-section li {
+  color: #555;
+  padding: 10px 0;
+  padding-left: 30px;
+  position: relative;
+  line-height: 1.6;
+}
+
+.info-section li:before {
+  content: "→";
+  position: absolute;
+  left: 0;
+  color: #667eea;
+  font-weight: bold;
+}
