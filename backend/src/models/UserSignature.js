@@ -7,6 +7,11 @@ const userSignatureSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
       index: true
+    },
+    signature_image: {
+      type: String,
+      required: true
+    },
     signature_type: {
       type: String,
       enum: ['drawn', 'uploaded', 'typed'],
