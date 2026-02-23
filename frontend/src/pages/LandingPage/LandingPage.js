@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
-import { FiFileText, FiEdit, FiCheckCircle, FiShield, FiZap, FiArrowRight } from 'react-icons/fi';
+import { FiFileText, FiEdit, FiCheckCircle, FiShield, FiZap, FiArrowRight, FiCheckSquare } from 'react-icons/fi';
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -15,31 +15,40 @@ const LandingPage = () => {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      padding: `${spacing.lg} ${spacing['2xl']}`,
+      padding: `${spacing.md} ${spacing['3xl']}`,
       backgroundColor: colors.white,
       borderBottom: `1px solid ${colors.gray100}`,
       position: 'sticky',
       top: 0,
       zIndex: 100,
     },
-    logo: {
-      fontSize: typography.sizes['2xl'],
+    logoContainer: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: spacing.sm,
+      cursor: 'pointer',
+      textDecoration: 'none',
+    },
+    logoIcon: {
+      width: '32px',
+      height: '32px',
+      backgroundColor: colors.primary,
+      borderRadius: borderRadius.md,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: colors.white,
+      fontSize: '1.2rem',
+    },
+    logoText: {
+      fontSize: typography.sizes.xl,
       fontWeight: typography.weights.bold,
       color: colors.primary,
-      cursor: 'pointer',
     },
-    navLinks: {
+    navButtons: {
       display: 'flex',
-      gap: spacing['2xl'],
+      gap: spacing.md,
       alignItems: 'center',
-    },
-    navLink: {
-      color: colors.gray700,
-      textDecoration: 'none',
-      fontSize: typography.sizes.sm,
-      fontWeight: typography.weights.medium,
-      cursor: 'pointer',
-      transition: transitions.fast,
     },
     navButton: {
       padding: `${spacing.sm} ${spacing.lg}`,
@@ -60,13 +69,13 @@ const LandingPage = () => {
       color: colors.white,
     },
     hero: {
-      padding: `${spacing['4xl']} ${spacing['2xl']}`,
+      padding: `${spacing['3xl']} ${spacing['2xl']}`,
       textAlign: 'center',
       backgroundColor: 'linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(8, 145, 178, 0.05) 100%)',
       backgroundImage: 'linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, rgba(8, 145, 178, 0.05) 100%)',
     },
     heroContent: {
-      maxWidth: '800px',
+      maxWidth: '900px',
       margin: '0 auto',
     },
     heroTitle: {
@@ -77,9 +86,9 @@ const LandingPage = () => {
       lineHeight: '1.2',
     },
     heroSubtitle: {
-      fontSize: typography.sizes.lg,
+      fontSize: typography.sizes.base,
       color: colors.gray600,
-      marginBottom: spacing['3xl'],
+      marginBottom: spacing['2xl'],
       lineHeight: '1.6',
     },
     heroCTA: {
@@ -87,6 +96,7 @@ const LandingPage = () => {
       gap: spacing.md,
       justifyContent: 'center',
       flexWrap: 'wrap',
+      marginBottom: spacing['2xl'],
     },
     primaryCtaBtn: {
       padding: `${spacing.md} ${spacing['2xl']}`,
@@ -117,7 +127,7 @@ const LandingPage = () => {
       transition: transitions.fast,
     },
     features: {
-      padding: `${spacing['4xl']} ${spacing['2xl']}`,
+      padding: `${spacing['3xl']} ${spacing['2xl']}`,
       backgroundColor: colors.lightGray,
     },
     featuresContent: {
@@ -160,7 +170,7 @@ const LandingPage = () => {
       lineHeight: '1.6',
     },
     cta: {
-      padding: `${spacing['4xl']} ${spacing['2xl']}`,
+      padding: `${spacing['3xl']} ${spacing['2xl']}`,
       backgroundColor: colors.primary,
       color: colors.white,
       textAlign: 'center',
@@ -227,12 +237,13 @@ const LandingPage = () => {
     <div style={landingStyles.container}>
       {/* Navbar */}
       <nav style={landingStyles.navbar}>
-        <div style={landingStyles.logo} onClick={() => navigate('/')}>
-          SigniStruct
+        <div style={landingStyles.logoContainer} onClick={() => navigate('/')}>
+          <div style={landingStyles.logoIcon}>
+            <FiCheckSquare size={18} />
+          </div>
+          <div style={landingStyles.logoText}>SigniStruct</div>
         </div>
-        <div style={landingStyles.navLinks}>
-          <a style={landingStyles.navLink} href="#features">Features</a>
-          <a style={landingStyles.navLink} href="#pricing">Pricing</a>
+        <div style={landingStyles.navButtons}>
           <button
             style={{ ...landingStyles.navButton, ...landingStyles.signInBtn }}
             onMouseOver={(e) => {
