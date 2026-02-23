@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
+import { FiFileText, FiFile, FiBarChart3, FiUpload } from 'react-icons/fi';
 
 const Dashboard = () => {
   const [formsData] = useState({
@@ -21,7 +22,6 @@ const Dashboard = () => {
       title: 'Customer Feedback Form',
       action: 'created',
       timestamp: '2 hours ago',
-      icon: '📋',
     },
     {
       id: 2,
@@ -29,7 +29,6 @@ const Dashboard = () => {
       title: 'Employment Contract',
       action: 'signed',
       timestamp: '4 hours ago',
-      icon: '📄',
     },
     {
       id: 3,
@@ -37,7 +36,6 @@ const Dashboard = () => {
       title: 'Event Registration',
       action: 'received 5 responses',
       timestamp: '1 day ago',
-      icon: '📋',
     },
     {
       id: 4,
@@ -45,7 +43,6 @@ const Dashboard = () => {
       title: 'NDA Agreement',
       action: 'pending signature',
       timestamp: '2 days ago',
-      icon: '📄',
     },
   ]);
 
@@ -210,7 +207,7 @@ const Dashboard = () => {
       <div style={dashboardStyles.content}>
         {/* Header Section */}
         <div style={dashboardStyles.header}>
-          <h1 style={dashboardStyles.greeting}>Welcome back, John Doe! 👋</h1>
+          <h1 style={dashboardStyles.greeting}>Welcome back, John Doe!</h1>
           <p style={dashboardStyles.subtitle}>
             Manage your forms and documents in one place
           </p>
@@ -241,13 +238,13 @@ const Dashboard = () => {
                 e.target.style.backgroundColor = colors.white;
               }}
             >
-              📤 Upload Document
+              <FiUpload style={{ display: 'inline', marginRight: '6px' }} /> Upload Document
             </button>
           </div>
         </div>
 
         {/* Forms Section */}
-        <h2 style={dashboardStyles.sectionTitle}>📋 Forms Statistics</h2>
+        <h2 style={dashboardStyles.sectionTitle}><FiFileText style={{ display: 'inline', marginRight: '8px' }} /> Forms Statistics</h2>
         <div style={dashboardStyles.cardsGrid}>
           <div
             style={dashboardStyles.statCard}
@@ -314,7 +311,7 @@ const Dashboard = () => {
         </div>
 
         {/* Documents Section */}
-        <h2 style={dashboardStyles.sectionTitle}>📄 Documents Statistics</h2>
+        <h2 style={dashboardStyles.sectionTitle}><FiFile style={{ display: 'inline', marginRight: '8px' }} /> Documents Statistics</h2>
         <div style={dashboardStyles.cardsGrid}>
           <div
             style={dashboardStyles.statCard}
@@ -381,7 +378,7 @@ const Dashboard = () => {
         </div>
 
         {/* Activity Section */}
-        <h2 style={dashboardStyles.sectionTitle}>🕐 Recent Activity</h2>
+        <h2 style={dashboardStyles.sectionTitle}><FiBarChart3 style={{ display: 'inline', marginRight: '8px' }} /> Recent Activity</h2>
         <div style={dashboardStyles.activityContainer}>
           <div style={dashboardStyles.activityTitle}>
             Latest Updates
@@ -408,7 +405,7 @@ const Dashboard = () => {
                   }}
                 />
                 <div style={dashboardStyles.activityIcon}>
-                  {activity.icon}
+                  {activity.type === 'form' ? <FiFileText /> : <FiFile />}
                 </div>
                 <div style={dashboardStyles.activityContent}>
                   <div style={dashboardStyles.activityItemTitle}>

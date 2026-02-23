@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
+import { FiSave, FiArrowRight, FiGrid, FiX, FiSettings } from 'react-icons/fi';
 
 const FormBuilder = ({ formId }) => {
   const [formName, setFormName] = useState('Untitled Form');
@@ -252,7 +253,7 @@ const FormBuilder = ({ formId }) => {
               e.target.style.backgroundColor = colors.white;
             }}
           >
-            💾 Save Draft
+            <FiSave style={{ display: 'inline', marginRight: '8px' }} /> Save Draft
           </button>
           <button
             style={{
@@ -267,7 +268,7 @@ const FormBuilder = ({ formId }) => {
               e.target.style.opacity = '1';
             }}
           >
-            🚀 Publish Form
+            <FiArrowRight style={{ display: 'inline', marginRight: '8px' }} /> Publish Form
           </button>
         </div>
       </div>
@@ -276,7 +277,7 @@ const FormBuilder = ({ formId }) => {
       <div style={builderStyles.builderContainer}>
         {/* Toolbar */}
         <div style={builderStyles.toolbar}>
-          <h3 style={builderStyles.toolbarTitle}>🧩 Add Fields</h3>
+          <h3 style={builderStyles.toolbarTitle}><FiGrid style={{ display: 'inline', marginRight: '8px' }} /> Add Fields</h3>
           <div style={builderStyles.fieldButtons}>
             {['text', 'email', 'phone', 'textarea', 'select', 'checkbox', 'radio', 'date', 'signature'].map(
               type => (
@@ -349,7 +350,7 @@ const FormBuilder = ({ formId }) => {
                       e.target.style.opacity = '1';
                     }}
                   >
-                    ✕
+                    <FiX style={{ fontSize: '18px' }} />
                   </button>
                 </div>
               ))
@@ -360,7 +361,7 @@ const FormBuilder = ({ formId }) => {
         {/* Properties Panel */}
         {selectedField && (
           <div style={builderStyles.properties}>
-            <h3 style={builderStyles.propertiesTitle}>⚙️ Properties</h3>
+            <h3 style={builderStyles.propertiesTitle}><FiSettings style={{ display: 'inline', marginRight: '8px' }} /> Properties</h3>
             <div style={builderStyles.propertyGroup}>
               <label style={builderStyles.propertyLabel}>Field Label</label>
               <input

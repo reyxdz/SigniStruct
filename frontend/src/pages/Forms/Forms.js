@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
+import { FiFileText } from 'react-icons/fi';
 
 const Forms = () => {
   const [activeTab, setActiveTab] = useState('published');
@@ -187,7 +188,7 @@ const Forms = () => {
       <div style={formsStyles.content}>
         {/* Header */}
         <div style={formsStyles.header}>
-          <h1 style={formsStyles.title}>📋 Forms</h1>
+          <h1 style={formsStyles.title}><FiFileText style={{ display: 'inline', marginRight: '12px' }} /> Forms</h1>
           <button
             style={formsStyles.createButton}
             onMouseOver={(e) => {
@@ -327,7 +328,7 @@ const Forms = () => {
           ) : (
             <div style={{ ...formsStyles.emptyState, gridColumn: '1/-1' }}>
               <p style={formsStyles.emptyText}>
-                📭 No {activeTab} forms found
+                No {activeTab} forms found
               </p>
               {activeTab === 'published' && (
                 <button style={formsStyles.createButton}>

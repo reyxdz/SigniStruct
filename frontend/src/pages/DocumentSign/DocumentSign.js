@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
+import { FiEdit, FiUsers, FiUpload, FiX, FiCheck, FiClock } from 'react-icons/fi';
 
 const DocumentSign = ({ documentId }) => {
   const [signatureType, setSignatureType] = useState('draw');
@@ -306,7 +307,7 @@ const DocumentSign = ({ documentId }) => {
       <div style={signStyles.content}>
         {/* Header */}
         <div style={signStyles.header}>
-          <h1 style={signStyles.title}>✍️ Sign Document</h1>
+          <h1 style={signStyles.title}><FiEdit style={{ display: 'inline', marginRight: '12px' }} /> Sign Document</h1>
           <p style={signStyles.owner}>by {document.owner}</p>
         </div>
 
@@ -326,7 +327,7 @@ const DocumentSign = ({ documentId }) => {
             {/* Signers List */}
             <div style={signStyles.signersList}>
               <h3 style={signStyles.signersTitle}>
-                👥 Signers ({document.signers.length})
+                <FiUsers style={{ display: 'inline', marginRight: '8px' }} /> Signers ({document.signers.length})
               </h3>
               {document.signers.map((signer, idx) => (
                 <div
@@ -337,7 +338,7 @@ const DocumentSign = ({ documentId }) => {
                   }}
                 >
                   <span style={signStyles.signerBadge}>
-                    {signer.status === 'pending' ? '⏳' : '✓'}
+                    {signer.status === 'pending' ? <FiClock /> : <FiCheck />}
                   </span>
                   <div style={signStyles.signerInfo}>
                     <div style={signStyles.signerName}>{signer.name}</div>
@@ -370,7 +371,7 @@ const DocumentSign = ({ documentId }) => {
                 }}
                 onClick={() => setSignatureType('draw')}
               >
-                ✏️ Draw
+                <FiEdit style={{ display: 'inline', marginRight: '6px' }} /> Draw
               </button>
               <button
                 style={{
@@ -388,7 +389,7 @@ const DocumentSign = ({ documentId }) => {
                 }}
                 onClick={() => setSignatureType('upload')}
               >
-                📤 Upload
+                <FiUpload style={{ display: 'inline', marginRight: '6px' }} /> Upload
               </button>
             </div>
 
@@ -405,7 +406,7 @@ const DocumentSign = ({ documentId }) => {
                   onMouseUp={stopDrawing}
                   onMouseLeave={stopDrawing}
                 />
-                <p style={signStyles.hint}>✏️ Draw your signature above</p>
+                <p style={signStyles.hint}><FiEdit style={{ display: 'inline', marginRight: '6px' }} /> Draw your signature above</p>
                 <button
                   style={signStyles.clearButton}
                   onClick={clearSignature}
@@ -457,7 +458,7 @@ const DocumentSign = ({ documentId }) => {
                 >
                   <input type="file" accept="image/*" style={signStyles.fileInput} />
                   <span style={signStyles.fileInputSpan}>
-                    📤 Upload Signature Image
+                    <FiUpload style={{ display: 'inline', marginRight: '6px' }} /> Upload Signature Image
                   </span>
                 </label>
                 <p style={signStyles.hint}>PNG, JPG, or GIF</p>
@@ -492,7 +493,7 @@ const DocumentSign = ({ documentId }) => {
                   e.target.style.backgroundColor = colors.gray100;
                 }}
               >
-                ✕ Cancel
+                <FiX style={{ display: 'inline', marginRight: '6px' }} /> Cancel
               </button>
               <button
                 style={{
@@ -513,7 +514,7 @@ const DocumentSign = ({ documentId }) => {
                   }
                 }}
               >
-                ✓ Sign Document
+                <FiCheck style={{ display: 'inline', marginRight: '6px' }} /> Sign Document
               </button>
             </div>
           </div>

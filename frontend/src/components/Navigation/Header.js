@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
+import { FiSettings } from 'react-icons/fi';
 
 const Header = ({ user, onLogout }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -263,7 +264,7 @@ const Header = ({ user, onLogout }) => {
                   e.target.style.color = colors.gray700;
                 }}
               >
-                ⚙️ Account Settings
+                <FiSettings style={{ display: 'inline', marginRight: '6px' }} /> Account Settings
               </a>
               <button
                 onClick={() => {

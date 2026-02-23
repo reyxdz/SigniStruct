@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
+import { FiFileText, FiCheck, FiClock, FiUpload } from 'react-icons/fi';
 
 const Documents = () => {
   const [activeTab, setActiveTab] = useState('published');
@@ -182,7 +183,7 @@ const Documents = () => {
       <div style={documentsStyles.content}>
         {/* Header */}
         <div style={documentsStyles.header}>
-          <h1 style={documentsStyles.title}>📄 Documents</h1>
+          <h1 style={documentsStyles.title}><FiFileText style={{ display: 'inline', marginRight: '12px' }} /> Documents</h1>
           <button
             style={documentsStyles.uploadButton}
             onMouseOver={(e) => {
@@ -192,7 +193,7 @@ const Documents = () => {
               e.target.style.opacity = '1';
             }}
           >
-            📤 Upload Document
+            <FiUpload style={{ display: 'inline', marginRight: '6px' }} /> Upload Document
           </button>
         </div>
 
@@ -274,7 +275,7 @@ const Documents = () => {
                   >
                     <td style={documentsStyles.td}>
                       <div style={documentsStyles.docName}>
-                        <span>📄</span>
+                        <FiFileText style={{ marginRight: '8px' }} />
                         {doc.name}
                       </div>
                     </td>
@@ -291,9 +292,9 @@ const Documents = () => {
                         }}
                       >
                         {doc.status === 'signed'
-                          ? '✓ Signed'
+                          ? <><FiCheck style={{ display: 'inline', marginRight: '4px' }} /> Signed</>
                           : doc.status === 'pending'
-                          ? '⏳ Pending'
+                          ? <><FiClock style={{ display: 'inline', marginRight: '4px' }} /> Pending</>
                           : 'Draft'}
                       </span>
                     </td>
@@ -367,7 +368,7 @@ const Documents = () => {
                       ...documentsStyles.emptyRow,
                     }}
                   >
-                    <p>📭 No {activeTab} documents found</p>
+                    <p>No {activeTab} documents found</p>
                   </td>
                 </tr>
               )}
