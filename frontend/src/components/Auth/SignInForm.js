@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
 import { FiMail, FiLock, FiEyeOff, FiEye } from 'react-icons/fi';
+import { signIn, setAuthToken } from '../../services/api';
 
 const SignInForm = () => {
   const navigate = useNavigate();
@@ -156,14 +157,19 @@ const SignInForm = () => {
     if (!validateForm()) return;
 
     setIsLoading(true);
+    setErrors({});
     
     try {
-      // API call will be implemented in Phase 1
-      // const response = await authService.signIn(email, password);
-      // Handle successful login
-      console.log('Sign in attempted with:', { email, password });
+      const response = await signIn({ email, password });
+      
+      // Store token
+      setAuthToken(response.data.token);
+      
+      // Redirect to dashboard
+      navigate('/dashboard');
     } catch (error) {
-      setErrors({ submit: 'Failed to sign in. Please check your credentials.' });
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to sign in. Please check your credentials.';
+      setErrors({ submit: errorMessage });
     } finally {
       setIsLoading(false);
     }

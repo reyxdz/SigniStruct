@@ -24,10 +24,32 @@ api.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
-      window.location.href = '/login';
+      window.location.href = '/signin';
     }
     return Promise.reject(error);
   }
 );
+
+// Auth endpoints
+export const signUp = (userData) => api.post('/auth/signup', userData);
+export const signIn = (credentials) => api.post('/auth/signin', credentials);
+export const getCurrentUser = () => api.get('/auth/me');
+
+// Token management
+export const setAuthToken = (token) => {
+  if (token) {
+    localStorage.setItem('token', token);
+    api.defaults.headers.common.Authorization = `Bearer ${token}`;
+  }
+};
+
+export const removeAuthToken = () => {
+  localStorage.removeItem('token');
+  delete api.defaults.headers.common.Authorization;
+};
+
+export const getAuthToken = () => localStorage.getItem('token');
+
+export const isAuthenticated = () => !!getAuthToken();
 
 export default api;

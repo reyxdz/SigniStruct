@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
 import { FiUser, FiMail, FiPhone, FiMapPin, FiLock, FiEyeOff, FiEye } from 'react-icons/fi';
+import { signUp, setAuthToken } from '../../services/api';
 
 const SignUpForm = () => {
   const navigate = useNavigate();
@@ -224,14 +225,19 @@ const SignUpForm = () => {
     if (!validateForm()) return;
 
     setIsLoading(true);
+    setErrors({});
 
     try {
-      // API call will be implemented in Phase 1
-      // const response = await authService.signUp(formData);
-      // Handle successful signup
-      console.log('Sign up attempted with:', formData);
+      const response = await signUp(formData);
+      
+      // Store token
+      setAuthToken(response.data.token);
+      
+      // Redirect to dashboard
+      navigate('/dashboard');
     } catch (error) {
-      setErrors({ submit: 'Failed to create account. Please try again.' });
+      const errorMessage = error.response?.data?.error || error.message || 'Failed to create account. Please try again.';
+      setErrors({ submit: errorMessage });
     } finally {
       setIsLoading(false);
     }
