@@ -12,7 +12,15 @@ const documentSchema = new mongoose.Schema(
       type: String,
       required: true
     },
+    description: {
+      type: String,
+      default: null
+    },
     file_url: {
+      type: String,
+      required: true
+    },
+    original_filename: {
       type: String,
       required: true
     },
@@ -20,6 +28,18 @@ const documentSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true
+    },
+    file_size: {
+      type: Number,
+      required: true
+    },
+    num_pages: {
+      type: Number,
+      default: 1
+    },
+    file_type: {
+      type: String,
+      default: 'application/pdf'
     },
     status: {
       type: String,
