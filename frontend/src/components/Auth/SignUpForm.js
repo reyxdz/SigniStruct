@@ -183,7 +183,7 @@ const SignUpForm = () => {
 
     if (!formData.phone.trim()) {
       newErrors.phone = 'Phone number is required';
-    } else if (!/^(\+63|0)9\d{9}$/.test(formData.phone.replace(/\D/g, ''))) {
+    } else if (!/^(639|09)\d{9}$/.test(formData.phone.replace(/\D/g, ''))) {
       newErrors.phone = 'Please enter a valid Philippine phone number';
     }
 

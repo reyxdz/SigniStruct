@@ -36,7 +36,7 @@ exports.signup = async (req, res) => {
     }
 
     // Validate Philippine phone number
-    const phoneRegex = /^(\+63|0)9\d{9}$/;
+    const phoneRegex = /^(639|09)\d{9}$/;
     const cleanPhone = phone.replace(/\D/g, '');
     if (!phoneRegex.test(cleanPhone)) {
       return res.status(400).json({ error: 'Invalid Philippine phone number' });
