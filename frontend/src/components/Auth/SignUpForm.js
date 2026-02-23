@@ -261,6 +261,7 @@ const SignUpForm = () => {
                 type="text"
                 name="firstName"
                 placeholder="John"
+                autoComplete="given-name"
                 value={formData.firstName}
                 onChange={handleChange}
                 onFocus={(e) => {
@@ -282,6 +283,7 @@ const SignUpForm = () => {
                 type="text"
                 name="lastName"
                 placeholder="Doe"
+                autoComplete="family-name"
                 value={formData.lastName}
                 onChange={handleChange}
                 onFocus={(e) => {
@@ -306,6 +308,7 @@ const SignUpForm = () => {
               type="email"
               name="email"
               placeholder="you@example.com"
+              autoComplete="email"
               value={formData.email}
               onChange={handleChange}
               onFocus={(e) => {
@@ -329,6 +332,7 @@ const SignUpForm = () => {
               type="tel"
               name="phone"
               placeholder="+63 9XX XXX XXXX"
+              autoComplete="tel"
               value={formData.phone}
               onChange={handleChange}
               onFocus={(e) => {
