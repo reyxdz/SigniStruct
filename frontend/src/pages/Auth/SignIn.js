@@ -37,15 +37,21 @@ const SignIn = () => {
     brandSection: {
       textAlign: 'center',
     },
-    logoImg: {
-      height: '80px',
-      width: 'auto',
+    logoContainer: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: spacing.md,
       marginBottom: spacing['2xl'],
+    },
+    logoImg: {
+      height: '60px',
+      width: 'auto',
+      filter: 'brightness(0) invert(1)',
     },
     logoText: {
       fontSize: typography.sizes['4xl'],
       fontWeight: typography.weights.bold,
-      marginBottom: spacing['2xl'],
     },
     tagline: {
       fontSize: typography.sizes.lg,
@@ -116,8 +122,10 @@ const SignIn = () => {
       {/* Left Section - Branding */}
       <div style={signInPageStyles.leftSection}>
         <div style={signInPageStyles.brandSection}>
-          <img src={logoImg} alt="SigniStruct" style={signInPageStyles.logoImg} />
-          <div style={signInPageStyles.logoText}>SigniStruct</div>
+          <div style={signInPageStyles.logoContainer}>
+            <img src={logoImg} alt="SigniStruct" style={signInPageStyles.logoImg} />
+            <div style={signInPageStyles.logoText}>SigniStruct</div>
+          </div>
           <p style={signInPageStyles.tagline}>
             The complete, free platform for creating forms and signing documents online
           </p>
