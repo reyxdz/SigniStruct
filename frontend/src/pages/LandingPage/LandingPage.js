@@ -26,14 +26,23 @@ const LandingPage = () => {
     logoContainer: {
       display: 'flex',
       alignItems: 'center',
+      gap: spacing.md,
       cursor: 'pointer',
       textDecoration: 'none',
-      height: '40px',
     },
     logoImg: {
-      height: '100%',
+      height: '40px',
       width: 'auto',
-      maxWidth: '150px',
+      display: 'flex',
+      alignItems: 'center',
+    },
+    brandText: {
+      fontSize: typography.sizes.lg,
+      fontWeight: typography.weights.bold,
+      background: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.secondary} 100%)`,
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
+      backgroundClip: 'text',
     },
     navButtons: {
       display: 'flex',
@@ -229,6 +238,7 @@ const LandingPage = () => {
       <nav style={landingStyles.navbar}>
         <div style={landingStyles.logoContainer} onClick={() => navigate('/')}>
           <img src={logoImg} alt="SigniStruct" style={landingStyles.logoImg} />
+          <span style={landingStyles.brandText}>SigniStruct</span>
         </div>
         <div style={landingStyles.navButtons}>
           <button
