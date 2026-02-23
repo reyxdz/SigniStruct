@@ -25,6 +25,10 @@ const SignUp = () => {
       backgroundImage: 'linear-gradient(135deg, rgba(37, 99, 235, 1) 0%, rgba(8, 145, 178, 0.8) 100%)',
       backgroundSize: 'cover',
       backgroundPosition: 'center',
+      position: 'sticky',
+      top: 0,
+      height: '100vh',
+      overflow: 'hidden',
       '@media (max-width: 768px)': {
         display: 'none',
       },
