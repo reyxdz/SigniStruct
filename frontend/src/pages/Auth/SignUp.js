@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { colors, spacing, typography } from '../../theme';
 import SignUpForm from '../../components/Auth/SignUpForm';
 import { FiArrowLeft } from 'react-icons/fi';
+import logoImg from '../../assets/images/signify_logo.png';
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -36,7 +37,12 @@ const SignUp = () => {
     brandSection: {
       textAlign: 'center',
     },
-    logo: {
+    logoImg: {
+      height: '80px',
+      width: 'auto',
+      marginBottom: spacing['2xl'],
+    },
+    logoText: {
       fontSize: typography.sizes['4xl'],
       fontWeight: typography.weights.bold,
       marginBottom: spacing['2xl'],
@@ -112,22 +118,27 @@ const SignUp = () => {
       {/* Left Section - Branding */}
       <div style={signUpPageStyles.leftSection}>
         <div style={signUpPageStyles.brandSection}>
-          <div style={signUpPageStyles.logo}>SigniStruct</div>
+          <img src={logoImg} alt="SigniStruct" style={signUpPageStyles.logoImg} />
+          <div style={signUpPageStyles.logoText}>SigniStruct</div>
           <p style={signUpPageStyles.tagline}>
-            Join thousands of users who trust SigniStruct for their form and document management
+            The complete, free platform for creating forms and signing documents online
           </p>
           <div style={signUpPageStyles.features}>
             <div style={signUpPageStyles.featureItem}>
               <span style={{ fontSize: '1.5rem' }}>✓</span>
-              <span>No credit card required</span>
+              <span>100% Free - Forever</span>
             </div>
             <div style={signUpPageStyles.featureItem}>
               <span style={{ fontSize: '1.5rem' }}>✓</span>
-              <span>Start creating forms instantly</span>
+              <span>Create unlimited forms & documents</span>
             </div>
             <div style={signUpPageStyles.featureItem}>
               <span style={{ fontSize: '1.5rem' }}>✓</span>
-              <span>Free 14-day trial included</span>
+              <span>Bank-level security included</span>
+            </div>
+            <div style={signUpPageStyles.featureItem}>
+              <span style={{ fontSize: '1.5rem' }}>✓</span>
+              <span>No payment info needed</span>
             </div>
           </div>
         </div>

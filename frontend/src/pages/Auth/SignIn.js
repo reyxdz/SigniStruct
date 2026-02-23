@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { colors, spacing, typography } from '../../theme';
 import SignInForm from '../../components/Auth/SignInForm';
 import { FiArrowLeft } from 'react-icons/fi';
+import logoImg from '../../assets/images/signify_logo.png';
 
 const SignIn = () => {
   const navigate = useNavigate();
@@ -36,7 +37,12 @@ const SignIn = () => {
     brandSection: {
       textAlign: 'center',
     },
-    logo: {
+    logoImg: {
+      height: '80px',
+      width: 'auto',
+      marginBottom: spacing['2xl'],
+    },
+    logoText: {
       fontSize: typography.sizes['4xl'],
       fontWeight: typography.weights.bold,
       marginBottom: spacing['2xl'],
@@ -110,22 +116,27 @@ const SignIn = () => {
       {/* Left Section - Branding */}
       <div style={signInPageStyles.leftSection}>
         <div style={signInPageStyles.brandSection}>
-          <div style={signInPageStyles.logo}>SigniStruct</div>
+          <img src={logoImg} alt="SigniStruct" style={signInPageStyles.logoImg} />
+          <div style={signInPageStyles.logoText}>SigniStruct</div>
           <p style={signInPageStyles.tagline}>
-            The all-in-one platform for creating forms and collecting digital signatures
+            The complete, free platform for creating forms and signing documents online
           </p>
           <div style={signInPageStyles.features}>
             <div style={signInPageStyles.featureItem}>
               <span style={{ fontSize: '1.5rem' }}>✓</span>
-              <span>Create beautiful forms in minutes</span>
+              <span>100% Free - Forever</span>
             </div>
             <div style={signInPageStyles.featureItem}>
               <span style={{ fontSize: '1.5rem' }}>✓</span>
-              <span>Collect legally binding signatures</span>
+              <span>Create unlimited forms & documents</span>
             </div>
             <div style={signInPageStyles.featureItem}>
               <span style={{ fontSize: '1.5rem' }}>✓</span>
-              <span>Bank-level security & encryption</span>
+              <span>Bank-level security included</span>
+            </div>
+            <div style={signInPageStyles.featureItem}>
+              <span style={{ fontSize: '1.5rem' }}>✓</span>
+              <span>No payment info needed</span>
             </div>
           </div>
         </div>
