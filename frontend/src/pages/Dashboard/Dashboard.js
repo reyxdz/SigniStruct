@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
-import { FiFileText, FiFile, FiBarChart3, FiUpload } from 'react-icons/fi';
+import { FiFileText, FiFile, FiBarChart2, FiUpload } from 'react-icons/fi';
 
 const Dashboard = () => {
   const [formsData] = useState({
@@ -378,7 +378,7 @@ const Dashboard = () => {
         </div>
 
         {/* Activity Section */}
-        <h2 style={dashboardStyles.sectionTitle}><FiBarChart3 style={{ display: 'inline', marginRight: '8px' }} /> Recent Activity</h2>
+        <h2 style={dashboardStyles.sectionTitle}><FiBarChart2 style={{ display: 'inline', marginRight: '8px' }} /> Recent Activity</h2>
         <div style={dashboardStyles.activityContainer}>
           <div style={dashboardStyles.activityTitle}>
             Latest Updates
