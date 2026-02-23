@@ -29,8 +29,8 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
     certificate_id: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'UserCertificate',
+      type: ObjectId,
+      ref: 'Certificate',
       default: null
     },
   },
