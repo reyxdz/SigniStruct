@@ -28,6 +28,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    certificate_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'UserCertificate',
+      default: null
+    },
   },
   { timestamps: true }
 );
