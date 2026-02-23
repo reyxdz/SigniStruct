@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
-import './Dashboard.css';
 
 const Dashboard = () => {
   const [user] = useState({

@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
-import './DocumentSign.css';
 
 const DocumentSign = ({ documentId }) => {
-  const [signature, setSignature] = useState(null);
   const [signatureType, setSignatureType] = useState('draw');
   const canvasRef = React.useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);

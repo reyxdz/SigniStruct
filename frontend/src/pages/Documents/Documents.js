@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import './Documents.css';
 
 const Documents = () => {
   const [activeTab, setActiveTab] = useState('published');

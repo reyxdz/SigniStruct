@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import './FormBuilder.css';
 
 const FormBuilder = ({ formId }) => {
   const [formName, setFormName] = useState('Untitled Form');
