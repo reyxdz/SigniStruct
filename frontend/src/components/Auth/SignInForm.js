@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
 import { FiMail, FiLock, FiEyeOff, FiEye } from 'react-icons/fi';
+import { FaGoogle } from 'react-icons/fa';
 
 const SignInForm = () => {
   const navigate = useNavigate();
@@ -274,10 +275,7 @@ const SignInForm = () => {
           e.target.style.backgroundColor = colors.white;
         }}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="12" cy="12" r="10" />
-          <path d="M12 7v10M7 12h10" />
-        </svg>
+        <FaGoogle size={18} />
         Continue with Google
       </button>
 
