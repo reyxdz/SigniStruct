@@ -182,8 +182,8 @@ const SignUpForm = () => {
 
     if (!formData.phone.trim()) {
       newErrors.phone = 'Phone number is required';
-    } else if (!/^[\d\s\-+()\]]{10,}$/.test(formData.phone.replace(/\s/g, ''))) {
-      newErrors.phone = 'Please enter a valid phone number';
+    } else if (!/^(\+63|0)9\d{9}$/.test(formData.phone.replace(/\D/g, ''))) {
+      newErrors.phone = 'Please enter a valid Philippine phone number';
     }
 
     if (!formData.address.trim()) {
@@ -322,7 +322,7 @@ const SignUpForm = () => {
             <input
               type="tel"
               name="phone"
-              placeholder="+1 (555) 123-4567"
+              placeholder="+63 9XX XXX XXXX"
               value={formData.phone}
               onChange={handleChange}
               onFocus={(e) => {
