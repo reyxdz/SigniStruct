@@ -38,7 +38,7 @@ const DocumentSignerPage = () => {
   const [verificationResult, setVerificationResult] = useState(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [signingProgress, setSigningProgress] = useState(0);
-  const [cancelModal, setCancelModal] = useState(false);
+  const [discardModal, setDiscardModal] = useState(false);
 
   // Load document and signatures on mount
   useEffect(() => {
@@ -192,13 +192,14 @@ const DocumentSignerPage = () => {
   // Handle cancel
   const handleCancel = () => {
     if (signaturePlacements.length > 0) {
-      setCancelModal(true);
+      setDiscardModal(true);
     } else {
       navigate('/documents');
     }
   };
 
-  const confirmCancel = () => {
+  const confirmDiscard = () => {
+    setDiscardModal(false);
     navigate('/documents');
   };
 
@@ -351,14 +352,14 @@ const DocumentSignerPage = () => {
       </div>
 
       <ConfirmModal
-        isOpen={cancelModal}
+        isOpen={discardModal}
         title="Discard Changes"
         message="Are you sure? You will lose all signature placements."
         confirmText="Discard"
-        cancelText="Continue Signing"
+        cancelText="Cancel"
         isDangerous={true}
-        onConfirm={confirmCancel}
-        onCancel={() => setCancelModal(false)}
+        onConfirm={confirmDiscard}
+        onCancel={() => setDiscardModal(false)}
       />
     </div>
   );

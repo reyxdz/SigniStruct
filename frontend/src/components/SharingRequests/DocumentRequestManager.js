@@ -65,7 +65,7 @@ const DocumentRequestManager = ({ documentId, documentTitle, onClose }) => {
     fetchStats();
   }, [documentId]);
 
-  const handleRevoke = async (requestId) => {
+  const handleRevoke = (requestId) => {
     setRevokeModal({ isOpen: true, requestId });
   };
 
@@ -113,7 +113,7 @@ const DocumentRequestManager = ({ documentId, documentTitle, onClose }) => {
 
       setRevokeModal({ isOpen: false, requestId: null });
     } catch (err) {
-      alert(err.message);
+      setError(err.message);
       setRevokeModal({ isOpen: false, requestId: null });
     }
   };

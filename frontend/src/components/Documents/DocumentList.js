@@ -99,12 +99,12 @@ const DocumentList = ({ refreshTrigger }) => {
   /**
    * Handle document deletion
    */
-  const handleDelete = async (docId) => {
+  const handleDelete = (docId) => {
     setDeleteModal({ isOpen: true, docId });
   };
 
   /**
-   * Confirm deletion
+   * Confirm document deletion
    */
   const confirmDelete = async () => {
     setDeletingDocId(deleteModal.docId);
