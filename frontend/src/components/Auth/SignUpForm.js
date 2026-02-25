@@ -356,6 +356,7 @@ const SignUpForm = () => {
               type="text"
               name="address"
               placeholder="123 Main St, City, State"
+              autoComplete="street-address"
               value={formData.address}
               onChange={handleChange}
               onFocus={(e) => {
