@@ -1,0 +1,221 @@
+/* SignatureSelector.css - Component for Selecting User Signatures */
+
+.signature-selector {
+  padding: 20px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.signature-selector-header {
+  margin-bottom: 15px;
+}
+
+.signature-selector-header h3 {
+  margin: 0 0 8px 0;
+  color: #1f2937;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.signature-selector-help {
+  margin: 0;
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+/* Signature Grid */
+.signature-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.signature-grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.signature-grid::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 3px;
+}
+
+.signature-grid::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+
+.signature-grid::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Signature Card */
+.signature-card {
+  position: relative;
+  padding: 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.signature-card:hover {
+  border-color: #2563eb;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+}
+
+.signature-card.selected {
+  border-color: #2563eb;
+  background: #eff6ff;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+}
+
+.signature-card.selected::after {
+  content: '✓';
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  background: #2563eb;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: bold;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.3);
+}
+
+/* Signature Preview */
+.signature-preview {
+  width: 100%;
+  height: 60px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.signature-preview img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  padding: 4px;
+}
+
+.signature-preview-placeholder {
+  color: #d1d5db;
+  font-size: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Signature Info */
+.signature-info {
+  width: 100%;
+  text-align: center;
+}
+
+.signature-type {
+  margin: 0 0 4px 0;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.signature-meta {
+  margin: 0;
+  color: #9ca3af;
+  font-size: 11px;
+}
+
+/* Default Badge */
+.default-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: #fbbf24;
+  color: #78350f;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* Empty State */
+.signature-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 20px;
+  text-align: center;
+  color: #9ca3af;
+}
+
+.signature-empty-icon {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.signature-empty p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.signature-empty-link {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.signature-empty-link:hover {
+  color: #1d4ed8;
+}
+
+/* Error State */
+.signature-error {
+  padding: 15px;
+  background: #fee2e2;
+  border-radius: 6px;
+  color: #7f1d1d;
+  font-size: 12px;
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .signature-selector {
+    padding: 15px;
+  }
+
+  .signature-card {
+    padding: 10px;
+  }
+
+  .signature-preview {
+    height: 50px;
+  }
+
+  .signature-type {
+    font-size: 12px;
+  }
+}

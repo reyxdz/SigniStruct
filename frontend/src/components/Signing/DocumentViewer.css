@@ -1,0 +1,389 @@
+/* DocumentViewer.css - Component for Displaying and Placing Signatures on Documents */
+
+.document-viewer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+/* Document Header */
+.document-header {
+  padding: 15px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.document-title-section h3 {
+  margin: 0 0 8px 0;
+  color: #1f2937;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.document-meta {
+  display: flex;
+  gap: 20px;
+  margin: 0;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.document-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.document-meta-icon {
+  font-size: 14px;
+}
+
+.placement-mode-indicator {
+  background: #fef08a;
+  color: #b45309;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.placement-mode-indicator.active {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+/* Document Display Container */
+.document-display-container {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  position: relative;
+}
+
+/* Document Area */
+.document-area {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px;
+  background: #f3f4f6;
+  position: relative;
+  overflow: auto;
+}
+
+.document-area.placing-mode {
+  cursor: crosshair;
+}
+
+/* Document Canvas/Placeholder */
+.document-canvas {
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  position: relative;
+  min-height: 600px;
+  max-width: 800px;
+  width: 100%;
+  aspect-ratio: 8.5 / 11;
+}
+
+.document-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 15px;
+  color: #9ca3af;
+  padding: 40px;
+  text-align: center;
+}
+
+.document-placeholder-icon {
+  font-size: 48px;
+}
+
+.document-placeholder p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.document-placeholder-hint {
+  margin-top: 20px;
+  padding: 12px 15px;
+  background: #f0fdf4;
+  border-radius: 6px;
+  color: #15803d;
+  font-size: 12px;
+  border-left: 3px solid #15803d;
+}
+
+/* PDF Preview */
+.document-pdf-preview {
+  width: 100%;
+  height: 100%;
+}
+
+.pdf-viewer {
+  width: 100%;
+  height: 100%;
+  background: white;
+  border-radius: 8px;
+}
+
+/* Signature Placements */
+.signature-placements {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  border-radius: 8px;
+}
+
+.signature-placement {
+  position: absolute;
+  border: 2px solid #2563eb;
+  background: rgba(37, 99, 235, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  pointer-events: auto;
+  cursor: move;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.2);
+}
+
+.signature-placement:hover {
+  background: rgba(37, 99, 235, 0.1);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.signature-placement-checkmark {
+  color: #2563eb;
+  font-size: 20px;
+  font-weight: bold;
+  user-select: none;
+}
+
+/* Empty Placements */
+.no-placements-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  color: #d1d5db;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.no-placements-hint-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.no-placements-hint p {
+  margin: 0;
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+/* Page Navigation */
+.document-footer {
+  padding: 15px 20px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.page-navigation {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.page-nav-button {
+  background: white;
+  border: 1px solid #d1d5db;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #374151;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.page-nav-button:hover:not(:disabled) {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.page-nav-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: #f9fafb;
+}
+
+.page-info {
+  color: #6b7280;
+  font-size: 12px;
+  white-space: nowrap;
+  min-width: 60px;
+  text-align: center;
+}
+
+.document-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.info-badge {
+  background: #f3f4f6;
+  padding: 4px 8px;
+  border-radius: 4px;
+  color: #374151;
+}
+
+/* Tooltips */
+.placement-tooltip {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 11px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 100;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.placement-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 4px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.8);
+}
+
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .document-canvas {
+    min-height: 500px;
+    max-width: 700px;
+  }
+
+  .document-area {
+    padding: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .document-header {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .document-meta {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .document-canvas {
+    min-height: 400px;
+    max-width: 100%;
+  }
+
+  .document-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .page-navigation {
+    justify-content: center;
+  }
+
+  .document-info {
+    justify-content: space-around;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 480px) {
+  .document-header {
+    padding: 12px 15px;
+  }
+
+  .document-title-section h3 {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+
+  .document-meta {
+    font-size: 11px;
+    gap: 10px;
+  }
+
+  .placement-mode-indicator {
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+
+  .document-canvas {
+    min-height: 300px;
+  }
+
+  .document-area {
+    padding: 15px;
+  }
+
+  .document-footer {
+    padding: 12px 15px;
+    gap: 10px;
+  }
+
+  .page-nav-button {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+
+  .page-info {
+    font-size: 11px;
+    min-width: 50px;
+  }
+}
