@@ -257,4 +257,6 @@ class DocumentAuditService {
   }
 }
 
-export default new DocumentAuditService();
+const documentAuditService = new DocumentAuditService();
+
+export default documentAuditService;

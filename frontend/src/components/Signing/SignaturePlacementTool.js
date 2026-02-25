@@ -28,18 +28,6 @@ const SignaturePlacementTool = ({
     (p) => p.page === currentPage
   );
 
-  const totalSignatureDimensions = signaturePlacements.reduce(
-    (acc, current) => {
-      return {
-        x: Math.min(acc.x, current.x),
-        y: Math.min(acc.y, current.y),
-        totalWidth: Math.max(acc.totalWidth, current.x + current.width),
-        totalHeight: Math.max(acc.totalHeight, current.y + current.height)
-      };
-    },
-    { x: Infinity, y: Infinity, totalWidth: 0, totalHeight: 0 }
-  );
-
   return (
     <div className="signature-placement-tool">
       <div className="tool-header">

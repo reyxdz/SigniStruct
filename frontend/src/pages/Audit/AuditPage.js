@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { AuthContext } from '../../contexts/AuthContext';
 import AuditTrail from '../../components/Audit/AuditTrail';
 import DocumentAuditService from '../../services/documentAuditService';
 import './AuditPage.css';
@@ -13,7 +12,6 @@ import './AuditPage.css';
  * Includes audit trail export and compliance reporting
  */
 const AuditPage = () => {
-  const { user } = useContext(AuthContext);
   const [searchParams, setSearchParams] = useSearchParams();
 
   // State management
@@ -50,17 +48,6 @@ const AuditPage = () => {
     actions: [],
     users: []
   });
-  const [loadingOptions, setLoadingOptions] = useState(false);
-
-  // Load audit logs on mount and when filters/pagination change
-  useEffect(() => {
-    loadAuditLogs();
-  }, [filters, pagination]);
-
-  // Load filter options
-  useEffect(() => {
-    loadFilterOptions();
-  }, []);
 
   /**
    * Load audit logs with current filters
@@ -91,8 +78,6 @@ const AuditPage = () => {
    */
   const loadFilterOptions = async () => {
     try {
-      setLoadingOptions(true);
-
       const [actions, users] = await Promise.all([
         DocumentAuditService.getFilterOptions('action'),
         DocumentAuditService.getFilterOptions('userId')
@@ -101,10 +86,19 @@ const AuditPage = () => {
       setFilterOptions({ actions, users });
     } catch (err) {
       console.error('Failed to load filter options:', err);
-    } finally {
-      setLoadingOptions(false);
     }
   };
+
+  // Load audit logs on mount and when filters/pagination change
+  useEffect(() => {
+    loadAuditLogs();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, pagination]);
+
+  // Load filter options
+  useEffect(() => {
+    loadFilterOptions();
+  }, []);
 
   /**
    * Update a single filter

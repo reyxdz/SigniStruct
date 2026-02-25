@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import './SignatureSelector.css';
 
 /**
@@ -10,15 +10,15 @@ import './SignatureSelector.css';
  *   - selectedSignature: Currently selected signature ID
  */
 const SignatureSelector = ({ onSelectSignature, selectedSignature, signatures = [] }) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const isLoading = false;
+  const error = null;
 
   useEffect(() => {
     // Auto-select first signature if available
     if (signatures.length > 0 && !selectedSignature) {
       onSelectSignature(signatures[0]._id);
     }
-  }, [signatures]);
+  }, [signatures, onSelectSignature, selectedSignature]);
 
   const handleSelectSignature = (signatureId) => {
     onSelectSignature(signatureId);

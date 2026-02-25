@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useRef } from 'react';
 import './DocumentViewer.css';
 
 /**
@@ -19,8 +19,8 @@ const DocumentViewer = ({
   currentPage = 1,
   onPageChange
 }) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const isLoading = false;
+  const error = null;
   const viewerRef = useRef(null);
 
   const handlePlaceSignature = (e) => {

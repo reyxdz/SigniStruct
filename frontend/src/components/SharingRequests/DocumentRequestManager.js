@@ -9,56 +9,56 @@ const DocumentRequestManager = ({ documentId, documentTitle, onClose }) => {
   const [activeTab, setActiveTab] = useState('all');
 
   useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        setLoading(true);
+        setError('');
+
+        const response = await fetch(
+          `/api/signing-requests/documents/${documentId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`
+            }
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch signing requests');
+        }
+
+        const data = await response.json();
+        setRequests(data.data.requests || []);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchStats = async () => {
+      try {
+        const response = await fetch(
+          `/api/signing-requests/documents/${documentId}/stats`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`
+            }
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          setStats(data.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch statistics:', err);
+      }
+    };
+
     fetchRequests();
     fetchStats();
   }, [documentId]);
-
-  const fetchRequests = async () => {
-    try {
-      setLoading(true);
-      setError('');
-
-      const response = await fetch(
-        `/api/signing-requests/documents/${documentId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch signing requests');
-      }
-
-      const data = await response.json();
-      setRequests(data.data.requests || []);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchStats = async () => {
-    try {
-      const response = await fetch(
-        `/api/signing-requests/documents/${documentId}/stats`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setStats(data.data);
-      }
-    } catch (err) {
-      console.error('Failed to fetch statistics:', err);
-    }
-  };
 
   const handleRevoke = async (requestId) => {
     if (!window.confirm('Are you sure you want to revoke this signing request?')) {
@@ -87,7 +87,24 @@ const DocumentRequestManager = ({ documentId, documentTitle, onClose }) => {
         r._id === requestId ? { ...r, status: 'revoked' } : r
       ));
 
-      await fetchStats();
+      // Refresh stats
+      try {
+        const statsResponse = await fetch(
+          `/api/signing-requests/documents/${documentId}/stats`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`
+            }
+          }
+        );
+
+        if (statsResponse.ok) {
+          const data = await statsResponse.json();
+          setStats(data.data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch statistics:', err);
+      }
     } catch (err) {
       alert(err.message);
     }
