@@ -35,11 +35,11 @@ const DocumentList = ({ refreshTrigger }) => {
   };
 
   /**
-   * Load documents on component mount and when refreshTrigger changes
+   * Load documents on component mount and when refreshTrigger or filter changes
    */
   useEffect(() => {
     fetchDocuments(filter !== 'all' ? filter : null);
-  }, [refreshTrigger]);
+  }, [refreshTrigger, filter]);
 
   /**
    * Handle filter change
