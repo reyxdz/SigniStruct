@@ -10,6 +10,7 @@ const documentSigningRoutes = require('./routes/documentSigningRoutes');
 const verificationRoutes = require('./routes/verificationRoutes');
 const auditRoutes = require('./routes/auditRoutes');
 const multiSignerRoutes = require('./routes/multiSignerRoutes');
+const signingRequestRoutes = require('./routes/signingRequestRoutes');
 const { initializeDatabaseSchema } = require('./utils/databaseInit');
 
 const app = express();
@@ -43,6 +44,7 @@ app.use('/api/documents', documentSigningRoutes);
 app.use('/api/verification', verificationRoutes);
 app.use('/api/audit-logs', auditRoutes);
 app.use('/api/multi-signer', multiSignerRoutes);
+app.use('/api/signing-requests', signingRequestRoutes);
 
 // Sample route
 app.get('/api/health', (req, res) => {

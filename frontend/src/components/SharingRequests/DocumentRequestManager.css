@@ -1,0 +1,420 @@
+.request-manager-container {
+  max-width: 1000px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.manager-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.manager-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background: #f5f5f5;
+  color: #333;
+}
+
+.alert {
+  margin: 16px;
+  padding: 12px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.alert-error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  padding: 16px;
+  background: #f9f9f9;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.stat-card {
+  background: white;
+  border: 1px solid #e5e5e5;
+  border-radius: 6px;
+  padding: 16px;
+  text-align: center;
+}
+
+.stat-card.pending-color {
+  border-color: #ffc107;
+  background: #fffbf0;
+}
+
+.stat-card.accepted-color {
+  border-color: #28a745;
+  background: #f0fdf4;
+}
+
+.stat-card.declined-color {
+  border-color: #dc3545;
+  background: #fdf0f0;
+}
+
+.stat-number {
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.manager-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid #e5e5e5;
+  background: white;
+  padding: 0 16px;
+  overflow-x: auto;
+}
+
+.tab {
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  position: relative;
+  bottom: -2px;
+}
+
+.tab:hover {
+  color: #333;
+}
+
+.tab.active {
+  color: #007bff;
+  border-bottom-color: #007bff;
+}
+
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading p {
+  color: #666;
+  font-size: 14px;
+}
+
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: #999;
+  font-size: 14px;
+}
+
+.requests-table-container {
+  overflow-x: auto;
+  border-top: 1px solid #e5e5e5;
+}
+
+.requests-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.requests-table thead {
+  background: #f9f9f9;
+  border-bottom: 2px solid #e5e5e5;
+}
+
+.requests-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+}
+
+.requests-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #e5e5e5;
+  font-size: 14px;
+}
+
+.requests-table tbody tr {
+  transition: all 0.2s ease;
+}
+
+.requests-table tbody tr:hover {
+  background: #f9f9f9;
+}
+
+.row-pending {
+  background: #fffbf0;
+}
+
+.row-accepted {
+  background: #f0fdf4;
+}
+
+.row-declined {
+  background: #fdf0f0;
+}
+
+.email-cell {
+  font-weight: 500;
+  color: #333;
+  word-break: break-all;
+}
+
+.status-cell {
+  text-align: center;
+}
+
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge.status-pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.badge.status-accepted {
+  background: #d4edda;
+  color: #155724;
+}
+
+.badge.status-declined {
+  background: #f8d7da;
+  color: #721c24;
+}
+
+.badge.status-revoked {
+  background: #e2e3e5;
+  color: #383d41;
+}
+
+.date-cell {
+  color: #666;
+  font-size: 13px;
+}
+
+.expiry-cell {
+  color: #666;
+  font-size: 13px;
+}
+
+.expiry-text {
+  font-weight: 500;
+  color: #dc3545;
+}
+
+.reminders-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reminder-badge {
+  display: inline-block;
+  background: #007bff;
+  color: white;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  min-width: 20px;
+  text-align: center;
+}
+
+.btn-icon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  transition: all 0.2s ease;
+}
+
+.btn-icon:hover {
+  transform: scale(1.2);
+}
+
+.actions-cell {
+  text-align: center;
+}
+
+.btn-revoke {
+  padding: 6px 12px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-revoke:hover {
+  background: #c82333;
+}
+
+.status-final {
+  color: #28a745;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.manager-footer {
+  padding: 16px;
+  border-top: 1px solid #e5e5e5;
+  background: #f9f9f9;
+  text-align: right;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary {
+  background: white;
+  color: #333;
+  border: 1px solid #ddd;
+}
+
+.btn-secondary:hover {
+  background: #f5f5f5;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .stat-number {
+    font-size: 20px;
+  }
+
+  .requests-table {
+    font-size: 12px;
+  }
+
+  .requests-table th,
+  .requests-table td {
+    padding: 8px 12px;
+  }
+
+  .reminders-cell {
+    gap: 4px;
+  }
+
+  .btn-icon {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .manager-header h2 {
+    font-size: 16px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .requests-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .requests-table {
+    min-width: 600px;
+  }
+
+  .manager-tabs {
+    padding: 0 12px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .tab {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+}
