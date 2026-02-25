@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const signingRequestController = require('../controllers/signingRequestController');
-const authMiddleware = require('../middleware/authMiddleware');
+const { verifyToken } = require('../middleware/authMiddleware');
 
 // Public route - get signing request by share token (no auth required)
 router.get('/share/:token', signingRequestController.getRequestByToken.bind(signingRequestController));
 
 // Protected routes - require authentication
-router.use(authMiddleware);
+router.use(verifyToken);
 
 /**
  * POST /api/signing-requests/documents/:documentId

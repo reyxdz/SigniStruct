@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../middleware/authMiddleware');
+const { verifyToken } = require('../middleware/authMiddleware');
 const auditController = require('../controllers/auditController');
 
 /**
@@ -15,7 +15,7 @@ const auditController = require('../controllers/auditController');
  */
 
 // Require authentication for all audit routes
-router.use(authMiddleware);
+router.use(verifyToken);
 
 // GET /api/audit-logs
 // Get audit logs with filters and pagination

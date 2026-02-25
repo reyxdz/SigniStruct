@@ -7,7 +7,7 @@ const {
   revokeCertificate,
   getAllUserCertificates
 } = require('../controllers/certificateController');
-const authMiddleware = require('../middleware/authMiddleware');
+const { verifyToken } = require('../middleware/authMiddleware');
 const {
   validateGenerateCertificate,
   validateUserId,
@@ -22,7 +22,7 @@ const {
  */
 router.post(
   '/generate',
-  authMiddleware,
+  verifyToken,
   validateGenerateCertificate,
   generateCertificate
 );
@@ -34,7 +34,7 @@ router.post(
  */
 router.get(
   '/user/:userId',
-  authMiddleware,
+  verifyToken,
   validateUserId,
   getUserCertificate
 );
@@ -46,7 +46,7 @@ router.get(
  */
 router.get(
   '/user/:userId/all',
-  authMiddleware,
+  verifyToken,
   validateUserId,
   getAllUserCertificates
 );
@@ -69,7 +69,7 @@ router.get(
  */
 router.post(
   '/revoke',
-  authMiddleware,
+  verifyToken,
   validateRevokeCertificate,
   revokeCertificate
 );

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../middleware/authMiddleware');
+const { verifyToken } = require('../middleware/authMiddleware');
 const multiSignerController = require('../controllers/multiSignerController');
 
 /**
@@ -17,7 +17,7 @@ const multiSignerController = require('../controllers/multiSignerController');
  */
 
 // Require authentication for all multi-signer routes
-router.use(authMiddleware);
+router.use(verifyToken);
 
 // POST /api/multi-signer/documents/:documentId/signers
 // Add signers to a document with sequential or parallel signing

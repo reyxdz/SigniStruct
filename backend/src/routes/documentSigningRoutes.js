@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../middleware/authMiddleware');
+const { verifyToken } = require('../middleware/authMiddleware');
 const {
   signDocument,
   getDocumentSignatures,
@@ -52,7 +52,7 @@ const {
  */
 router.post(
   '/:documentId/sign',
-  authMiddleware,
+  verifyToken,
   validateDocumentId,
   validateSignDocument,
   signDocument
@@ -93,7 +93,7 @@ router.post(
  */
 router.get(
   '/:documentId/signatures',
-  authMiddleware,
+  verifyToken,
   validateDocumentId,
   getDocumentSignatures
 );
@@ -122,7 +122,7 @@ router.get(
  */
 router.get(
   '/:documentId/signatures/:signatureId',
-  authMiddleware,
+  verifyToken,
   validateDocumentId,
   getSignatureDetails
 );
@@ -159,7 +159,7 @@ router.get(
  */
 router.post(
   '/:documentId/verify',
-  authMiddleware,
+  verifyToken,
   validateDocumentId,
   verifyDocument
 );
@@ -183,7 +183,7 @@ router.post(
  */
 router.post(
   '/:documentId/signatures/:signatureId/revoke',
-  authMiddleware,
+  verifyToken,
   validateDocumentId,
   revokeSignature
 );

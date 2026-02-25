@@ -3,7 +3,7 @@
  * Handles email service initialization and setup
  */
 
-const emailService = require('./services/emailService');
+const emailService = require('../services/emailService');
 
 /**
  * Initialize all email services
@@ -47,7 +47,7 @@ async function initializeEmailServices() {
 async function setupEmailBackgroundJobs() {
   try {
     const cron = require('node-cron');
-    const BackgroundJobService = require('./services/backgroundJobService');
+    const BackgroundJobService = require('../services/backgroundJobService');
 
     console.log('Setting up email background jobs...');
 

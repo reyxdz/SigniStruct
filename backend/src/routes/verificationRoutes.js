@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const authMiddleware = require('../middleware/authMiddleware');
+const { verifyToken } = require('../middleware/authMiddleware');
 const verificationController = require('../controllers/verificationController');
 
 /**
@@ -15,7 +15,7 @@ const verificationController = require('../controllers/verificationController');
  */
 
 // Require authentication for all verification routes
-router.use(authMiddleware);
+router.use(verifyToken);
 
 // GET /api/verification/documents/:documentId/status
 // Get verification status for a document

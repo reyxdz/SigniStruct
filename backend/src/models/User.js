@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
     certificate_id: {
-      type: ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: 'Certificate',
       default: null
     },
