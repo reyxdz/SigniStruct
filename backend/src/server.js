@@ -12,6 +12,7 @@ const auditRoutes = require('./routes/auditRoutes');
 const multiSignerRoutes = require('./routes/multiSignerRoutes');
 const signingRequestRoutes = require('./routes/signingRequestRoutes');
 const { initializeDatabaseSchema } = require('./utils/databaseInit');
+const { initializeEmailServices, setupEmailBackgroundJobs } = require('./config/emailConfig');
 
 const app = express();
 
@@ -28,6 +29,12 @@ const connectDB = async () => {
     
     // Initialize database schema and create indexes
     await initializeDatabaseSchema();
+    
+    // Initialize email services
+    await initializeEmailServices();
+    
+    // Setup background jobs for email reminders, expiration, and cleanup
+    setupEmailBackgroundJobs();
   } catch (error) {
     console.error('MongoDB connection error:', error);
     process.exit(1);

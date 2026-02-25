@@ -2,6 +2,7 @@ const SigningRequest = require('../models/SigningRequest');
 const Document = require('../models/Document');
 const User = require('../models/User');
 const SignatureAuditLog = require('../models/SignatureAuditLog');
+const notificationService = require('./notificationService');
 
 class SigningRequestService {
   /**
@@ -70,6 +71,13 @@ class SigningRequestService {
         request_id: signingRequest._id,
         expires_at: expirationDate
       });
+
+      // Send invitation email (non-blocking)
+      try {
+        await notificationService.sendSigningRequestEmail(signingRequest._id);
+      } catch (emailError) {
+        console.warn(`Email notification failed for request ${signingRequest._id}:`, emailError.message);
+      }
 
       return signingRequest;
     } catch (error) {
@@ -204,6 +212,13 @@ class SigningRequestService {
         recipient_email: request.recipient_email
       });
 
+      // Send confirmation email (non-blocking)
+      try {
+        await notificationService.sendSignatureConfirmationEmails(request.document_id, recipientId);
+      } catch (emailError) {
+        console.warn(`Email notification failed for accepted request ${requestId}:`, emailError.message);
+      }
+
       return request;
     } catch (error) {
       throw new Error(`Failed to accept signing request: ${error.message}`);
@@ -246,6 +261,13 @@ class SigningRequestService {
         recipient_email: request.recipient_email,
         reason: reason
       });
+
+      // Send decline notification email (non-blocking)
+      try {
+        await notificationService.sendDeclineNotificationEmail(requestId);
+      } catch (emailError) {
+        console.warn(`Email notification failed for declined request ${requestId}:`, emailError.message);
+      }
 
       return request;
     } catch (error) {
