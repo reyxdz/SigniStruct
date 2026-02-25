@@ -126,7 +126,6 @@ const SignaturePad = ({ onSignatureComplete, onCancel }) => {
           <button
             className="btn btn-primary"
             onClick={handleSave}
-            disabled={isEmpty}
           >
             Save Signature
           </button>
