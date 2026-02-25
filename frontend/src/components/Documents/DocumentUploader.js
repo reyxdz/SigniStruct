@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../../services/api';
 import './DocumentUploader.css';
 
 const DocumentUploader = ({ onUploadSuccess }) => {
@@ -81,7 +81,7 @@ const DocumentUploader = ({ onUploadSuccess }) => {
       formData.append('title', title.trim());
       formData.append('description', description.trim());
 
-      const response = await axios.post('/api/documents/upload', formData, {
+      const response = await api.post('/documents/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }

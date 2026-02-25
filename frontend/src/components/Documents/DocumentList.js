@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../services/api';
 import './DocumentList.css';
 
 const DocumentList = ({ refreshTrigger }) => {
@@ -23,7 +23,7 @@ const DocumentList = ({ refreshTrigger }) => {
         config.params = { status };
       }
 
-      const response = await axios.get('/api/documents', config);
+      const response = await api.get('/documents', config);
       setDocuments(response.data.documents || []);
     } catch (err) {
       const errorMsg = err.response?.data?.message || err.message || 'Failed to fetch documents';
@@ -102,7 +102,7 @@ const DocumentList = ({ refreshTrigger }) => {
     setDeletingDocId(docId);
 
     try {
-      await axios.delete(`/api/documents/${docId}`);
+      await api.delete(`/documents/${docId}`);
       setDocuments(documents.filter(doc => doc._id !== docId));
       setExpandedDocId(null);
     } catch (err) {

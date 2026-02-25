@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../../services/api';
 import SignaturePad from '../../components/Signature/SignaturePad';
 import SignatureUploader from '../../components/Signature/SignatureUploader';
 import './CreateSignaturePage.css';
@@ -28,10 +28,7 @@ const CreateSignaturePage = () => {
   const fetchUserSignatures = async () => {
     try {
       setFetchingSignatures(true);
-      const token = localStorage.getItem('token');
-      const response = await axios.get('/api/signatures/user', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response = await api.get('/signatures/user');
 
       if (response.data.success) {
         setSignatures(response.data.signatures);
@@ -53,19 +50,11 @@ const CreateSignaturePage = () => {
       setError('');
       setSuccess('');
 
-      const token = localStorage.getItem('token');
-
       // Send signature to backend
-      const response = await axios.post(
-        '/api/signatures/create',
-        {
-          signature_image: signatureImage,
-          signature_type: signatureType
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+      const response = await api.post('/signatures/create', {
+        signature_image: signatureImage,
+        signature_type: signatureType
+      });
 
       if (response.data.success) {
         setSuccess(
@@ -94,14 +83,9 @@ const CreateSignaturePage = () => {
    */
   const handleSetDefault = async (signatureId) => {
     try {
-      const token = localStorage.getItem('token');
-
-      const response = await axios.put(
-        `/api/signatures/${signatureId}/set-default`,
-        {},
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
+      const response = await api.put(
+        `/signatures/${signatureId}/set-default`,
+        {}
       );
 
       if (response.data.success) {
@@ -124,14 +108,7 @@ const CreateSignaturePage = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
-
-      const response = await axios.delete(
-        `/api/signatures/${signatureId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` }
-        }
-      );
+      const response = await api.delete(`/signatures/${signatureId}`);
 
       if (response.data.success) {
         setSuccess('Signature deleted successfully');

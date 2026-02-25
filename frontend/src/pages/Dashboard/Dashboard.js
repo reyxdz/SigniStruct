@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../services/api';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
 import { FiFileText, FiFile, FiBarChart2, FiUpload, FiEdit3 } from 'react-icons/fi';
 
@@ -30,10 +30,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchSignatureStatus = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get('/api/signatures/user', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const response = await api.get('/signatures/user');
 
         if (response.data.success) {
           const signatures = response.data.signatures;
