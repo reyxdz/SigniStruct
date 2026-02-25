@@ -163,7 +163,8 @@ const CreateSignaturePage = () => {
                 <SignaturePad
                   onSignatureComplete={handleSignatureComplete}
                   onCancel={() => {
-                    // Optional: handle cancel
+                    setError('');
+                    setSuccess('');
                   }}
                 />
               )}
@@ -171,7 +172,8 @@ const CreateSignaturePage = () => {
                 <SignatureUploader
                   onSignatureComplete={handleSignatureComplete}
                   onCancel={() => {
-                    // Optional: handle cancel
+                    setError('');
+                    setSuccess('');
                   }}
                 />
               )}

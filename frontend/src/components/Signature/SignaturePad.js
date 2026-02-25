@@ -60,6 +60,7 @@ const SignaturePad = ({ onSignatureComplete, onCancel }) => {
     if (signatureCanvasRef.current) {
       signatureCanvasRef.current.clear();
       setIsEmpty(true);
+      setIsDrawing(false);
     }
   };
 
@@ -113,13 +114,15 @@ const SignaturePad = ({ onSignatureComplete, onCancel }) => {
           <button
             className="btn btn-secondary"
             onClick={handleClear}
-            disabled={isEmpty}
           >
             Clear
           </button>
           <button
             className="btn btn-secondary"
-            onClick={onCancel}
+            onClick={() => {
+              handleClear();
+              onCancel();
+            }}
           >
             Cancel
           </button>
