@@ -23,10 +23,24 @@ const SignaturePad = ({ onSignatureComplete, onCancel }) => {
    */
   const handleMouseUp = () => {
     setIsDrawing(false);
+    updateEmptyState();
+  };
+
+  /**
+   * Handle touch end - drawing ends on touch devices
+   */
+  const handleTouchEnd = () => {
+    setIsDrawing(false);
+    updateEmptyState();
+  };
+
+  /**
+   * Update empty state by checking canvas content
+   */
+  const updateEmptyState = () => {
     if (signatureCanvasRef.current) {
-      // Check if canvas has any content
-      const isEmpty = signatureCanvasRef.current.isEmpty();
-      setIsEmpty(isEmpty);
+      const canvasEmpty = signatureCanvasRef.current.isEmpty();
+      setIsEmpty(canvasEmpty);
     }
   };
 
@@ -34,7 +48,7 @@ const SignaturePad = ({ onSignatureComplete, onCancel }) => {
    * Handle mouse move - drawing
    */
   const handleMouseMove = () => {
-    if (isDrawing && signatureCanvasRef.current) {
+    if (isDrawing && signatureCanvasRef.current && isEmpty) {
       setIsEmpty(false);
     }
   };
@@ -53,15 +67,20 @@ const SignaturePad = ({ onSignatureComplete, onCancel }) => {
    * Save the signature
    */
   const handleSave = () => {
-    if (isEmpty) {
+    if (!signatureCanvasRef.current) {
+      alert('Unable to save signature. Please try again.');
+      return;
+    }
+
+    const canvasEmpty = signatureCanvasRef.current.isEmpty();
+    
+    if (canvasEmpty) {
       alert('Please draw your signature before saving.');
       return;
     }
 
-    if (signatureCanvasRef.current) {
-      const signatureImage = signatureCanvasRef.current.toDataURL('image/png');
-      onSignatureComplete(signatureImage, 'handwritten');
-    }
+    const signatureImage = signatureCanvasRef.current.toDataURL('image/png');
+    onSignatureComplete(signatureImage, 'handwritten');
   };
 
   return (
@@ -83,7 +102,7 @@ const SignaturePad = ({ onSignatureComplete, onCancel }) => {
             onMouseUp={handleMouseUp}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
-            onTouchEnd={handleMouseUp}
+            onTouchEnd={handleTouchEnd}
             onTouchStart={handleMouseDown}
             penColor="black"
             backgroundColor="white"
