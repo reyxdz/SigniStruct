@@ -162,10 +162,6 @@ const CreateSignaturePage = () => {
               {activeTab === 'draw' && (
                 <SignaturePad
                   onSignatureComplete={handleSignatureComplete}
-                  onCancel={() => {
-                    setError('');
-                    setSuccess('');
-                  }}
                 />
               )}
               {activeTab === 'upload' && (

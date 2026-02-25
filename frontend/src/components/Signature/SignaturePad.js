@@ -118,15 +118,6 @@ const SignaturePad = ({ onSignatureComplete, onCancel }) => {
             Clear
           </button>
           <button
-            className="btn btn-secondary"
-            onClick={() => {
-              handleClear();
-              onCancel();
-            }}
-          >
-            Cancel
-          </button>
-          <button
             className="btn btn-primary"
             onClick={handleSave}
           >
