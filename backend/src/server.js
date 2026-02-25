@@ -5,6 +5,7 @@ require('dotenv').config();
 
 const authRoutes = require('./routes/authRoutes');
 const certificateRoutes = require('./routes/certificateRoutes');
+const signatureRoutes = require('./routes/signatureRoutes');
 const { initializeDatabaseSchema } = require('./utils/databaseInit');
 
 const app = express();
@@ -33,6 +34,7 @@ connectDB();
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/certificates', certificateRoutes);
+app.use('/api/signatures', signatureRoutes);
 
 // Sample route
 app.get('/api/health', (req, res) => {

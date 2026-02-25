@@ -1,8 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
-import { FiFileText, FiFile, FiBarChart2, FiUpload } from 'react-icons/fi';
+import { FiFileText, FiFile, FiBarChart2, FiUpload, FiEdit3 } from 'react-icons/fi';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+  
   const [formsData] = useState({
     published: 5,
     draft: 2,
@@ -14,6 +18,44 @@ const Dashboard = () => {
     assignedToSign: 3,
     draft: 1,
   });
+
+  const [signatureData, setSignatureData] = useState({
+    hasDefaultSignature: false,
+    totalSignatures: 0,
+  });
+
+  const [loadingSignature, setLoadingSignature] = useState(true);
+
+  // Fetch signature status on component mount
+  useEffect(() => {
+    const fetchSignatureStatus = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get('/api/signatures/user', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+
+        if (response.data.success) {
+          const signatures = response.data.signatures;
+          const hasDefault = signatures.some(sig => sig.is_default);
+          setSignatureData({
+            hasDefaultSignature: hasDefault,
+            totalSignatures: signatures.length,
+          });
+        }
+      } catch (error) {
+        console.error('Failed to fetch signature status:', error);
+        setSignatureData({
+          hasDefaultSignature: false,
+          totalSignatures: 0,
+        });
+      } finally {
+        setLoadingSignature(false);
+      }
+    };
+
+    fetchSignatureStatus();
+  }, []);
 
   const [recentActivity] = useState([
     {
@@ -240,6 +282,22 @@ const Dashboard = () => {
             >
               <FiUpload style={{ display: 'inline', marginRight: '6px' }} /> Upload Document
             </button>
+            <button
+              style={{
+                ...dashboardStyles.button,
+                ...dashboardStyles.secondaryButton,
+              }}
+              onClick={() => navigate('/create-signature')}
+              onMouseOver={(e) => {
+                e.target.style.backgroundColor = colors.gray50;
+              }}
+              onMouseOut={(e) => {
+                e.target.style.backgroundColor = colors.white;
+              }}
+              title="Create or manage your digital signatures"
+            >
+              <FiEdit3 style={{ display: 'inline', marginRight: '6px' }} /> {signatureData.hasDefaultSignature ? 'Manage Signatures' : 'Create Signature'}
+            </button>
           </div>
         </div>
 
@@ -373,6 +431,65 @@ const Dashboard = () => {
             <button style={dashboardStyles.viewLink} onClick={(e) => e.preventDefault()}>View all →</button>
             <p style={dashboardStyles.sectionSubtitle}>
               Not yet published
+            </p>
+          </div>
+        </div>
+
+        {/* Signatures Section */}
+        <h2 style={dashboardStyles.sectionTitle}><FiEdit3 style={{ display: 'inline', marginRight: '8px' }} /> Signature Management</h2>
+        <div style={dashboardStyles.cardsGrid}>
+          <div
+            style={dashboardStyles.statCard}
+            onMouseOver={(e) => {
+              e.currentTarget.style.boxShadow = colors.shadowLg;
+              e.currentTarget.style.transform = 'translateY(-4px)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.boxShadow = colors.shadowMd;
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            <div style={dashboardStyles.statValue}>
+              {loadingSignature ? '...' : signatureData.totalSignatures}
+            </div>
+            <div style={dashboardStyles.statLabel}>Total Signatures</div>
+            <button 
+              style={dashboardStyles.viewLink} 
+              onClick={() => navigate('/create-signature')}
+            >
+              View all →
+            </button>
+            <p style={dashboardStyles.sectionSubtitle}>
+              Your saved signatures
+            </p>
+          </div>
+
+          <div
+            style={{
+              ...dashboardStyles.statCard,
+              borderLeft: `4px solid ${signatureData.hasDefaultSignature ? colors.primary : colors.gray200}`,
+            }}
+            onMouseOver={(e) => {
+              e.currentTarget.style.boxShadow = colors.shadowLg;
+              e.currentTarget.style.transform = 'translateY(-4px)';
+            }}
+            onMouseOut={(e) => {
+              e.currentTarget.style.boxShadow = colors.shadowMd;
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            <div style={dashboardStyles.statValue}>
+              {loadingSignature ? '...' : signatureData.hasDefaultSignature ? '✓' : '⚠'}
+            </div>
+            <div style={dashboardStyles.statLabel}>Signature Status</div>
+            <button 
+              style={dashboardStyles.viewLink} 
+              onClick={() => navigate('/create-signature')}
+            >
+              {signatureData.hasDefaultSignature ? 'Update signature →' : 'Create signature →'}
+            </button>
+            <p style={dashboardStyles.sectionSubtitle}>
+              {loadingSignature ? 'Loading...' : signatureData.hasDefaultSignature ? 'Default signature ready' : 'No default signature set'}
             </p>
           </div>
         </div>

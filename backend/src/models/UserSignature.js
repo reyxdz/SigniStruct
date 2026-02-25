@@ -14,13 +14,24 @@ const userSignatureSchema = new mongoose.Schema(
     },
     signature_type: {
       type: String,
-      enum: ['drawn', 'uploaded', 'typed'],
-      default: 'drawn'
+      enum: ['handwritten', 'uploaded', 'printed'],
+      required: true
     },
     is_default: {
       type: Boolean,
-      default: false,
-      index: true
+      default: false
+    },
+    file_name: {
+      type: String,
+      default: null
+    },
+    file_size: {
+      type: Number,
+      default: null
+    },
+    mime_type: {
+      type: String,
+      default: 'image/png'
     },
     created_at: {
       type: Date,
@@ -40,7 +51,18 @@ const userSignatureSchema = new mongoose.Schema(
 
 // Indexes for efficient queries
 userSignatureSchema.index({ user_id: 1, is_default: 1 });
-userSignatureSchema.index({ created_at: -1 });
+userSignatureSchema.index({ user_id: 1, created_at: -1 });
+
+// Ensure only one default signature per user
+userSignatureSchema.pre('save', async function (next) {
+  if (this.is_default) {
+    await this.constructor.updateMany(
+      { user_id: this.user_id, _id: { $ne: this._id } },
+      { is_default: false }
+    );
+  }
+  next();
+});
 
 const UserSignature = mongoose.model('UserSignature', userSignatureSchema);
 
