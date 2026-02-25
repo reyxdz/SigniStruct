@@ -1,0 +1,418 @@
+/* SignersList Component Styles */
+
+.signers-list-container {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.signers-list-container.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  gap: 16px;
+}
+
+.signers-list-container.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 250px;
+}
+
+.empty-state {
+  text-align: center;
+  color: #999;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin: 0 0 12px 0;
+}
+
+.empty-text {
+  margin: 0;
+  font-size: 14px;
+}
+
+/* Header */
+.signers-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #f0f0f0;
+}
+
+.signers-list-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.signing-method-badge {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Timeline */
+.signers-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 24px;
+  position: relative;
+}
+
+/* Signer Cards */
+.signer-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid #e0e0e0;
+  border-left: 4px solid #999;
+  background: #fafafa;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.signer-card:hover {
+  background: #f5f5f5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Status colors */
+.signer-card.status-success {
+  border-left-color: #4caf50;
+  background: #f1f8f4;
+}
+
+.signer-card.status-warning {
+  border-left-color: #ff9800;
+  background: #fff3e0;
+}
+
+.signer-card.status-danger {
+  border-left-color: #f44336;
+  background: #ffebee;
+}
+
+.signer-card.status-pending {
+  border-left-color: #2196f3;
+  background: #e3f2fd;
+}
+
+/* Left section: Order and Status */
+.signer-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-width: 60px;
+}
+
+.signer-order {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border: 2px solid #ddd;
+  border-radius: 50%;
+  font-weight: 600;
+  color: #666;
+}
+
+.signer-card.status-success .signer-order {
+  background: #4caf50;
+  color: white;
+  border-color: #4caf50;
+}
+
+.signer-card.status-danger .signer-order {
+  background: #f44336;
+  color: white;
+  border-color: #f44336;
+}
+
+.signer-card.status-pending .signer-order {
+  background: white;
+  color: #2196f3;
+  border-color: #2196f3;
+}
+
+.parallel-indicator {
+  font-size: 20px;
+  color: #2196f3;
+  font-weight: bold;
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: white;
+  color: #666;
+}
+
+.status-badge.signed {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-badge.pending {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.status-badge.declined {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.status-badge.expired {
+  background: #fff3e0;
+  color: #e65100;
+}
+
+.status-icon {
+  display: inline-block;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+/* Middle section: Signer Info */
+.signer-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.signer-name {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+}
+
+.signer-email {
+  font-size: 13px;
+  color: #666;
+}
+
+.signed-date {
+  font-size: 12px;
+  color: #4caf50;
+  margin-top: 4px;
+}
+
+.decline-note {
+  font-size: 12px;
+  color: #f44336;
+  margin-top: 4px;
+}
+
+.comments-badge {
+  font-size: 12px;
+  color: #2196f3;
+  margin-top: 4px;
+  background: #e3f2fd;
+  padding: 3px 8px;
+  border-radius: 3px;
+  display: inline-block;
+  width: fit-content;
+}
+
+/* Right section: Deadline and Actions */
+.signer-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  min-width: 150px;
+}
+
+.deadline {
+  font-size: 12px;
+  padding: 6px 12px;
+  background: #fff9c4;
+  border-radius: 4px;
+  color: #f57f17;
+  font-weight: 500;
+}
+
+.deadline.expired {
+  background: #ffebee;
+  color: #f44336;
+}
+
+.reminders-sent {
+  font-size: 12px;
+  color: #ff9800;
+  padding: 4px 8px;
+  background: #fff8e1;
+  border-radius: 3px;
+}
+
+.signed-checkmark {
+  font-size: 12px;
+  color: #4caf50;
+  font-weight: 600;
+  padding: 4px 8px;
+  background: #f1f8f4;
+  border-radius: 3px;
+}
+
+/* Timeline Connector */
+.timeline-connector {
+  position: absolute;
+  left: 35px;
+  bottom: -18px;
+  width: 30px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ddd;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.connector-complete {
+  color: #4caf50;
+  font-size: 18px;
+}
+
+.connector-pending {
+  color: #bbb;
+  font-size: 20px;
+}
+
+/* Summary */
+.signers-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 2px solid #f0f0f0;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px;
+  background: #f9f9f9;
+  border-radius: 4px;
+}
+
+.summary-label {
+  font-size: 12px;
+  color: #666;
+  font-weight: 600;
+}
+
+.summary-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #333;
+}
+
+.summary-value.success {
+  color: #4caf50;
+}
+
+.summary-value.pending {
+  color: #2196f3;
+}
+
+.summary-value.danger {
+  color: #f44336;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .signers-list-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .signer-card {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .signer-left {
+    flex-direction: row;
+    gap: 12px;
+    min-width: auto;
+  }
+
+  .signer-info {
+    flex: none;
+    width: 100%;
+    order: 3;
+  }
+
+  .signer-right {
+    min-width: auto;
+    width: 100%;
+    align-items: flex-start;
+    order: 4;
+  }
+
+  .signers-summary {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .signers-list-container {
+    padding: 16px;
+  }
+
+  .signer-card {
+    padding: 12px;
+  }
+
+  .signers-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .signer-order {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+}
+
+/* Loading spinner */
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #2196f3;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

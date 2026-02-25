@@ -43,10 +43,20 @@ const documentSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['draft', 'pending_signature', 'partially_signed', 'fully_signed', 'archived'],
+      enum: [
+        'draft',
+        'pending_signature',
+        'partially_signed',
+        'fully_signed',
+        'signing_declined',
+        'signing_expired',
+        'archived'
+      ],
       default: 'draft',
       index: true
     },
+
+    // Legacy single-signer field (kept for backward compatibility)
     signers: [
       {
         user_id: mongoose.Schema.Types.ObjectId,
@@ -60,15 +70,43 @@ const documentSchema = new mongoose.Schema(
         }
       }
     ],
+
+    // Multi-signer support
+    signing_method: {
+      type: String,
+      enum: ['sequential', 'parallel'],
+      default: 'sequential'
+    },
+
+    // Whether all signers must sign for document to be complete (vs any signer)
+    require_all_signatures: {
+      type: Boolean,
+      default: true
+    },
+
+    // Deadline for all signers to complete signing
+    signing_deadline: {
+      type: Date,
+      default: null
+    },
+
+    // Overall workflow completion date
+    workflow_completed_at: {
+      type: Date,
+      default: null
+    },
+
     created_at: {
       type: Date,
       default: Date.now,
       index: true
     },
+
     updated_at: {
       type: Date,
       default: Date.now
     },
+
     completed_at: {
       type: Date,
       default: null
