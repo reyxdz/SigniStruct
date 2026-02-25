@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
+import ConfirmModal from '../common/ConfirmModal';
 import './DocumentList.css';
 
 const DocumentList = ({ refreshTrigger }) => {
@@ -9,6 +10,10 @@ const DocumentList = ({ refreshTrigger }) => {
   const [filter, setFilter] = useState('all');
   const [expandedDocId, setExpandedDocId] = useState(null);
   const [deletingDocId, setDeletingDocId] = useState(null);
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    docId: null
+  });
 
   /**
    * Fetch documents from backend
@@ -95,20 +100,25 @@ const DocumentList = ({ refreshTrigger }) => {
    * Handle document deletion
    */
   const handleDelete = async (docId) => {
-    if (!window.confirm('Are you sure you want to delete this document? This action cannot be undone.')) {
-      return;
-    }
+    setDeleteModal({ isOpen: true, docId });
+  };
 
-    setDeletingDocId(docId);
+  /**
+   * Confirm deletion
+   */
+  const confirmDelete = async () => {
+    setDeletingDocId(deleteModal.docId);
 
     try {
-      await api.delete(`/documents/${docId}`);
-      setDocuments(documents.filter(doc => doc._id !== docId));
+      await api.delete(`/documents/${deleteModal.docId}`);
+      setDocuments(documents.filter(doc => doc._id !== deleteModal.docId));
       setExpandedDocId(null);
+      setDeleteModal({ isOpen: false, docId: null });
     } catch (err) {
       const errorMsg = err.response?.data?.message || err.message || 'Failed to delete document';
       setError(errorMsg);
       console.error('Error deleting document:', err);
+      setDeleteModal({ isOpen: false, docId: null });
     } finally {
       setDeletingDocId(null);
     }
@@ -274,6 +284,17 @@ const DocumentList = ({ refreshTrigger }) => {
           ))}
         </div>
       )}
+
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        title="Delete Document"
+        message="Are you sure you want to delete this document? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        isDangerous={true}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteModal({ isOpen: false, docId: null })}
+      />
     </div>
   );
 };

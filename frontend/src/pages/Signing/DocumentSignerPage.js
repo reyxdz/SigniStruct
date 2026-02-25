@@ -4,6 +4,7 @@ import { AuthContext } from '../../contexts/AuthContext';
 import DocumentViewer from '../../components/Signing/DocumentViewer';
 import SignatureSelector from '../../components/Signing/SignatureSelector';
 import SignaturePlacementTool from '../../components/Signing/SignaturePlacementTool';
+import ConfirmModal from '../../components/common/ConfirmModal';
 import DocumentSigningService from '../../services/documentSigningService';
 import './DocumentSignerPage.css';
 
@@ -37,6 +38,7 @@ const DocumentSignerPage = () => {
   const [verificationResult, setVerificationResult] = useState(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [signingProgress, setSigningProgress] = useState(0);
+  const [cancelModal, setCancelModal] = useState(false);
 
   // Load document and signatures on mount
   useEffect(() => {
@@ -190,16 +192,14 @@ const DocumentSignerPage = () => {
   // Handle cancel
   const handleCancel = () => {
     if (signaturePlacements.length > 0) {
-      if (
-        window.confirm(
-          'Are you sure? You will lose all signature placements.'
-        )
-      ) {
-        navigate('/documents');
-      }
+      setCancelModal(true);
     } else {
       navigate('/documents');
     }
+  };
+
+  const confirmCancel = () => {
+    navigate('/documents');
   };
 
   if (isLoading) {
@@ -349,6 +349,17 @@ const DocumentSignerPage = () => {
           </p>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={cancelModal}
+        title="Discard Changes"
+        message="Are you sure? You will lose all signature placements."
+        confirmText="Discard"
+        cancelText="Continue Signing"
+        isDangerous={true}
+        onConfirm={confirmCancel}
+        onCancel={() => setCancelModal(false)}
+      />
     </div>
   );
 };

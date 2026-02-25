@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import api from '../../services/api';
 import SignaturePad from '../../components/Signature/SignaturePad';
 import SignatureUploader from '../../components/Signature/SignatureUploader';
+import ConfirmModal from '../../components/common/ConfirmModal';
 import './CreateSignaturePage.css';
 
 /**
@@ -16,6 +17,10 @@ const CreateSignaturePage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [fetchingSignatures, setFetchingSignatures] = useState(true);
+  const [deleteModal, setDeleteModal] = useState({
+    isOpen: false,
+    signatureId: null
+  });
 
   // Fetch existing signatures on component mount
   React.useEffect(() => {
@@ -103,21 +108,26 @@ const CreateSignaturePage = () => {
    * Delete a signature
    */
   const handleDeleteSignature = async (signatureId) => {
-    if (!window.confirm('Are you sure you want to delete this signature?')) {
-      return;
-    }
+    setDeleteModal({ isOpen: true, signatureId });
+  };
 
+  /**
+   * Confirm deletion
+   */
+  const confirmDeleteSignature = async () => {
     try {
-      const response = await api.delete(`/signatures/${signatureId}`);
+      const response = await api.delete(`/signatures/${deleteModal.signatureId}`);
 
       if (response.data.success) {
         setSuccess('Signature deleted successfully');
         await fetchUserSignatures();
+        setDeleteModal({ isOpen: false, signatureId: null });
         setTimeout(() => setSuccess(''), 2000);
       }
     } catch (err) {
       console.error('Failed to delete signature:', err);
       setError(err.response?.data?.error || 'Failed to delete signature');
+      setDeleteModal({ isOpen: false, signatureId: null });
     }
   };
 
@@ -240,6 +250,17 @@ const CreateSignaturePage = () => {
           </div>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={deleteModal.isOpen}
+        title="Delete Signature"
+        message="Are you sure you want to delete this signature? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        isDangerous={true}
+        onConfirm={confirmDeleteSignature}
+        onCancel={() => setDeleteModal({ isOpen: false, signatureId: null })}
+      />
     </div>
   );
 };

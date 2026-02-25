@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import ConfirmModal from '../common/ConfirmModal';
 import './DocumentRequestManager.css';
 
 const DocumentRequestManager = ({ documentId, documentTitle, onClose }) => {
@@ -7,6 +8,10 @@ const DocumentRequestManager = ({ documentId, documentTitle, onClose }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('all');
+  const [revokeModal, setRevokeModal] = useState({
+    isOpen: false,
+    requestId: null
+  });
 
   useEffect(() => {
     const fetchRequests = async () => {
@@ -61,13 +66,13 @@ const DocumentRequestManager = ({ documentId, documentTitle, onClose }) => {
   }, [documentId]);
 
   const handleRevoke = async (requestId) => {
-    if (!window.confirm('Are you sure you want to revoke this signing request?')) {
-      return;
-    }
+    setRevokeModal({ isOpen: true, requestId });
+  };
 
+  const confirmRevoke = async () => {
     try {
       const response = await fetch(
-        `/api/signing-requests/${requestId}/revoke`,
+        `/api/signing-requests/${revokeModal.requestId}/revoke`,
         {
           method: 'POST',
           headers: {
@@ -84,7 +89,7 @@ const DocumentRequestManager = ({ documentId, documentTitle, onClose }) => {
 
       // Update state
       setRequests(requests.map(r =>
-        r._id === requestId ? { ...r, status: 'revoked' } : r
+        r._id === revokeModal.requestId ? { ...r, status: 'revoked' } : r
       ));
 
       // Refresh stats
@@ -105,8 +110,11 @@ const DocumentRequestManager = ({ documentId, documentTitle, onClose }) => {
       } catch (err) {
         console.error('Failed to fetch statistics:', err);
       }
+
+      setRevokeModal({ isOpen: false, requestId: null });
     } catch (err) {
       alert(err.message);
+      setRevokeModal({ isOpen: false, requestId: null });
     }
   };
 
@@ -321,6 +329,17 @@ const DocumentRequestManager = ({ documentId, documentTitle, onClose }) => {
           Close
         </button>
       </div>
+
+      <ConfirmModal
+        isOpen={revokeModal.isOpen}
+        title="Revoke Signing Request"
+        message="Are you sure you want to revoke this signing request?"
+        confirmText="Revoke"
+        cancelText="Cancel"
+        isDangerous={true}
+        onConfirm={confirmRevoke}
+        onCancel={() => setRevokeModal({ isOpen: false, requestId: null })}
+      />
     </div>
   );
 };

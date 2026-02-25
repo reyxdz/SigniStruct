@@ -72,7 +72,6 @@ class SignatureController {
       const user_id = req.user.id;
 
       const signatures = await UserSignature.find({ user_id })
-        .select('-signature_image') // Exclude image data from list
         .sort({ created_at: -1 });
 
       return res.status(200).json({
