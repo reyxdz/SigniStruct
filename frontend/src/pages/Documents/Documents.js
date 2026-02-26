@@ -180,7 +180,7 @@ const Documents = () => {
     },
     tabActive: {
       color: colors.secondary,
-      borderBottomColor: colors.secondary,
+      borderBottom: `3px solid ${colors.secondary}`,
     },
     searchContainer: {
       marginBottom: spacing.xl,
