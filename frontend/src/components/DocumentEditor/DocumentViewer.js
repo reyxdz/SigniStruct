@@ -44,17 +44,15 @@ const DocumentViewer = ({
       setLoading(true);
       setError('');
 
-      const response = await api.get(`/documents/${documentId}`);
+      // Use the preview endpoint to get the PDF file as base64
+      const response = await api.get(`/documents/${documentId}/preview`);
 
       if (response.data.success || response.data.document) {
         const doc = response.data.document || response.data.data;
 
-        // Check if document has file URL
-        if (doc.file_url) {
-          // Use file URL directly if available
-          setPdfUrl(doc.file_url);
-        } else if (doc.fileData) {
-          // Convert base64 to blob URL if fileData is provided
+        // Check if document has file data as base64
+        if (doc.fileData) {
+          // Convert base64 to blob URL
           const base64Data = doc.fileData;
           const binaryString = atob(base64Data);
           const bytes = new Uint8Array(binaryString.length);
@@ -64,6 +62,9 @@ const DocumentViewer = ({
           const blob = new Blob([bytes], { type: 'application/pdf' });
           const blobUrl = URL.createObjectURL(blob);
           setPdfUrl(blobUrl);
+        } else if (doc.file_url) {
+          // Fallback to direct URL if base64 not available
+          setPdfUrl(doc.file_url);
         } else {
           setError('No PDF file found for this document');
         }

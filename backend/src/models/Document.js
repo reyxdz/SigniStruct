@@ -71,6 +71,62 @@ const documentSchema = new mongoose.Schema(
       }
     ],
 
+    // Document editor fields (for field placement on PDF)
+    fields: [
+      {
+        id: String,
+        toolId: Number,
+        label: String,
+        pageNumber: Number,
+        x: Number,          // Percentage from left (0-100)
+        y: Number,          // Percentage from top (0-100)
+        width: Number,      // In pixels
+        height: Number,     // In pixels
+        value: String,
+        assignedRecipients: [
+          {
+            recipientId: mongoose.Schema.Types.ObjectId,
+            recipientEmail: String,
+            recipientName: String,
+            status: {
+              type: String,
+              enum: ['pending', 'signed', 'declined'],
+              default: 'pending'
+            },
+            signatureData: String,
+            signedAt: Date
+          }
+        ],
+        fontFamily: {
+          type: String,
+          default: 'Arial'
+        },
+        fontSize: {
+          type: Number,
+          default: 12
+        },
+        fontColor: {
+          type: String,
+          default: '#000000'
+        },
+        fontStyles: {
+          bold: { type: Boolean, default: false },
+          italic: { type: Boolean, default: false },
+          underline: { type: Boolean, default: false }
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now
+        }
+      }
+    ],
+
+    // Last edited timestamp for tracking changes
+    lastEditedAt: {
+      type: Date,
+      default: null
+    },
+
     // Multi-signer support
     signing_method: {
       type: String,

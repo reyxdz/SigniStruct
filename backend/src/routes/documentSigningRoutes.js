@@ -71,39 +71,6 @@ router.get('/', verifyToken, getUserDocuments);
 router.post('/upload', verifyToken, uploadPDF.single('document'), uploadDocument);
 
 /**
- * GET /api/documents/:documentId
- * Retrieve a single document by ID with full details
- * Checks ownership and returns document metadata and file URL
- * 
- * @params {
- *   documentId: string (ObjectId)
- * }
- * 
- * @response {
- *   success: boolean,
- *   document: {
- *     _id: ObjectId,
- *     title: string,
- *     description: string,
- *     owner_id: ObjectId,
- *     file_url: string,
- *     original_filename: string,
- *     file_type: string,
- *     file_size: number,
- *     status: string,
- *     fields: array,
- *     signers: array,
- *     created_at: Date,
- *     updated_at: Date
- *   }
- * }
- * 
- * @access Private
- * @security Requires document ownership
- */
-router.get('/:documentId', verifyToken, getDocument);
-
-/**
  * GET /api/documents/:documentId/preview
  * Retrieve document with PDF file data as base64
  * Used by PDF viewer to load and display the document
@@ -137,6 +104,39 @@ router.get('/:documentId', verifyToken, getDocument);
  * @security Requires document ownership
  */
 router.get('/:documentId/preview', verifyToken, getDocumentPreview);
+
+/**
+ * GET /api/documents/:documentId
+ * Retrieve a single document by ID with full details
+ * Checks ownership and returns document metadata and file URL
+ * 
+ * @params {
+ *   documentId: string (ObjectId)
+ * }
+ * 
+ * @response {
+ *   success: boolean,
+ *   document: {
+ *     _id: ObjectId,
+ *     title: string,
+ *     description: string,
+ *     owner_id: ObjectId,
+ *     file_url: string,
+ *     original_filename: string,
+ *     file_type: string,
+ *     file_size: number,
+ *     status: string,
+ *     fields: array,
+ *     signers: array,
+ *     created_at: Date,
+ *     updated_at: Date
+ *   }
+ * }
+ * 
+ * @access Private
+ * @security Requires document ownership
+ */
+router.get('/:documentId', verifyToken, getDocument);
 
 /**
  * POST /api/documents/:documentId/sign
