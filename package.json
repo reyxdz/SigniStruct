@@ -12,10 +12,21 @@
     "start": "cd backend && npm start",
     "test": "cd backend && npm test"
   },
-  "keywords": ["mern", "mongodb", "express", "react", "nodejs"],
+  "keywords": [
+    "mern",
+    "mongodb",
+    "express",
+    "react",
+    "nodejs"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "concurrently": "^8.0.1"
+  },
+  "dependencies": {
+    "dnd-kit": "^0.0.2",
+    "pdf-lib": "^1.17.1",
+    "react-pdf": "^10.4.1"
   }
 }

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
 import { FiArrowLeft, FiSave, FiSend } from 'react-icons/fi';
+import DocumentViewer from '../../components/DocumentEditor/DocumentViewer';
 import './DocumentEditorPage.css';
 
 /**
@@ -176,19 +177,13 @@ const DocumentEditorPage = () => {
         </div>
 
         {/* Center - Document Viewer */}
-        <div style={styles.centerPanel}>
-          <div style={styles.viewerHeader}>
-            <div style={styles.pageInfo}>
-              Page <span style={styles.currentPage}>{currentPage}</span>
-            </div>
-          </div>
-          <div style={styles.viewerContainer}>
-            <div style={styles.documentPlaceholder}>
-              <p>PDF Viewer coming soon...</p>
-              <p style={styles.smallText}>Document will render here</p>
-            </div>
-          </div>
-        </div>
+        <DocumentViewer
+          documentId={documentId}
+          currentPage={currentPage}
+          onPageChange={setCurrentPage}
+          droppedTools={fields}
+          selectedFieldId={selectedFieldId}
+        />
 
         {/* Right Panel - Properties */}
         <div style={styles.rightPanel}>
@@ -334,49 +329,6 @@ const styles = {
     flexDirection: 'column',
     backgroundColor: colors.lightGray,
     overflow: 'hidden',
-  },
-  viewerHeader: {
-    padding: spacing.md,
-    backgroundColor: colors.white,
-    borderBottom: `1px solid ${colors.gray200}`,
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  pageInfo: {
-    fontSize: typography.sizes.sm,
-    color: colors.gray600,
-  },
-  currentPage: {
-    fontWeight: typography.weights.semibold,
-    color: colors.primary,
-    marginLeft: spacing.xs,
-  },
-  viewerContainer: {
-    flex: 1,
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: spacing.lg,
-    overflow: 'auto',
-  },
-  documentPlaceholder: {
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.lg,
-    padding: spacing['3xl'],
-    textAlign: 'center',
-    boxShadow: `0 2px 8px rgba(0, 0, 0, 0.1)`,
-    minWidth: '600px',
-    minHeight: '800px',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    color: colors.gray400,
-  },
-  smallText: {
-    fontSize: typography.sizes.sm,
-    marginTop: spacing.md,
   },
 
   // Right Panel

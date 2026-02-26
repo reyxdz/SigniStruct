@@ -87,22 +87,33 @@ exports.signin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    console.log('Sign-in attempt for email:', email);
+
     // Validation
     if (!email || !password) {
+      console.log('Missing email or password');
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
     // Find user
     const user = await User.findOne({ email: email.toLowerCase() });
     if (!user) {
+      console.log('User not found for email:', email.toLowerCase());
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
+    console.log('User found:', user.email);
+
     // Check password
     const isPasswordCorrect = await bcrypt.compare(password, user.password);
+    console.log('Password check result:', isPasswordCorrect);
+    
     if (!isPasswordCorrect) {
+      console.log('Password mismatch for user:', user.email);
       return res.status(401).json({ error: 'Invalid email or password' });
     }
+
+    console.log('Login successful for user:', user.email);
 
     // Generate token
     const token = generateToken(user._id);

@@ -1,0 +1,85 @@
+/* DocumentViewer.css */
+
+/* Animations */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* PDF Viewer wrapper */
+.react-pdf__Document {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.react-pdf__Page {
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin: 0 auto;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Annotation Layer (links, forms) */
+.react-pdf__Page__annotations {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.react-pdf__Page__canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Text Layer */
+.react-pdf__Page__textContent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  opacity: 0;
+  line-height: 1;
+  white-space: pre;
+  cursor: text;
+  transform: translateY(0px);
+  z-index: 2;
+}
+
+.react-pdf__Page__textContent > span {
+  color: transparent;
+  position: absolute;
+  white-space: pre;
+  cursor: text;
+  transform: translateY(0px);
+}
+
+.react-pdf__Page__annotations annotationLayer {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* Loading message */
+.react-pdf__message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 50px;
+  color: #8c8c8c;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .react-pdf__Page {
+    max-width: 95vw;
+  }
+}
