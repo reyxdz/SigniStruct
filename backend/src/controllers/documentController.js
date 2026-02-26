@@ -404,6 +404,73 @@ class DocumentController {
       });
     }
   }
+
+  /**
+   * Upload a new document
+   * POST /api/documents/upload
+   * @access Private
+   */
+  static async uploadDocument(req, res) {
+    try {
+      const userId = req.user.id;
+      const { title, description } = req.body;
+
+      // Validate title
+      if (!title || !title.trim()) {
+        return res.status(400).json({
+          success: false,
+          error: 'Document title is required'
+        });
+      }
+
+      // Validate file was uploaded
+      if (!req.file) {
+        return res.status(400).json({
+          success: false,
+          error: 'No file provided'
+        });
+      }
+
+      // Generate a simple hash from filename (in production, use crypto for actual file hash)
+      const crypto = require('crypto');
+      const fileHash = crypto.createHash('sha256').update(req.file.filename + Date.now()).digest('hex');
+
+      // Create new document
+      const newDocument = new Document({
+        owner_id: userId,
+        title: title.trim(),
+        description: description?.trim() || '',
+        file_url: `/uploads/documents/${req.file.filename}`,
+        original_filename: req.file.originalname,
+        file_hash_sha256: fileHash,
+        file_size: req.file.size,
+        file_type: req.file.mimetype || 'application/pdf',
+        status: 'draft',
+        signers: []
+      });
+
+      // Save document to database
+      const savedDocument = await newDocument.save();
+
+      return res.status(201).json({
+        success: true,
+        message: 'Document uploaded successfully',
+        document: {
+          _id: savedDocument._id,
+          title: savedDocument.title,
+          status: savedDocument.status,
+          created_at: savedDocument.created_at
+        }
+      });
+    } catch (error) {
+      console.error('Upload document error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to upload document',
+        message: error.message
+      });
+    }
+  }
 }
 
 module.exports = DocumentController;

@@ -1,13 +1,15 @@
 const express = require('express');
 const router = express.Router();
 const { verifyToken } = require('../middleware/authMiddleware');
+const { uploadPDF } = require('../middleware/pdfUpload');
 const {
   signDocument,
   getDocumentSignatures,
   verifyDocument,
   getSignatureDetails,
   revokeSignature,
-  getUserDocuments
+  getUserDocuments,
+  uploadDocument
 } = require('../controllers/documentController');
 const {
   validateSignDocument,
@@ -40,6 +42,31 @@ const {
  * @access Private
  */
 router.get('/', verifyToken, getUserDocuments);
+
+/**
+ * POST /api/documents/upload
+ * Upload a new document
+ * 
+ * @body {
+ *   document: File (multipart/form-data),
+ *   title: string,
+ *   description: string (optional)
+ * }
+ * 
+ * @response {
+ *   success: boolean,
+ *   message: string,
+ *   document: {
+ *     _id: ObjectId,
+ *     name: string,
+ *     status: string,
+ *     created_at: Date
+ *   }
+ * }
+ * 
+ * @access Private
+ */
+router.post('/upload', verifyToken, uploadPDF.single('document'), uploadDocument);
 
 /**
  * POST /api/documents/:documentId/sign

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
+import DocumentUploader from '../../components/Documents/DocumentUploader';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
 import { FiFileText, FiCheck, FiClock, FiUpload } from 'react-icons/fi';
 
@@ -13,6 +14,7 @@ const Documents = () => {
   const [allDocuments, setAllDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [showUploadModal, setShowUploadModal] = useState(false);
 
   // Fetch documents on component mount
   useEffect(() => {
@@ -116,6 +118,14 @@ const Documents = () => {
       }
       return false;
     }).length;
+  };
+
+  /**
+   * Handle successful document upload
+   */
+  const handleUploadSuccess = () => {
+    setShowUploadModal(false);
+    fetchDocuments(); // Refresh the documents list
   };
 
   const documentsStyles = {
@@ -267,6 +277,49 @@ const Documents = () => {
       padding: `${spacing['3xl']} ${spacing['2xl']}`,
       color: colors.gray600,
     },
+    modalOverlay: {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000,
+    },
+    modalContent: {
+      backgroundColor: colors.white,
+      borderRadius: borderRadius.lg,
+      padding: spacing['2xl'],
+      maxWidth: '600px',
+      width: '90%',
+      maxHeight: '90vh',
+      overflowY: 'auto',
+      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+    },
+    modalHeader: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: spacing.xl,
+      paddingBottom: spacing.lg,
+      borderBottom: `1px solid ${colors.gray200}`,
+    },
+    modalTitle: {
+      fontSize: typography.sizes['2xl'],
+      fontWeight: typography.weights.bold,
+      color: colors.gray900,
+    },
+    closeButton: {
+      background: 'none',
+      border: 'none',
+      fontSize: '24px',
+      cursor: 'pointer',
+      color: colors.gray600,
+      padding: 0,
+    },
   };
 
   return (
@@ -277,6 +330,7 @@ const Documents = () => {
           <h1 style={documentsStyles.title}><FiFileText style={{ display: 'inline', marginRight: '12px' }} /> Documents</h1>
           <button
             style={documentsStyles.uploadButton}
+            onClick={() => setShowUploadModal(true)}
             onMouseOver={(e) => {
               e.target.style.opacity = '0.9';
             }}
@@ -476,6 +530,24 @@ const Documents = () => {
           </table>
         </div>
       </div>
+
+      {/* Upload Modal */}
+      {showUploadModal && (
+        <div style={documentsStyles.modalOverlay} onClick={() => setShowUploadModal(false)}>
+          <div style={documentsStyles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div style={documentsStyles.modalHeader}>
+              <h2 style={documentsStyles.modalTitle}>Upload Document</h2>
+              <button
+                style={documentsStyles.closeButton}
+                onClick={() => setShowUploadModal(false)}
+              >
+                ✕
+              </button>
+            </div>
+            <DocumentUploader onUploadSuccess={handleUploadSuccess} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
