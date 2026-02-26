@@ -26,6 +26,10 @@ const DocumentViewer = ({
   const [zoom, setZoom] = useState(100);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showZoomMenu, setShowZoomMenu] = useState(false);
+
+  // Zoom preset values
+  const ZOOM_PRESETS = [50, 75, 100, 125, 150];
 
   // Fetch PDF file from backend on mount or documentId change
   useEffect(() => {
@@ -34,6 +38,18 @@ const DocumentViewer = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [documentId]);
+
+  // Close zoom menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setShowZoomMenu(false);
+    };
+
+    if (showZoomMenu) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showZoomMenu]);
 
   /**
    * Fetch PDF file from backend
@@ -106,14 +122,30 @@ const DocumentViewer = ({
    * Handle zoom in
    */
   const handleZoomIn = () => {
-    setZoom((prev) => Math.min(prev + 10, 200));
+    setZoom((prev) => {
+      // Find next preset value
+      const nextPreset = ZOOM_PRESETS.find(z => z > prev);
+      return nextPreset || Math.min(prev + 10, 200);
+    });
   };
 
   /**
    * Handle zoom out
    */
   const handleZoomOut = () => {
-    setZoom((prev) => Math.max(prev - 10, 50));
+    setZoom((prev) => {
+      // Find previous preset value
+      const prevPreset = [...ZOOM_PRESETS].reverse().find(z => z < prev);
+      return prevPreset || Math.max(prev - 10, 50);
+    });
+  };
+
+  /**
+   * Handle zoom to specific percentage
+   */
+  const handleZoomToPreset = (percentage) => {
+    setZoom(percentage);
+    setShowZoomMenu(false);
   };
 
   /**
@@ -207,7 +239,53 @@ const DocumentViewer = ({
             <FiZoomOut />
           </button>
 
-          <span style={styles.zoomPercent}>{zoom}%</span>
+          <div style={styles.zoomControl}>
+            <button
+              style={styles.zoomButton}
+              onClick={() => setShowZoomMenu(!showZoomMenu)}
+              title="Zoom preset"
+            >
+              {zoom}%
+            </button>
+            
+            {showZoomMenu && (
+              <div style={styles.zoomMenu}>
+                {ZOOM_PRESETS.map((preset) => (
+                  <button
+                    key={preset}
+                    style={{
+                      ...styles.zoomMenuButton,
+                      ...(zoom === preset ? styles.zoomMenuButtonActive : {})
+                    }}
+                    onClick={() => handleZoomToPreset(preset)}
+                  >
+                    {preset}%
+                  </button>
+                ))}
+                <div style={styles.zoomMenuDivider} />
+                <button
+                  style={styles.zoomMenuButton}
+                  onClick={() => {
+                    handleZoomToPreset(Math.round((numPages ? 100 : 100)));
+                    setShowZoomMenu(false);
+                  }}
+                  title="Fit to page height"
+                >
+                  Fit Page
+                </button>
+                <button
+                  style={styles.zoomMenuButton}
+                  onClick={() => {
+                    handleZoomToPreset(100);
+                    setShowZoomMenu(false);
+                  }}
+                  title="Actual size"
+                >
+                  Actual Size
+                </button>
+              </div>
+            )}
+          </div>
 
           <button
             style={styles.controlButton}
@@ -333,11 +411,56 @@ const styles = {
     fontSize: typography.sizes.sm,
     color: colors.gray600,
   },
-  zoomPercent: {
+  zoomControl: {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  zoomButton: {
+    padding: `${spacing.xs} ${spacing.sm}`,
     fontSize: typography.sizes.sm,
-    color: colors.gray600,
-    minWidth: '45px',
+    color: colors.gray700,
+    backgroundColor: colors.gray100,
+    border: `1px solid ${colors.gray300}`,
+    borderRadius: borderRadius.sm,
+    cursor: 'pointer',
+    minWidth: '50px',
     textAlign: 'center',
+    transition: 'all 0.2s ease',
+  },
+  zoomMenu: {
+    position: 'absolute',
+    bottom: '100%',
+    left: 0,
+    backgroundColor: colors.white,
+    border: `1px solid ${colors.gray300}`,
+    borderRadius: borderRadius.md,
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+    zIndex: 1000,
+    minWidth: '120px',
+    marginBottom: spacing.sm,
+  },
+  zoomMenuButton: {
+    display: 'block',
+    width: '100%',
+    padding: `${spacing.xs} ${spacing.md}`,
+    border: 'none',
+    backgroundColor: 'transparent',
+    color: colors.gray700,
+    fontSize: typography.sizes.sm,
+    textAlign: 'left',
+    cursor: 'pointer',
+    transition: 'background-color 0.2s ease',
+  },
+  zoomMenuButtonActive: {
+    backgroundColor: colors.primary,
+    color: colors.white,
+    fontWeight: typography.weights.semibold,
+  },
+  zoomMenuDivider: {
+    height: '1px',
+    backgroundColor: colors.gray200,
+    margin: `${spacing.xs} 0`,
   },
 
   // Viewer
