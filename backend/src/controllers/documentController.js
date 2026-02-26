@@ -134,6 +134,18 @@ class DocumentController {
    */
   static async getDocument(req, res) {
     try {
+      // CRITICAL: Check if req.user exists
+      if (!req.user || !req.user.id) {
+        console.error('❌ CRITICAL: req.user is not set!');
+        console.error('  req.user:', req.user);
+        console.error('  req.userId:', req.userId);
+        console.error('  req.headers.authorization:', req.headers.authorization ? 'Present' : 'Missing');
+        return res.status(401).json({
+          success: false,
+          error: 'Authentication failed: req.user not set'
+        });
+      }
+
       const { documentId } = req.params;
       const userId = req.user.id;
 
@@ -596,6 +608,17 @@ class DocumentController {
    */
   static async uploadDocument(req, res) {
     try {
+      // CRITICAL: Check if req.user exists
+      if (!req.user || !req.user.id) {
+        console.error('❌ CRITICAL: req.user is not set during upload!');
+        console.error('  req.user:', req.user);
+        console.error('  req.headers.authorization:', req.headers.authorization ? 'Present' : 'Missing');
+        return res.status(401).json({
+          success: false,
+          error: 'Authentication failed: req.user not set'
+        });
+      }
+
       const userId = req.user.id;
       const { title, description } = req.body;
 
