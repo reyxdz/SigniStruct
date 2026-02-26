@@ -3,6 +3,10 @@ import api from '../../services/api';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
 import { FiFileText, FiCheck, FiClock, FiUpload } from 'react-icons/fi';
 
+/**
+ * Documents Page
+ * Displays user's documents with filtering and search capabilities
+ */
 const Documents = () => {
   const [activeTab, setActiveTab] = useState('published');
   const [searchTerm, setSearchTerm] = useState('');

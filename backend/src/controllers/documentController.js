@@ -375,6 +375,35 @@ class DocumentController {
       });
     }
   }
+
+  /**
+   * Get all documents for the user
+   * GET /api/documents
+   * @access Private
+   */
+  static async getUserDocuments(req, res) {
+    try {
+      const userId = req.user.id;
+
+      // Fetch documents created by the user
+      const documents = await Document.find({ owner_id: userId })
+        .select('_id name owner_id signers status created_at updated_at')
+        .sort({ created_at: -1 });
+
+      return res.status(200).json({
+        success: true,
+        documents: documents || [],
+        count: documents.length
+      });
+    } catch (error) {
+      console.error('Get user documents error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to retrieve documents',
+        message: error.message
+      });
+    }
+  }
 }
 
 module.exports = DocumentController;

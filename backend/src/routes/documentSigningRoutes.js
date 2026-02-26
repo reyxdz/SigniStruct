@@ -6,7 +6,8 @@ const {
   getDocumentSignatures,
   verifyDocument,
   getSignatureDetails,
-  revokeSignature
+  revokeSignature,
+  getUserDocuments
 } = require('../controllers/documentController');
 const {
   validateSignDocument,
@@ -17,6 +18,28 @@ const {
  * Document Signing Routes
  * All routes require authentication
  */
+
+/**
+ * GET /api/documents
+ * Retrieve all documents for the authenticated user
+ * 
+ * @response {
+ *   success: boolean,
+ *   documents: [{
+ *     _id: ObjectId,
+ *     name: string,
+ *     owner_id: ObjectId,
+ *     signers: array,
+ *     status: string,
+ *     created_at: Date,
+ *     updated_at: Date
+ *   }],
+ *   count: number
+ * }
+ * 
+ * @access Private
+ */
+router.get('/', verifyToken, getUserDocuments);
 
 /**
  * POST /api/documents/:documentId/sign
