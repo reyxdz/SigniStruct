@@ -22,17 +22,23 @@ const DocumentEditorPage = () => {
 
   // Editor state
   const [fields, setFields] = useState([]);
-  const [selectedFieldId, setSelectedFieldId] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  // eslint-disable-next-line no-unused-vars
+  const [selectedFieldId, setSelectedFieldId] = useState(null); // Used in Phase 5
+  // eslint-disable-next-line no-unused-vars
+  const [currentPage, setCurrentPage] = useState(1); // Used in Phase 2
 
   // Fetch document on mount
   useEffect(() => {
     fetchDocument();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [documentId]);
 
   /**
    * Fetch document from backend
+   * @function
+   * @async
    */
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const fetchDocument = async () => {
     try {
       setLoading(true);
