@@ -128,6 +128,139 @@ class DocumentController {
   }
 
   /**
+   * Get a single document by ID with full details and file data
+   * GET /api/documents/:documentId
+   * @access Private
+   */
+  static async getDocument(req, res) {
+    try {
+      const { documentId } = req.params;
+      const userId = req.user.id;
+
+      // Verify document exists
+      const document = await Document.findById(documentId);
+      if (!document) {
+        return res.status(404).json({
+          success: false,
+          error: 'Document not found'
+        });
+      }
+
+      // Verify user owns the document
+      if (document.owner_id.toString() !== userId) {
+        return res.status(403).json({
+          success: false,
+          error: 'You do not have permission to view this document'
+        });
+      }
+
+      // Return document with all details
+      return res.status(200).json({
+        success: true,
+        document: {
+          _id: document._id,
+          title: document.title,
+          description: document.description,
+          owner_id: document.owner_id,
+          file_url: document.file_url,
+          original_filename: document.original_filename,
+          file_type: document.file_type,
+          file_size: document.file_size,
+          status: document.status,
+          fields: document.fields || [],
+          signers: document.signers || [],
+          created_at: document.created_at,
+          updated_at: document.updated_at
+        }
+      });
+    } catch (error) {
+      console.error('Get document error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to retrieve document',
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * Get document with file data as base64 for PDF viewer
+   * GET /api/documents/:documentId/preview
+   * Returns PDF file as base64 encoded data
+   * @access Private
+   */
+  static async getDocumentPreview(req, res) {
+    try {
+      const { documentId } = req.params;
+      const userId = req.user.id;
+      const fs = require('fs');
+      const path = require('path');
+
+      // Verify document exists
+      const document = await Document.findById(documentId);
+      if (!document) {
+        return res.status(404).json({
+          success: false,
+          error: 'Document not found'
+        });
+      }
+
+      // Verify user owns the document
+      if (document.owner_id.toString() !== userId) {
+        return res.status(403).json({
+          success: false,
+          error: 'You do not have permission to view this document'
+        });
+      }
+
+      // Build file path from file_url
+      // file_url format: /uploads/documents/filename.pdf
+      const fileName = document.file_url.split('/').pop();
+      const filePath = path.join(__dirname, '../../uploads/documents', fileName);
+
+      // Check if file exists
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({
+          success: false,
+          error: 'Document file not found on server'
+        });
+      }
+
+      // Read file and convert to base64
+      const fileBuffer = fs.readFileSync(filePath);
+      const base64Data = fileBuffer.toString('base64');
+
+      // Return document with file data as base64
+      return res.status(200).json({
+        success: true,
+        document: {
+          _id: document._id,
+          title: document.title,
+          description: document.description,
+          owner_id: document.owner_id,
+          file_url: document.file_url,
+          fileData: base64Data,
+          original_filename: document.original_filename,
+          file_type: document.file_type,
+          file_size: document.file_size,
+          status: document.status,
+          fields: document.fields || [],
+          signers: document.signers || [],
+          created_at: document.created_at,
+          updated_at: document.updated_at
+        }
+      });
+    } catch (error) {
+      console.error('Get document preview error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to retrieve document preview',
+        message: error.message
+      });
+    }
+  }
+
+  /**
    * Get all signatures on a document
    * GET /api/documents/:documentId/signatures
    * @access Private
