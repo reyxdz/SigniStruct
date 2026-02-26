@@ -387,7 +387,7 @@ class DocumentController {
 
       // Fetch documents created by the user
       const documents = await Document.find({ owner_id: userId })
-        .select('_id name owner_id signers status created_at updated_at')
+        .select('_id title owner_id signers status created_at updated_at')
         .sort({ created_at: -1 });
 
       return res.status(200).json({

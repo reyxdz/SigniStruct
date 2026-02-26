@@ -67,7 +67,7 @@ const Documents = () => {
     // Filter by search term
     if (searchTerm) {
       filtered = filtered.filter(doc =>
-        doc.name?.toLowerCase().includes(searchTerm.toLowerCase())
+        doc.title?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -423,7 +423,7 @@ const Documents = () => {
                       <td style={documentsStyles.td}>
                         <div style={documentsStyles.docName}>
                           <FiFileText style={{ marginRight: '8px' }} />
-                          {doc.name}
+                          {doc.title}
                         </div>
                       </td>
                       <td style={documentsStyles.td}>{getSignerCount(doc)}</td>
