@@ -137,22 +137,33 @@ class DocumentController {
       const { documentId } = req.params;
       const userId = req.user.id;
 
+      console.log('🔍 Fetching Document');
+      console.log('  Requested ID:', documentId);
+      console.log('  User ID:', userId);
+
       // Verify document exists
       const document = await Document.findById(documentId);
       if (!document) {
+        console.log('❌ Document Not Found in database');
         return res.status(404).json({
           success: false,
           error: 'Document not found'
         });
       }
 
+      console.log('  Found Document ID:', document._id);
+      console.log('  Document Owner:', document.owner_id.toString());
+
       // Verify user owns the document
       if (document.owner_id.toString() !== userId) {
+        console.log('❌ Permission Denied - User does not own document');
         return res.status(403).json({
           success: false,
           error: 'You do not have permission to view this document'
         });
       }
+
+      console.log('✅ Document Retrieved');
 
       // Return document with all details
       return res.status(200).json({
@@ -175,7 +186,7 @@ class DocumentController {
         }
       });
     } catch (error) {
-      console.error('Get document error:', error);
+      console.error('❌ Get document error:', error);
       return res.status(500).json({
         success: false,
         error: 'Failed to retrieve document',
@@ -550,6 +561,11 @@ class DocumentController {
       const userId = req.user.id;
       const { title, description } = req.body;
 
+      console.log('📄 Document Upload Started');
+      console.log('  User ID:', userId);
+      console.log('  Title:', title);
+      console.log('  File:', req.file?.filename);
+
       // Validate title
       if (!title || !title.trim()) {
         return res.status(400).json({
@@ -584,8 +600,13 @@ class DocumentController {
         signers: []
       });
 
+      console.log('  Saving to database...');
       // Save document to database
       const savedDocument = await newDocument.save();
+
+      console.log('✅ Document Saved');
+      console.log('  Document ID:', savedDocument._id);
+      console.log('  File URL:', savedDocument.file_url);
 
       return res.status(201).json({
         success: true,
@@ -598,7 +619,7 @@ class DocumentController {
         }
       });
     } catch (error) {
-      console.error('Upload document error:', error);
+      console.error('❌ Upload document error:', error);
       return res.status(500).json({
         success: false,
         error: 'Failed to upload document',
