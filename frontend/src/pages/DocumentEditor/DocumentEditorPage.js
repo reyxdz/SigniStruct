@@ -4,6 +4,7 @@ import api from '../../services/api';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
 import { FiArrowLeft, FiSave, FiSend } from 'react-icons/fi';
 import DocumentViewer from '../../components/DocumentEditor/DocumentViewer';
+import LeftPanel from '../../components/DocumentEditor/LeftPanel';
 import './DocumentEditorPage.css';
 
 /**
@@ -167,14 +168,7 @@ const DocumentEditorPage = () => {
       <div style={styles.editorContainer}>
         
         {/* Left Panel - Tools */}
-        <div style={styles.leftPanel}>
-          <div style={styles.panelHeader}>
-            <h2 style={styles.panelTitle}>Tools</h2>
-          </div>
-          <div style={styles.panelContent}>
-            <p style={styles.placeholderText}>Tools panel coming soon...</p>
-          </div>
-        </div>
+        <LeftPanel />
 
         {/* Center - Document Viewer */}
         <DocumentViewer
@@ -309,16 +303,6 @@ const styles = {
   editorContainer: {
     display: 'flex',
     flex: 1,
-    overflow: 'hidden',
-  },
-
-  // Left Panel
-  leftPanel: {
-    width: '300px',
-    backgroundColor: colors.white,
-    borderRight: `1px solid ${colors.gray200}`,
-    display: 'flex',
-    flexDirection: 'column',
     overflow: 'hidden',
   },
 

@@ -71,6 +71,7 @@ DocumentEditorPage
 
 ---
 
+### ✅✅✅ PHASE 2: COMPLETED ✅✅✅
 ### PHASE 2: PDF Viewer Integration (Week 1)
 **Objective:** Display PDF in the editor
 
@@ -105,13 +106,13 @@ DocumentEditorPage
 **Objective:** Create draggable field tools
 
 #### 3.1: LeftPanel Component
-- [ ] Create `/frontend/src/components/DocumentEditor/LeftPanel.js`
-- [ ] Organize tools into sections:
+- [✅] Create `/frontend/src/components/DocumentEditor/LeftPanel.js`
+- [✅] Organize tools into sections:
   - **My Information** (populated from user profile)
     - My Signature (fetch from UserSignature)
     - My Initial (fetch from UserSignature)
-    - My Email
-    - My Full Name
+    - My Email (fetch from current user's email)
+    - My Full Name (fetch from current user's First name + Last name)
   - **Recipient Fields** (available to assign)
     - Recipient Signature
     - Recipient Initial
