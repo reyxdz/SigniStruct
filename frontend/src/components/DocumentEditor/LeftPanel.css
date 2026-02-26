@@ -1,26 +1,46 @@
 /* LeftPanel.css */
 
-/* Tool drag feedback */
-.tool[draggable="true"] {
+/* Tool drag feedback and hover effects */
+.tool-draggable {
   cursor: grab;
+  user-select: none;
 }
 
-.tool[draggable="true"]:active {
+.tool-draggable:hover {
+  background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+  border-color: #0284c7;
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15);
+  transform: translateY(-2px);
+}
+
+.tool-draggable:active {
   cursor: grabbing;
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.1);
 }
 
-.tool[draggable="true"]:hover {
-  background-color: #f9fafb;
-  border-color: #e5e7eb;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+/* Enhanced visual feedback for tool icons on hover */
+.tool-draggable:hover [style*="toolIcon"] {
+  transform: scale(1.1);
+  box-shadow: 0 0 12px rgba(2, 132, 199, 0.3);
 }
 
-/* Section header hover */
-[style*="sectionHeader"]:hover {
+/* Section header interactions */
+button[style*="sectionHeader"]:hover {
   background-color: #f3f4f6;
+  transition: background-color 0.2s ease;
 }
 
-/* Scroll styling for content area */
+button[style*="sectionHeader"]:active {
+  background-color: #e5e7eb;
+}
+
+/* Improved scrollbar styling */
+.left-panel-content {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}
+
 .left-panel-content::-webkit-scrollbar {
   width: 6px;
 }
@@ -32,21 +52,24 @@
 .left-panel-content::-webkit-scrollbar-thumb {
   background: #d1d5db;
   border-radius: 3px;
+  transition: background 0.2s ease;
 }
 
 .left-panel-content::-webkit-scrollbar-thumb:hover {
   background: #9ca3af;
 }
 
-/* Animation for section expand/collapse */
+/* Smooth animations for section transitions */
 @keyframes slideDown {
   from {
     opacity: 0;
     max-height: 0;
+    transform: translateY(-5px);
   }
   to {
     opacity: 1;
     max-height: 500px;
+    transform: translateY(0);
   }
 }
 
@@ -54,11 +77,50 @@
   from {
     opacity: 1;
     max-height: 500px;
+    transform: translateY(0);
   }
   to {
     opacity: 0;
     max-height: 0;
+    transform: translateY(-5px);
   }
+}
+
+/* Pulse animation for missing data indicator */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.missing-data-badge {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Badge entrance animation */
+@keyframes badgeSlide {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+[style*="missingBadge"],
+[style*="readyBadge"] {
+  animation: badgeSlide 0.3s ease-out;
+}
+
+/* Smoother transitions for all interactive elements */
+* {
+  transition: border-color 0.2s ease, background-color 0.2s ease, 
+              box-shadow 0.2s ease, transform 0.2s ease, color 0.2s ease;
 }
 
 /* Responsive design */
@@ -68,4 +130,18 @@
     border-right: none;
     border-bottom: 1px solid #e5e7eb;
   }
+
+  .tool-draggable:hover {
+    transform: translateY(-1px);
+  }
 }
+
+/* Prevent text selection when dragging */
+.tool-draggable {
+  -webkit-user-drag: element;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+

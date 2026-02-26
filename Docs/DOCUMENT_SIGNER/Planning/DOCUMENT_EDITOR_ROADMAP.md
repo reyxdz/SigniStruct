@@ -58,7 +58,7 @@ DocumentEditorPage
 - [✅] Add routing in App.js: `/documents/:documentId/editor`
 - [✅] Create DocumentEditorPage.js with layout
 
-#### 1.3: Connect View Button
+#### ✅ 1.3: Connect View Button --- DONE
 - [✅] Update Documents.js "View" button onClick
 - [✅] Navigate to `/documents/{documentId}/editor`
 - [✅] Pass document ID to params
@@ -75,20 +75,20 @@ DocumentEditorPage
 ### PHASE 2: PDF Viewer Integration (Week 1)
 **Objective:** Display PDF in the editor
 
-#### 2.1: DocumentViewer Component
+#### ✅ 2.1: DocumentViewer Component --- DONE
 - [✅] Create `/frontend/src/components/DocumentEditor/DocumentViewer.js`
 - [✅] Implement react-pdf Document and Page components
 - [✅] Add PDF file loading from backend
 - [✅] Display first page by default
 - [✅] Add error handling for PDF loading
 
-#### 2.2: Backend PDF Retrieval
+#### ✅ 2.2: Backend PDF Retrieval --- DONE
 - [✅] Update `DocumentController.getDocument()` to return file data
 - [✅] Serve PDF as base64 or direct URL
 - [✅] Handle file security (check ownership)
 - [✅] Add API endpoint: `GET /api/documents/:documentId/preview`
 
-#### 2.3: Page Navigation
+#### ✅ 2.3: Page Navigation --- DONE
 - [✅] Display total page count
 - [✅] Add previous/next page buttons
 - [✅] Add page number input
@@ -105,7 +105,7 @@ DocumentEditorPage
 ### PHASE 3: Left Panel - Tools (Week 2)
 **Objective:** Create draggable field tools
 
-#### 3.1: LeftPanel Component
+#### ✅ 3.1: LeftPanel Component --- DONE
 - [✅] Create `/frontend/src/components/DocumentEditor/LeftPanel.js`
 - [✅] Organize tools into sections:
   - **My Information** (populated from user profile)
@@ -120,10 +120,10 @@ DocumentEditorPage
     - Recipient Full Name
 
 #### 3.2: Tool Icon & Display
-- [ ] Use Lucide React and React Icons for tool icons
-- [ ] Display sample values/placeholders
-- [ ] Style tools with hover effects
-- [ ] Add visual indicators for unsaved user data (e.g., signature)
+- [✅] Use Lucide React and React Icons for tool icons
+- [✅] Display sample values/placeholders
+- [✅] Style tools with hover effects
+- [✅] Add visual indicators for unsaved user data (e.g., signature)
 
 #### 3.3: Drag & Drop Setup
 - [ ] Implement HTML5 drag-drop or dnd-kit library

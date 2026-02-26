@@ -8,7 +8,9 @@ import {
   FiMail,
   FiUser,
   FiChevronDown,
-  FiChevronUp
+  FiChevronUp,
+  FiAlertCircle,
+  FiCheck
 } from 'react-icons/fi';
 import { GiSignature } from 'react-icons/gi';
 import './LeftPanel.css';
@@ -148,31 +150,57 @@ const LeftPanel = () => {
       <div
         style={{
           ...styles.tool,
-          ...(isDisabled ? styles.toolDisabled : {}),
+          ...(isDisabled ? styles.toolDisabled : styles.toolEnabled),
           opacity: loading ? 0.6 : 1
         }}
+        className={!isDisabled ? 'tool-draggable' : ''}
         draggable={!isDisabled}
         onDragStart={(e) => !isDisabled && handleToolDragStart(e, tool)}
         title={isDisabled ? 'Please set up user data first' : 'Drag to add field'}
       >
-        <div style={styles.toolIcon}>
-          <Icon size={20} />
+        <div style={{
+          ...styles.toolIcon,
+          backgroundColor: isDisabled ? '#fecaca' : '#dbeafe'
+        }}>
+          <Icon size={20} color={isDisabled ? '#991b1b' : '#0284c7'} />
         </div>
+
         <div style={styles.toolContent}>
-          <p style={styles.toolLabel}>{tool.label}</p>
+          <div style={styles.toolLabelContainer}>
+            <p style={styles.toolLabel}>{tool.label}</p>
+            {tool.isRecipient && !isDisabled && (
+              <span style={styles.recipientTag}>Recipient</span>
+            )}
+          </div>
           {tool.isRecipient ? (
             <p style={styles.toolPlaceholder}>Drag to add</p>
           ) : (
-            <p style={styles.toolValue}>
-              {tool.type === 'signature' && mySignature ? '[Signature]' : 
-               tool.type === 'initial' ? tool.value :
-               tool.value || '[Not set]'}
-            </p>
+            <div style={styles.valueDisplay}>
+              {isDisabled ? (
+                <span style={styles.missingDataText}>Data not set</span>
+              ) : (
+                <>
+                  <span style={styles.dataIndicator}>✓</span>
+                  <p style={styles.toolValue}>
+                    {tool.type === 'signature' && mySignature ? '[Signature]' : 
+                     tool.type === 'initial' ? tool.value :
+                     tool.value || '[Not set]'}
+                  </p>
+                </>
+              )}
+            </div>
           )}
         </div>
-        {tool.isRecipient && (
-          <div style={styles.toolBadge}>
-            <span style={styles.badgeText}>Recipient</span>
+
+        {isDisabled && !tool.isRecipient && (
+          <div style={styles.missingBadge}>
+            <FiAlertCircle size={16} />
+          </div>
+        )}
+
+        {!isDisabled && !tool.isRecipient && (
+          <div style={styles.readyBadge}>
+            <FiCheck size={14} />
           </div>
         )}
       </div>
@@ -322,10 +350,15 @@ const styles = {
     transition: 'all 0.2s ease',
   },
 
+  toolEnabled: {
+    backgroundColor: colors.white,
+    borderColor: colors.gray200,
+  },
+
   toolDisabled: {
     cursor: 'not-allowed',
-    opacity: 0.5,
-    borderColor: colors.gray300,
+    backgroundColor: '#fff7ed',
+    borderColor: '#fed7aa',
   },
 
   toolActive: {
@@ -344,6 +377,7 @@ const styles = {
     backgroundColor: colors.gray100,
     color: colors.primary,
     flexShrink: 0,
+    transition: 'all 0.2s ease',
   },
 
   toolContent: {
@@ -354,11 +388,47 @@ const styles = {
     minWidth: 0,
   },
 
+  toolLabelContainer: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: spacing.xs,
+    justifyContent: 'space-between',
+  },
+
   toolLabel: {
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.medium,
     color: colors.gray900,
     margin: 0,
+  },
+
+  recipientTag: {
+    fontSize: '9px',
+    fontWeight: typography.weights.semibold,
+    color: '#b45309',
+    backgroundColor: '#fef3c7',
+    padding: '2px 6px',
+    borderRadius: borderRadius.sm,
+    whiteSpace: 'nowrap',
+    flexShrink: 0,
+  },
+
+  valueDisplay: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+
+  dataIndicator: {
+    fontSize: '11px',
+    color: '#16a34a',
+    fontWeight: 'bold',
+  },
+
+  missingDataText: {
+    fontSize: typography.sizes.xs,
+    color: '#dc2626',
+    fontWeight: typography.weights.medium,
   },
 
   toolValue: {
@@ -375,6 +445,28 @@ const styles = {
     color: colors.gray400,
     fontStyle: 'italic',
     margin: 0,
+  },
+
+  missingBadge: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fee2e2',
+    borderRadius: borderRadius.sm,
+    padding: '4px 4px',
+    flexShrink: 0,
+    color: '#dc2626',
+  },
+
+  readyBadge: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#dcfce7',
+    borderRadius: borderRadius.sm,
+    padding: '4px 4px',
+    flexShrink: 0,
+    color: '#16a34a',
   },
 
   toolBadge: {
