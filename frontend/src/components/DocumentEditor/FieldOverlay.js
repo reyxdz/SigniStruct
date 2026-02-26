@@ -25,8 +25,6 @@ const FieldOverlay = ({
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const overlayRef = useRef(null);
 
-  if (!field) return null;
-
   // Get field type icon styling
   const getFieldIcon = () => {
     switch (field.type) {
@@ -201,6 +199,8 @@ const FieldOverlay = ({
       };
     }
   }, [isResizing, handleResizeMouseMove, handleResizeMouseUp]);
+
+  if (!field) return null;
 
   const fieldColor = getFieldColor();
   const fieldIcon = getFieldIcon();
