@@ -22,7 +22,9 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Only redirect on 401 if user has a token (token expired)
+    // Don't redirect during signin/signup attempts
+    if (error.response?.status === 401 && localStorage.getItem('token')) {
       localStorage.removeItem('token');
       window.location.href = '/signin';
     }
