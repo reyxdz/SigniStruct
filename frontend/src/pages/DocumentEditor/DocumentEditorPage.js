@@ -3,130 +3,58 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
 import { FiArrowLeft, FiSave, FiSend } from 'react-icons/fi';
-import { createField } from '../../utils/fieldUtils';
+import { EditorProvider, useEditor } from '../../contexts/EditorContext';
 import DocumentViewer from '../../components/DocumentEditor/DocumentViewer';
 import LeftPanel from '../../components/DocumentEditor/LeftPanel';
 import './DocumentEditorPage.css';
 
 /**
- * DocumentEditorPage
- * Main component for editing documents with field placement
- * 3-column layout: LeftPanel | DocumentViewer | RightPanel
+ * DocumentEditorContent
+ * Inner component that uses EditorContext
+ * Handles the actual editor UI and interactions
  */
-const DocumentEditorPage = () => {
-  const { documentId } = useParams();
-  const navigate = useNavigate();
-
-  // Document state
-  const [document, setDocument] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
-
-  // Editor state
-  const [fields, setFields] = useState([]);
-  // eslint-disable-next-line no-unused-vars
-  const [selectedFieldId, setSelectedFieldId] = useState(null); // Used in Phase 5
-  // eslint-disable-next-line no-unused-vars
-  const [currentPage, setCurrentPage] = useState(1); // Used in Phase 2
+const DocumentEditorContent = ({ documentId, document, loading, error, isSaving, onSave, onPublish, onNavigateBack }) => {
+  const { 
+    fields, 
+    selectedFieldId, 
+    currentPage, 
+    addField, 
+    selectField,
+    changePage, 
+    moveField, 
+    resizeField, 
+    removeField 
+  } = useEditor();
 
   /**
-   * Handle field dropped on PDF
-   * Creates and adds new field to the document
+   * Wrapper for field drop to handle callback signature
+   * DocumentViewer calls onFieldDrop with combined object
+   * EditorContext expects separate parameters
    */
-  const handleFieldDrop = (fieldData) => {
-    try {
-      // Create field using utility function
-      const newField = createField(
-        fieldData,
-        fieldData.x,
-        fieldData.y,
-        fieldData.pageNumber
-      );
-
-      // Add field to the fields array
-      setFields([...fields, newField]);
-      // Select the newly added field
-      setSelectedFieldId(newField.id);
-    } catch (err) {
-      console.error('Error creating field:', err);
-      alert('Failed to create field');
-    }
-  };
-
-  // Fetch document on mount
-  useEffect(() => {
-    fetchDocument();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [documentId]);
-
-  /**
-   * Fetch document from backend
-   * @function
-   * @async
-   */
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const fetchDocument = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      const response = await api.get(`/documents/${documentId}`);
-      
-      if (response.data.success || response.data.document) {
-        const doc = response.data.document || response.data.data;
-        setDocument(doc);
-        
-        // Load existing fields if any
-        if (doc.fields && Array.isArray(doc.fields)) {
-          setFields(doc.fields);
-        } else {
-          setFields([]);
-        }
-      }
-    } catch (err) {
-      console.error('Failed to fetch document:', err);
-      setError('Failed to load document');
-    } finally {
-      setLoading(false);
-    }
+  const handleFieldDrop = (fieldDataWithPosition) => {
+    const { x, y, pageNumber, ...toolData } = fieldDataWithPosition;
+    addField(toolData, x, y, pageNumber);
   };
 
   /**
-   * Save document fields to backend
+   * Handle field move
    */
-  const handleSaveDocument = async () => {
-    try {
-      setIsSaving(true);
-      await api.put(`/documents/${documentId}/fields`, {
-        fields: fields,
-        lastEditedAt: new Date()
-      });
-      alert('Document saved successfully!');
-    } catch (err) {
-      console.error('Failed to save document:', err);
-      alert('Failed to save document');
-    } finally {
-      setIsSaving(false);
-    }
+  const handleFieldMove = (fieldId, x, y) => {
+    moveField(fieldId, x, y);
   };
 
   /**
-   * Publish document for signing
+   * Handle field resize
    */
-  const handlePublishDocument = async () => {
-    try {
-      setIsSaving(true);
-      await api.post(`/documents/${documentId}/publish`, {
-        fields: fields
-      });
-      alert('Document published successfully!');
-      navigate('/documents');
-    } catch (err) {
-      console.error('Failed to publish document:', err);
-      alert('Failed to publish document');
-    } finally {
-      setIsSaving(false);
-    }
+  const handleFieldResize = (fieldId, width, height) => {
+    resizeField(fieldId, width, height);
+  };
+
+  /**
+   * Handle field remove
+   */
+  const handleFieldRemove = (fieldId) => {
+    removeField(fieldId);
   };
 
   if (loading) {
@@ -141,12 +69,14 @@ const DocumentEditorPage = () => {
     return (
       <div style={styles.container}>
         <div style={styles.errorMessage}>{error}</div>
-        <button 
-          onClick={() => navigate('/documents')}
-          style={styles.backButton}
-        >
-          ← Back to Documents
-        </button>
+        <div style={{ display: 'flex', gap: spacing.md }}>
+          <button 
+            onClick={onNavigateBack}
+            style={styles.backButton}
+          >
+            ← Back to Documents
+          </button>
+        </div>
       </div>
     );
   }
@@ -157,7 +87,7 @@ const DocumentEditorPage = () => {
       <div style={styles.header}>
         <div style={styles.headerLeft}>
           <button 
-            onClick={() => navigate('/documents')}
+            onClick={onNavigateBack}
             style={styles.backBtn}
           >
             <FiArrowLeft style={{ marginRight: spacing.sm }} />
@@ -171,7 +101,7 @@ const DocumentEditorPage = () => {
         
         <div style={styles.headerRight}>
           <button 
-            onClick={handleSaveDocument}
+            onClick={onSave}
             style={{ ...styles.headerBtn, ...styles.saveBtn }}
             disabled={isSaving}
           >
@@ -179,7 +109,7 @@ const DocumentEditorPage = () => {
             {isSaving ? 'Saving...' : 'Save Draft'}
           </button>
           <button 
-            onClick={handlePublishDocument}
+            onClick={onPublish}
             style={{ ...styles.headerBtn, ...styles.publishBtn }}
             disabled={isSaving}
           >
@@ -199,11 +129,14 @@ const DocumentEditorPage = () => {
         <DocumentViewer
           documentId={documentId}
           currentPage={currentPage}
-          onPageChange={setCurrentPage}
+          onPageChange={changePage}
           fields={fields}
           selectedFieldId={selectedFieldId}
-          onFieldSelect={setSelectedFieldId}
+          onFieldSelect={selectField}
           onFieldDrop={handleFieldDrop}
+          onFieldMove={handleFieldMove}
+          onFieldResize={handleFieldResize}
+          onFieldRemove={handleFieldRemove}
         />
 
         {/* Right Panel - Properties */}
@@ -222,6 +155,124 @@ const DocumentEditorPage = () => {
 
       </div>
     </div>
+  );
+};
+
+/**
+ * DocumentEditorPage
+ * Main component for editing documents with field placement
+ * 3-column layout: LeftPanel | DocumentViewer | RightPanel
+ * Provides EditorContext to all child components
+ */
+const DocumentEditorPage = () => {
+  const { documentId } = useParams();
+  const navigate = useNavigate();
+
+  // Document state
+  const [document, setDocument] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Fetch document on mount
+  useEffect(() => {
+    fetchDocument();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [documentId]);
+
+  /**
+   * Fetch document from backend
+   * @function
+   * @async
+   */
+  const fetchDocument = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const response = await api.get(`/documents/${documentId}`);
+      
+      if (response.data.success || response.data.document) {
+        const doc = response.data.document || response.data.data;
+        setDocument(doc);
+      }
+    } catch (err) {
+      console.error('Failed to fetch document:', err);
+      
+      // Provide specific error messages based on status code
+      if (err.response?.status === 404) {
+        setError('Document not found. The document may have been deleted or the ID is invalid.');
+      } else if (err.response?.status === 403) {
+        setError('You do not have permission to view this document.');
+      } else if (err.response?.status === 401) {
+        setError('Your session has expired. Please log in again.');
+      } else {
+        setError('Failed to load document. Please try again later.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /**
+   * Save document fields to backend
+   */
+  const handleSaveDocument = async () => {
+    try {
+      setIsSaving(true);
+      // Note: This will be updated in Phase 4.3 to use context fields
+      await api.put(`/documents/${documentId}/fields`, {
+        fields: [],
+        lastEditedAt: new Date()
+      });
+      alert('Document saved successfully!');
+    } catch (err) {
+      console.error('Failed to save document:', err);
+      alert('Failed to save document');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  /**
+   * Publish document for signing
+   */
+  const handlePublishDocument = async () => {
+    try {
+      setIsSaving(true);
+      // Note: This will be updated in Phase 4.3 to use context fields
+      await api.post(`/documents/${documentId}/publish`, {
+        fields: []
+      });
+      alert('Document published successfully!');
+      navigate('/documents');
+    } catch (err) {
+      console.error('Failed to publish document:', err);
+      alert('Failed to publish document');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  /**
+   * Navigate back to documents list
+   */
+  const handleNavigateBack = () => {
+    navigate('/documents');
+  };
+
+  return (
+    <EditorProvider initialDocument={document}>
+      <DocumentEditorContent
+        documentId={documentId}
+        document={document}
+        loading={loading}
+        error={error}
+        isSaving={isSaving}
+        onSave={handleSaveDocument}
+        onPublish={handlePublishDocument}
+        onNavigateBack={handleNavigateBack}
+      />
+    </EditorProvider>
   );
 };
 
@@ -251,9 +302,25 @@ const styles = {
   },
   errorMessage: {
     fontSize: typography.sizes.base,
-    color: '#ef4444',
+    color: '#dc2626',
     textAlign: 'center',
     maxWidth: '500px',
+    padding: spacing.lg,
+    backgroundColor: '#fee2e2',
+    borderRadius: borderRadius.md,
+    border: `1px solid #fca5a5`,
+    lineHeight: 1.6,
+  },
+  backButton: {
+    backgroundColor: colors.primary,
+    color: colors.white,
+    border: 'none',
+    borderRadius: borderRadius.md,
+    padding: `${spacing.sm} ${spacing.lg}`,
+    fontSize: typography.sizes.sm,
+    fontWeight: typography.weights.semibold,
+    cursor: 'pointer',
+    transition: transitions.fast,
   },
 
   // Header Styles

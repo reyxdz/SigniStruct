@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { colors, typography, borderRadius } from '../../theme';
 import { FiX } from 'react-icons/fi';
 import { FIELD_TYPES } from '../../utils/fieldUtils';
@@ -7,14 +7,24 @@ import { FIELD_TYPES } from '../../utils/fieldUtils';
  * FieldOverlay Component
  * Renders a single field overlay on the PDF
  * Shows field value with styling and selection indicators
+ * Supports dragging to move and resizing via handle
  */
 const FieldOverlay = ({
   field,
   isSelected,
   onSelect,
   onRemove,
-  zoomLevel = 100
+  onMove,
+  onResize,
+  zoomLevel = 100,
+  containerWidth = 100,
+  containerHeight = 100
 }) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const overlayRef = useRef(null);
+
   if (!field) return null;
 
   // Get field type icon styling
@@ -56,11 +66,148 @@ const FieldOverlay = ({
     }
   };
 
+  /**
+   * Handle drag start - moving field
+   */
+  const handleDragStart = useCallback((e) => {
+    if (!isSelected) return;
+    e.stopPropagation();
+    
+    setIsDragging(true);
+    setDragStart({
+      x: e.clientX,
+      y: e.clientY,
+      fieldX: field.x,
+      fieldY: field.y,
+    });
+  }, [isSelected, field.x, field.y]);
+
+  /**
+   * Handle mouse move - dragging field
+   */
+  const handleMouseMove = useCallback((e) => {
+    if (!isDragging || !isSelected) return;
+    e.stopPropagation();
+
+    const deltaX = e.clientX - dragStart.x;
+    const deltaY = e.clientY - dragStart.y;
+
+    // Convert pixel deltas to percentage (assuming container width/height in pixels)
+    // This is approximate - actual calculation depends on PDF viewer dimensions
+    const zoomFactor = zoomLevel / 100;
+    const containerWidthPx = containerWidth; // in 100% = containerWidth px
+    const containerHeightPx = containerHeight;
+
+    const deltaXPercent = (deltaX * 100) / (containerWidthPx * zoomFactor);
+    const deltaYPercent = (deltaY * 100) / (containerHeightPx * zoomFactor);
+
+    // Calculate new position with bounds checking (0-100%)
+    let newX = dragStart.fieldX + deltaXPercent;
+    let newY = dragStart.fieldY + deltaYPercent;
+
+    // Clamp to bounds
+    newX = Math.max(0, Math.min(100, newX));
+    newY = Math.max(0, Math.min(100, newY));
+
+    // Call onMove callback
+    if (onMove) {
+      onMove(field.id, newX, newY);
+    }
+  }, [isDragging, isSelected, dragStart, zoomLevel, containerWidth, containerHeight, field.id, onMove]);
+
+  /**
+   * Handle mouse up - stop dragging
+   */
+  const handleMouseUp = useCallback((e) => {
+    if (isDragging) {
+      setIsDragging(false);
+      e.stopPropagation();
+    }
+  }, [isDragging]);
+
+  /**
+   * Handle resize start - resizing field
+   */
+  const handleResizeStart = useCallback((e) => {
+    if (!isSelected) return;
+    e.stopPropagation();
+    
+    setIsResizing(true);
+    setDragStart({
+      x: e.clientX,
+      y: e.clientY,
+      fieldWidth: field.width,
+      fieldHeight: field.height,
+    });
+  }, [isSelected, field.width, field.height]);
+
+  /**
+   * Handle mouse move - resizing field
+   */
+  const handleResizeMouseMove = useCallback((e) => {
+    if (!isResizing || !isSelected) return;
+    e.stopPropagation();
+
+    const deltaX = e.clientX - dragStart.x;
+    const deltaY = e.clientY - dragStart.y;
+
+    // Minimum field size (20px)
+    const minSize = 20;
+    const zoomFactor = zoomLevel / 100;
+
+    // Calculate new size
+    let newWidth = dragStart.fieldWidth + (deltaX / zoomFactor);
+    let newHeight = dragStart.fieldHeight + (deltaY / zoomFactor);
+
+    // Enforce minimum size
+    newWidth = Math.max(minSize, newWidth);
+    newHeight = Math.max(minSize, newHeight);
+
+    // Call onResize callback
+    if (onResize) {
+      onResize(field.id, newWidth, newHeight);
+    }
+  }, [isResizing, isSelected, dragStart, zoomLevel, field.id, onResize]);
+
+  /**
+   * Handle mouse up - stop resizing
+   */
+  const handleResizeMouseUp = useCallback((e) => {
+    if (isResizing) {
+      setIsResizing(false);
+      e.stopPropagation();
+    }
+  }, [isResizing]);
+
+  // Add global mouse move/up listeners when dragging or resizing
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove);
+      document.addEventListener('mouseup', handleMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [isDragging, handleMouseMove, handleMouseUp]);
+
+  useEffect(() => {
+    if (isResizing) {
+      document.addEventListener('mousemove', handleResizeMouseMove);
+      document.addEventListener('mouseup', handleResizeMouseUp);
+      return () => {
+        document.removeEventListener('mousemove', handleResizeMouseMove);
+        document.removeEventListener('mouseup', handleResizeMouseUp);
+      };
+    }
+  }, [isResizing, handleResizeMouseMove, handleResizeMouseUp]);
+
   const fieldColor = getFieldColor();
   const fieldIcon = getFieldIcon();
 
   return (
     <div
+      ref={overlayRef}
       style={{
         ...styles.fieldOverlay,
         left: `${field.x}%`,
@@ -72,12 +219,15 @@ const FieldOverlay = ({
         zIndex: isSelected ? 1000 : 100,
         transform: `scale(${zoomLevel / 100})`,
         transformOrigin: 'top left',
+        cursor: isDragging ? 'grabbing' : isResizing ? 'nwse-resize' : (isSelected ? 'grab' : 'pointer'),
+        boxShadow: isDragging || isResizing ? `0 4px 12px ${fieldColor}40` : '0 1px 3px rgba(0, 0, 0, 0.1)',
       }}
       onClick={(e) => {
         e.stopPropagation();
         onSelect(field.id);
       }}
-      title={`${field.label} - Click to select`}
+      onMouseDown={handleDragStart}
+      title={`${field.label} - Click to select, drag to move`}
     >
       {/* Field Icon/Symbol */}
       <div style={{
@@ -123,8 +273,11 @@ const FieldOverlay = ({
             style={{
               ...styles.dragHandle,
               backgroundColor: fieldColor,
+              cursor: isResizing ? 'nwse-resize' : 'grab',
+              transform: isResizing ? 'scale(1.2)' : 'scale(1)',
             }}
-            title="Drag to move field"
+            onMouseDown={handleResizeStart}
+            title="Drag to resize field"
           />
         </>
       )}

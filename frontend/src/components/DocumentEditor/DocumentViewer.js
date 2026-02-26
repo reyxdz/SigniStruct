@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Document, Page } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
-import api from '../../../services/api';
-import { colors, spacing, typography, borderRadius } from '../../../theme';
+import api from '../../services/api';
+import { colors, spacing, typography, borderRadius } from '../../theme';
 import { FiChevronLeft, FiChevronRight, FiZoomIn, FiZoomOut } from 'react-icons/fi';
 import FieldOverlay from './FieldOverlay';
 import './DocumentViewer.css';
@@ -11,7 +11,7 @@ import './DocumentViewer.css';
 /**
  * DocumentViewer Component
  * Renders PDF document with page navigation and zoom controls
- * Handles field placement via drag-and-drop
+ * Handles field placement via drag-and-drop and field movement/resizing
  */
 const DocumentViewer = ({
   documentId,
@@ -21,6 +21,9 @@ const DocumentViewer = ({
   selectedFieldId,
   onFieldSelect,
   onFieldDrop,
+  onFieldMove,
+  onFieldResize,
+  onFieldRemove,
 }) => {
   // PDF state
   const [pdfUrl, setPdfUrl] = useState(null);
@@ -215,9 +218,27 @@ const DocumentViewer = ({
    * Handle field removal
    */
   const handleRemoveField = (fieldId) => {
-    // This will be handled by parent component in Phase 4
-    // For now, just log the event
-    console.log('Remove field:', fieldId);
+    if (onFieldRemove) {
+      onFieldRemove(fieldId);
+    }
+  };
+
+  /**
+   * Handle field move (drag)
+   */
+  const handleFieldMove = (fieldId, x, y) => {
+    if (onFieldMove) {
+      onFieldMove(fieldId, x, y);
+    }
+  };
+
+  /**
+   * Handle field resize
+   */
+  const handleFieldResize = (fieldId, width, height) => {
+    if (onFieldResize) {
+      onFieldResize(fieldId, width, height);
+    }
   };
 
   return (
@@ -384,7 +405,11 @@ const DocumentViewer = ({
                   isSelected={selectedFieldId === field.id}
                   onSelect={onFieldSelect || (() => {})}
                   onRemove={handleRemoveField}
+                  onMove={handleFieldMove}
+                  onResize={handleFieldResize}
                   zoomLevel={zoom}
+                  containerWidth={400}
+                  containerHeight={600}
                 />
               )
             ))}

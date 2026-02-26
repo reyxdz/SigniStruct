@@ -12,7 +12,7 @@ import {
   FiAlertCircle,
   FiCheck
 } from 'react-icons/fi';
-import { GiSignature } from 'react-icons/gi';
+import { FaSignature } from 'react-icons/fa';
 import './LeftPanel.css';
 
 /**
@@ -70,7 +70,7 @@ const LeftPanel = () => {
       id: 'my-signature',
       label: 'My Signature',
       toolId: 1,
-      icon: GiSignature,
+      icon: FaSignature,
       type: 'signature',
       value: mySignature?.signature_image || null,
       hasData: !!mySignature
@@ -109,7 +109,7 @@ const LeftPanel = () => {
       id: 'recipient-signature',
       label: 'Recipient Signature',
       toolId: 5,
-      icon: GiSignature,
+      icon: FaSignature,
       type: 'signature',
       isRecipient: true
     },
