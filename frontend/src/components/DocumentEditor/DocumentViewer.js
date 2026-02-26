@@ -5,20 +5,22 @@ import 'react-pdf/dist/Page/TextLayer.css';
 import api from '../../../services/api';
 import { colors, spacing, typography, borderRadius } from '../../../theme';
 import { FiChevronLeft, FiChevronRight, FiZoomIn, FiZoomOut } from 'react-icons/fi';
+import FieldOverlay from './FieldOverlay';
 import './DocumentViewer.css';
 
 /**
  * DocumentViewer Component
  * Renders PDF document with page navigation and zoom controls
- * Responsible for displaying the PDF file in the editor
+ * Handles field placement via drag-and-drop
  */
 const DocumentViewer = ({
   documentId,
   currentPage,
   onPageChange,
-  droppedTools = [],
-  onFieldDrop,
+  fields = [],
   selectedFieldId,
+  onFieldSelect,
+  onFieldDrop,
 }) => {
   // PDF state
   const [pdfUrl, setPdfUrl] = useState(null);
@@ -27,6 +29,7 @@ const DocumentViewer = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showZoomMenu, setShowZoomMenu] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   // Zoom preset values
   const ZOOM_PRESETS = [50, 75, 100, 125, 150];
@@ -162,6 +165,17 @@ const DocumentViewer = ({
   const handleDragOver = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    setIsDragOver(true);
+    e.dataTransfer.dropEffect = 'copy';
+  };
+
+  /**
+   * Handle drag leave PDF canvas
+   */
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragOver(false);
   };
 
   /**
@@ -170,9 +184,10 @@ const DocumentViewer = ({
   const handleDrop = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    setIsDragOver(false);
 
     if (onFieldDrop) {
-      // Get the PDF canvas position
+      // Get the PDF container position
       const rect = e.currentTarget.getBoundingClientRect();
       const x = ((e.clientX - rect.left) / rect.width) * 100;
       const y = ((e.clientY - rect.top) / rect.height) * 100;
@@ -181,14 +196,28 @@ const DocumentViewer = ({
       const toolData = e.dataTransfer.getData('application/json');
       if (toolData) {
         const tool = JSON.parse(toolData);
+        
+        // Ensure position is within bounds (0-100%)
+        const boundedX = Math.min(Math.max(x, 0), 100);
+        const boundedY = Math.min(Math.max(y, 0), 100);
+
         onFieldDrop({
           ...tool,
-          x: Math.min(Math.max(x, 0), 100),
-          y: Math.min(Math.max(y, 0), 100),
+          x: boundedX,
+          y: boundedY,
           pageNumber: currentPage,
         });
       }
     }
+  };
+
+  /**
+   * Handle field removal
+   */
+  const handleRemoveField = (fieldId) => {
+    // This will be handled by parent component in Phase 4
+    // For now, just log the event
+    console.log('Remove field:', fieldId);
   };
 
   return (
@@ -325,8 +354,11 @@ const DocumentViewer = ({
               ...styles.pdfContainer,
               transform: `scale(${zoom / 100})`,
               transformOrigin: 'top center',
+              position: 'relative',
+              ...(isDragOver ? styles.pdfContainerDragOver : {})
             }}
             onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
             onDrop={handleDrop}
           >
             <Document
@@ -342,6 +374,29 @@ const DocumentViewer = ({
                 style={styles.page}
               />
             </Document>
+
+            {/* Render field overlays */}
+            {fields && fields.map((field) => (
+              field.pageNumber === currentPage && (
+                <FieldOverlay
+                  key={field.id}
+                  field={field}
+                  isSelected={selectedFieldId === field.id}
+                  onSelect={onFieldSelect || (() => {})}
+                  onRemove={handleRemoveField}
+                  zoomLevel={zoom}
+                />
+              )
+            ))}
+
+            {/* Drag-over indicator */}
+            {isDragOver && (
+              <div style={styles.dragOverOverlay}>
+                <div style={styles.dragOverMessage}>
+                  <p style={styles.dragOverText}>Drop here to add field</p>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -482,6 +537,44 @@ const styles = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
+  },
+
+  pdfContainerDragOver: {
+    borderColor: colors.primary,
+    borderWidth: '2px',
+    borderStyle: 'dashed',
+    box: `2px dashed ${colors.primary}`,
+    boxShadow: `0 0 0 2px ${colors.primary}40, 0 4px 12px rgba(0, 0, 0, 0.15)`,
+  },
+
+  dragOverOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: `${colors.primary}20`,
+    borderRadius: borderRadius.lg,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    pointerEvents: 'none',
+    zIndex: 500,
+  },
+
+  dragOverMessage: {
+    backgroundColor: colors.primary,
+    color: colors.white,
+    padding: `${spacing.lg} ${spacing.xl}`,
+    borderRadius: borderRadius.lg,
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)',
+  },
+
+  dragOverText: {
+    fontSize: typography.sizes.base,
+    fontWeight: typography.weights.semibold,
+    margin: 0,
   },
   page: {
     display: 'flex',

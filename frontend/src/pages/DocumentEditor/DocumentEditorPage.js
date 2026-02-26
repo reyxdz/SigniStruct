@@ -29,6 +29,41 @@ const DocumentEditorPage = () => {
   // eslint-disable-next-line no-unused-vars
   const [currentPage, setCurrentPage] = useState(1); // Used in Phase 2
 
+  /**
+   * Handle field dropped on PDF
+   * Creates and adds new field to the document
+   */
+  const handleFieldDrop = (fieldData) => {
+    // Generate unique ID for the field
+    const newField = {
+      id: `field-${Date.now()}`,
+      toolId: fieldData.toolId,
+      label: fieldData.label,
+      type: fieldData.type,
+      pageNumber: fieldData.pageNumber,
+      x: fieldData.x,
+      y: fieldData.y,
+      width: 120, // Default width
+      height: 40, // Default height
+      value: fieldData.value || '',
+      isRecipient: fieldData.isRecipient || false,
+      fontFamily: 'Arial',
+      fontSize: 12,
+      fontColor: '#000000',
+      fontStyles: {
+        bold: false,
+        italic: false,
+        underline: false
+      },
+      createdAt: new Date().toISOString()
+    };
+
+    // Add field to the fields array
+    setFields([...fields, newField]);
+    // Select the newly added field
+    setSelectedFieldId(newField.id);
+  };
+
   // Fetch document on mount
   useEffect(() => {
     fetchDocument();
@@ -175,8 +210,10 @@ const DocumentEditorPage = () => {
           documentId={documentId}
           currentPage={currentPage}
           onPageChange={setCurrentPage}
-          droppedTools={fields}
+          fields={fields}
           selectedFieldId={selectedFieldId}
+          onFieldSelect={setSelectedFieldId}
+          onFieldDrop={handleFieldDrop}
         />
 
         {/* Right Panel - Properties */}

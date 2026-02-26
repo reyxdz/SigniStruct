@@ -119,17 +119,17 @@ DocumentEditorPage
     - Recipient Email
     - Recipient Full Name
 
-#### 3.2: Tool Icon & Display
+#### ✅ 3.2: Tool Icon & Display --- DONE
 - [✅] Use Lucide React and React Icons for tool icons
 - [✅] Display sample values/placeholders
 - [✅] Style tools with hover effects
 - [✅] Add visual indicators for unsaved user data (e.g., signature)
 
 #### 3.3: Drag & Drop Setup
-- [ ] Implement HTML5 drag-drop or dnd-kit library
-- [ ] On dragstart: store tool data
-- [ ] On dragend: calculate position on PDF
-- [ ] Prevent dropping outside PDF bounds
+- [✅] Implement HTML5 drag-drop or dnd-kit library
+- [✅] On dragstart: store tool data
+- [✅] On dragend: calculate position on PDF
+- [✅] Prevent dropping outside PDF bounds
 
 **Deliverables:**
 - Draggable tools display in left panel
