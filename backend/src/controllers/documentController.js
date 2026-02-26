@@ -139,12 +139,15 @@ class DocumentController {
 
       console.log('🔍 Fetching Document');
       console.log('  Requested ID:', documentId);
+      console.log('  Requested ID Type:', typeof documentId);
       console.log('  User ID:', userId);
+      console.log('  User ID Type:', typeof userId);
 
       // Verify document exists
       const document = await Document.findById(documentId);
       if (!document) {
         console.log('❌ Document Not Found in database');
+        console.log('  Attempted to find: { _id: ObjectId("' + documentId + '") }');
         return res.status(404).json({
           success: false,
           error: 'Document not found'
@@ -152,11 +155,17 @@ class DocumentController {
       }
 
       console.log('  Found Document ID:', document._id);
-      console.log('  Document Owner:', document.owner_id.toString());
+      console.log('  Document Owner:', document.owner_id);
+      console.log('  Document Owner Type:', typeof document.owner_id);
+      console.log('  User ID:', userId);
+      console.log('  User ID Type:', typeof userId);
+      console.log('  Match:', document.owner_id.toString() === userId);
 
       // Verify user owns the document
       if (document.owner_id.toString() !== userId) {
         console.log('❌ Permission Denied - User does not own document');
+        console.log('  Owner ID (from DB):', document.owner_id.toString());
+        console.log('  User ID (from req):', userId);
         return res.status(403).json({
           success: false,
           error: 'You do not have permission to view this document'
@@ -531,10 +540,32 @@ class DocumentController {
     try {
       const userId = req.user.id;
 
+      console.log('📋 Fetching User Documents');
+      console.log('  User ID:', userId);
+      console.log('  User ID Type:', typeof userId);
+
       // Fetch documents created by the user
       const documents = await Document.find({ owner_id: userId })
         .select('_id title owner_id signers status created_at updated_at')
         .sort({ created_at: -1 });
+
+      console.log('✅ Query Complete');
+      console.log('  Documents Found:', documents.length);
+      
+      if (documents.length > 0) {
+        console.log('  First Document:');
+        console.log('    _id:', documents[0]._id);
+        console.log('    owner_id:', documents[0].owner_id);
+        console.log('    title:', documents[0].title);
+      } else {
+        console.log('  ⚠️  No documents found for this user');
+        // Try to fetch ALL documents to see if any exist
+        const allDocs = await Document.find({}).limit(5);
+        console.log('  Total documents in DB:', allDocs.length);
+        if (allDocs.length > 0) {
+          console.log('  Sample document owner:', allDocs[0].owner_id);
+        }
+      }
 
       return res.status(200).json({
         success: true,
@@ -542,7 +573,14 @@ class DocumentController {
         count: documents.length
       });
     } catch (error) {
-      console.error('Get user documents error:', error);
+      console.error('❌ Get user documents error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to retrieve documents',
+        message: error.message
+      });
+    }
+  }
       return res.status(500).json({
         success: false,
         error: 'Failed to retrieve documents',
@@ -563,6 +601,7 @@ class DocumentController {
 
       console.log('📄 Document Upload Started');
       console.log('  User ID:', userId);
+      console.log('  User ID Type:', typeof userId);
       console.log('  Title:', title);
       console.log('  File:', req.file?.filename);
 
@@ -600,12 +639,18 @@ class DocumentController {
         signers: []
       });
 
+      console.log('  Document Model Created');
+      console.log('    owner_id (Model):', newDocument.owner_id);
+      console.log('    owner_id Type (Model):', typeof newDocument.owner_id);
+
       console.log('  Saving to database...');
       // Save document to database
       const savedDocument = await newDocument.save();
 
       console.log('✅ Document Saved');
-      console.log('  Document ID:', savedDocument._id);
+      console.log('  Saved Document ID:', savedDocument._id);
+      console.log('  Saved owner_id:', savedDocument.owner_id);
+      console.log('  Saved owner_id Type:', typeof savedDocument.owner_id);
       console.log('  File URL:', savedDocument.file_url);
 
       return res.status(201).json({
