@@ -1,30 +1,117 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import api from '../../services/api';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
 import { FiFileText, FiCheck, FiClock, FiUpload } from 'react-icons/fi';
 
 const Documents = () => {
   const [activeTab, setActiveTab] = useState('published');
   const [searchTerm, setSearchTerm] = useState('');
+  const [allDocuments, setAllDocuments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  const documents = {
-    published: [
-      { id: 1, name: 'Service Agreement', signers: 2, status: 'pending', created: '2024-02-15' },
-      { id: 2, name: 'Proposal Document', signers: 1, status: 'signed', created: '2024-02-10' },
-      { id: 3, name: 'Contract Template', signers: 3, status: 'pending', created: '2024-02-05' },
-    ],
-    assigned: [
-      { id: 4, name: 'Employment Contract', signers: 1, status: 'pending', created: '2024-02-20', dueDate: '2024-02-27' },
-      { id: 5, name: 'Lease Agreement', signers: 2, status: 'pending', created: '2024-02-18', dueDate: '2024-02-25' },
-    ],
-    draft: [
-      { id: 6, name: 'NDA Document', signers: 0, status: 'draft', created: '2024-02-20' },
-    ]
+  // Fetch documents on component mount
+  useEffect(() => {
+    fetchDocuments();
+  }, []);
+
+  /**
+   * Fetch documents from backend API
+   */
+  const fetchDocuments = async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const response = await api.get('/documents');
+      
+      if (response.data.success || response.data.documents) {
+        const docs = response.data.documents || response.data.data || [];
+        setAllDocuments(docs);
+      }
+    } catch (err) {
+      console.error('Failed to fetch documents:', err);
+      setError('Failed to load documents');
+      setAllDocuments([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const getCurrentDocuments = () => {
-    return documents[activeTab].filter(doc =>
-      doc.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+  /**
+   * Filter documents by status and search term
+   */
+  const getFilteredDocuments = () => {
+    let filtered = allDocuments;
+
+    // Filter by tab/status
+    if (activeTab === 'published') {
+      filtered = filtered.filter(doc => 
+        doc.status && ['fully_signed', 'partially_signed', 'pending_signature'].includes(doc.status)
+      );
+    } else if (activeTab === 'assigned') {
+      filtered = filtered.filter(doc => 
+        doc.status === 'pending_signature'
+      );
+    } else if (activeTab === 'draft') {
+      filtered = filtered.filter(doc => 
+        doc.status === 'draft'
+      );
+    }
+
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(doc =>
+        doc.name?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    return filtered;
+  };
+
+  /**
+   * Get signer count for a document
+   */
+  const getSignerCount = (doc) => {
+    return doc.signers?.length || 0;
+  };
+
+  /**
+   * Get document status display
+   */
+  const getStatusDisplay = (status) => {
+    const statusMap = {
+      draft: 'Draft',
+      pending_signature: 'Pending',
+      partially_signed: 'Partially Signed',
+      fully_signed: 'Signed',
+      archived: 'Archived'
+    };
+    return statusMap[status] || status;
+  };
+
+  /**
+   * Get document status for styling
+   */
+  const getStatusType = (status) => {
+    if (status === 'fully_signed') return 'signed';
+    if (status === 'draft') return 'draft';
+    return 'pending';
+  };
+
+  /**
+   * Count documents by category
+   */
+  const getDocumentCount = (category) => {
+    return allDocuments.filter(doc => {
+      if (category === 'published') {
+        return doc.status && ['fully_signed', 'partially_signed', 'pending_signature'].includes(doc.status);
+      } else if (category === 'assigned') {
+        return doc.status === 'pending_signature';
+      } else if (category === 'draft') {
+        return doc.status === 'draft';
+      }
+      return false;
+    }).length;
   };
 
   const documentsStyles = {
@@ -206,7 +293,7 @@ const Documents = () => {
             }}
             onClick={() => setActiveTab('published')}
           >
-            Published Documents ({documents.published.length})
+            Published Documents ({getDocumentCount('published')})
           </button>
           <button
             style={{
@@ -215,7 +302,7 @@ const Documents = () => {
             }}
             onClick={() => setActiveTab('assigned')}
           >
-            Assigned to Sign ({documents.assigned.length})
+            Assigned to Sign ({getDocumentCount('assigned')})
           </button>
           <button
             style={{
@@ -224,7 +311,7 @@ const Documents = () => {
             }}
             onClick={() => setActiveTab('draft')}
           >
-            Draft Documents ({documents.draft.length})
+            Draft Documents ({getDocumentCount('draft')})
           </button>
         </div>
 
@@ -261,104 +348,107 @@ const Documents = () => {
               </tr>
             </thead>
             <tbody>
-              {getCurrentDocuments().length > 0 ? (
-                getCurrentDocuments().map(doc => (
-                  <tr
-                    key={doc.id}
-                    style={documentsStyles.tr}
-                    onMouseOver={(e) => {
-                      e.currentTarget.style.backgroundColor = colors.gray50;
-                    }}
-                    onMouseOut={(e) => {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                    }}
-                  >
-                    <td style={documentsStyles.td}>
-                      <div style={documentsStyles.docName}>
-                        <FiFileText style={{ marginRight: '8px' }} />
-                        {doc.name}
-                      </div>
-                    </td>
-                    <td style={documentsStyles.td}>{doc.signers}</td>
-                    <td style={documentsStyles.td}>
-                      <span
-                        style={{
-                          ...documentsStyles.statusBadge,
-                          ...(doc.status === 'signed'
-                            ? documentsStyles.statusSigned
-                            : doc.status === 'pending'
-                            ? documentsStyles.statusPending
-                            : documentsStyles.statusDraft),
-                        }}
-                      >
-                        {doc.status === 'signed'
-                          ? <><FiCheck style={{ display: 'inline', marginRight: '4px' }} /> Signed</>
-                          : doc.status === 'pending'
-                          ? <><FiClock style={{ display: 'inline', marginRight: '4px' }} /> Pending</>
-                          : 'Draft'}
-                      </span>
-                    </td>
-                    <td style={documentsStyles.td}>
-                      {new Date(doc.created).toLocaleDateString()}
-                    </td>
-                    {activeTab === 'assigned' && (
+              {!loading && getFilteredDocuments().length > 0 ? (
+                getFilteredDocuments().map(doc => {
+                  const statusType = getStatusType(doc.status);
+                  return (
+                    <tr
+                      key={doc._id || doc.id}
+                      style={documentsStyles.tr}
+                      onMouseOver={(e) => {
+                        e.currentTarget.style.backgroundColor = colors.gray50;
+                      }}
+                      onMouseOut={(e) => {
+                        e.currentTarget.style.backgroundColor = 'transparent';
+                      }}
+                    >
                       <td style={documentsStyles.td}>
-                        {doc.dueDate &&
-                          new Date(doc.dueDate).toLocaleDateString()}
+                        <div style={documentsStyles.docName}>
+                          <FiFileText style={{ marginRight: '8px' }} />
+                          {doc.name}
+                        </div>
                       </td>
-                    )}
-                    <td style={documentsStyles.td}>
-                      <div style={documentsStyles.actions}>
-                        {activeTab === 'assigned' ? (
-                          <a
-                            href={`/document-sign/${doc.id}`}
-                            style={{
-                              ...documentsStyles.actionButton,
-                              ...documentsStyles.signButton,
-                            }}
-                            onMouseOver={(e) => {
-                              e.target.style.opacity = '0.9';
-                            }}
-                            onMouseOut={(e) => {
-                              e.target.style.opacity = '1';
-                            }}
-                          >
-                            Sign
-                          </a>
-                        ) : (
-                          <>
+                      <td style={documentsStyles.td}>{getSignerCount(doc)}</td>
+                      <td style={documentsStyles.td}>
+                        <span
+                          style={{
+                            ...documentsStyles.statusBadge,
+                            ...(statusType === 'signed'
+                              ? documentsStyles.statusSigned
+                              : statusType === 'pending'
+                              ? documentsStyles.statusPending
+                              : documentsStyles.statusDraft),
+                          }}
+                        >
+                          {statusType === 'signed'
+                            ? <><FiCheck style={{ display: 'inline', marginRight: '4px' }} /> Signed</>
+                            : statusType === 'pending'
+                            ? <><FiClock style={{ display: 'inline', marginRight: '4px' }} /> Pending</>
+                            : 'Draft'}
+                        </span>
+                      </td>
+                      <td style={documentsStyles.td}>
+                        {new Date(doc.created_at || doc.created).toLocaleDateString()}
+                      </td>
+                      {activeTab === 'assigned' && (
+                        <td style={documentsStyles.td}>
+                          {doc.dueDate &&
+                            new Date(doc.dueDate).toLocaleDateString()}
+                        </td>
+                      )}
+                      <td style={documentsStyles.td}>
+                        <div style={documentsStyles.actions}>
+                          {activeTab === 'assigned' ? (
                             <a
-                              href={`/documents/${doc.id}`}
-                              style={documentsStyles.actionButton}
+                              href={`/document-sign/${doc._id || doc.id}`}
+                              style={{
+                                ...documentsStyles.actionButton,
+                                ...documentsStyles.signButton,
+                              }}
                               onMouseOver={(e) => {
-                                e.target.style.backgroundColor =
-                                  colors.primaryVeryLight;
+                                e.target.style.opacity = '0.9';
                               }}
                               onMouseOut={(e) => {
-                                e.target.style.backgroundColor = 'transparent';
+                                e.target.style.opacity = '1';
                               }}
                             >
-                              View
+                              Sign
                             </a>
-                            <a
-                              href={`/documents/${doc.id}/share`}
-                              style={documentsStyles.actionButton}
-                              onMouseOver={(e) => {
-                                e.target.style.backgroundColor =
-                                  colors.primaryVeryLight;
-                              }}
-                              onMouseOut={(e) => {
-                                e.target.style.backgroundColor = 'transparent';
-                              }}
-                            >
-                              Share
-                            </a>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                          ) : (
+                            <>
+                              <a
+                                href={`/documents/${doc._id || doc.id}`}
+                                style={documentsStyles.actionButton}
+                                onMouseOver={(e) => {
+                                  e.target.style.backgroundColor =
+                                    colors.primaryVeryLight;
+                                }}
+                                onMouseOut={(e) => {
+                                  e.target.style.backgroundColor = 'transparent';
+                                }}
+                              >
+                                View
+                              </a>
+                              <a
+                                href={`/documents/${doc._id || doc.id}/share`}
+                                style={documentsStyles.actionButton}
+                                onMouseOver={(e) => {
+                                  e.target.style.backgroundColor =
+                                    colors.primaryVeryLight;
+                                }}
+                                onMouseOut={(e) => {
+                                  e.target.style.backgroundColor = 'transparent';
+                                }}
+                              >
+                                Share
+                              </a>
+                            </>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td
@@ -368,7 +458,13 @@ const Documents = () => {
                       ...documentsStyles.emptyRow,
                     }}
                   >
-                    <p>No {activeTab} documents found</p>
+                    <p>
+                      {loading
+                        ? 'Loading documents...'
+                        : error
+                        ? `Error: ${error}`
+                        : `No ${activeTab} documents found`}
+                    </p>
                   </td>
                 </tr>
               )}
