@@ -1,6 +1,7 @@
 import React from 'react';
 import { colors, typography, borderRadius } from '../../theme';
 import { FiX } from 'react-icons/fi';
+import { FIELD_TYPES } from '../../utils/fieldUtils';
 
 /**
  * FieldOverlay Component
@@ -19,14 +20,16 @@ const FieldOverlay = ({
   // Get field type icon styling
   const getFieldIcon = () => {
     switch (field.type) {
-      case 'signature':
+      case FIELD_TYPES.SIGNATURE:
         return '✓';
-      case 'initial':
+      case FIELD_TYPES.INITIAL:
         return field.value?.charAt(0).toUpperCase() || 'I';
-      case 'email':
+      case FIELD_TYPES.EMAIL:
         return '@';
-      case 'name':
+      case FIELD_TYPES.NAME:
         return 'N';
+      case FIELD_TYPES.TEXT:
+        return 'T';
       default:
         return '□';
     }
@@ -38,14 +41,16 @@ const FieldOverlay = ({
       return '#f59e0b'; // Amber for recipient fields
     }
     switch (field.type) {
-      case 'signature':
+      case FIELD_TYPES.SIGNATURE:
         return '#3b82f6'; // Blue
-      case 'initial':
+      case FIELD_TYPES.INITIAL:
         return '#8b5cf6'; // Purple
-      case 'email':
+      case FIELD_TYPES.EMAIL:
         return '#ec4899'; // Pink
-      case 'name':
+      case FIELD_TYPES.NAME:
         return '#10b981'; // Green
+      case FIELD_TYPES.TEXT:
+        return '#6366f1'; // Indigo
       default:
         return '#6b7280'; // Gray
     }

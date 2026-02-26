@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
 import { FiArrowLeft, FiSave, FiSend } from 'react-icons/fi';
+import { createField } from '../../utils/fieldUtils';
 import DocumentViewer from '../../components/DocumentEditor/DocumentViewer';
 import LeftPanel from '../../components/DocumentEditor/LeftPanel';
 import './DocumentEditorPage.css';
@@ -34,34 +35,23 @@ const DocumentEditorPage = () => {
    * Creates and adds new field to the document
    */
   const handleFieldDrop = (fieldData) => {
-    // Generate unique ID for the field
-    const newField = {
-      id: `field-${Date.now()}`,
-      toolId: fieldData.toolId,
-      label: fieldData.label,
-      type: fieldData.type,
-      pageNumber: fieldData.pageNumber,
-      x: fieldData.x,
-      y: fieldData.y,
-      width: 120, // Default width
-      height: 40, // Default height
-      value: fieldData.value || '',
-      isRecipient: fieldData.isRecipient || false,
-      fontFamily: 'Arial',
-      fontSize: 12,
-      fontColor: '#000000',
-      fontStyles: {
-        bold: false,
-        italic: false,
-        underline: false
-      },
-      createdAt: new Date().toISOString()
-    };
+    try {
+      // Create field using utility function
+      const newField = createField(
+        fieldData,
+        fieldData.x,
+        fieldData.y,
+        fieldData.pageNumber
+      );
 
-    // Add field to the fields array
-    setFields([...fields, newField]);
-    // Select the newly added field
-    setSelectedFieldId(newField.id);
+      // Add field to the fields array
+      setFields([...fields, newField]);
+      // Select the newly added field
+      setSelectedFieldId(newField.id);
+    } catch (err) {
+      console.error('Error creating field:', err);
+      alert('Failed to create field');
+    }
   };
 
   // Fetch document on mount
