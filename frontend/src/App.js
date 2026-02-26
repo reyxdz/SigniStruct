@@ -4,6 +4,7 @@ import Header from './components/Navigation/Header';
 import Dashboard from './pages/Dashboard/Dashboard';
 import Forms from './pages/Forms/Forms';
 import Documents from './pages/Documents/Documents';
+import DocumentEditorPage from './pages/DocumentEditor/DocumentEditorPage';
 import FormBuilder from './pages/FormBuilder/FormBuilder';
 import DocumentSign from './pages/DocumentSign/DocumentSign';
 import CreateSignaturePage from './pages/Signature/CreateSignaturePage';
@@ -25,7 +26,7 @@ function App() {
   };
 
   // Routes that require the header (authenticated routes)
-  const authenticatedRoutes = ['/dashboard', '/forms', '/documents', '/form-builder', '/document-sign', '/create-signature'];
+  const authenticatedRoutes = ['/dashboard', '/forms', '/documents', '/documents/:documentId/editor', '/form-builder', '/document-sign', '/create-signature'];
   
   return (
     <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
@@ -53,6 +54,7 @@ function AppContent({ user, handleLogout, authenticatedRoutes }) {
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/forms" element={<Forms />} />
           <Route path="/documents" element={<Documents />} />
+          <Route path="/documents/:documentId/editor" element={<DocumentEditorPage />} />
           <Route path="/form-builder/:formId" element={<FormBuilder />} />
           <Route path="/document-sign/:documentId" element={<DocumentSign />} />
           <Route path="/create-signature" element={<CreateSignaturePage />} />

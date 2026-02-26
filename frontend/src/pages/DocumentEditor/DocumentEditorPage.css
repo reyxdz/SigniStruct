@@ -1,0 +1,150 @@
+/* DocumentEditorPage.css */
+
+.document-editor-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f5f7fa;
+}
+
+.editor-header {
+  background-color: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 16px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  z-index: 100;
+}
+
+.editor-main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Left Panel */
+.editor-left-panel {
+  width: 300px;
+  background-color: white;
+  border-right: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.editor-left-panel-header {
+  padding: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: white;
+}
+
+.editor-left-panel-header h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.editor-left-panel-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+/* Center Panel */
+.editor-center-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #f5f7fa;
+  overflow: hidden;
+}
+
+.editor-viewer-container {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+  overflow: auto;
+  background-color: #f5f7fa;
+}
+
+.pdf-viewer-placeholder {
+  background-color: white;
+  border-radius: 12px;
+  padding: 48px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  min-width: 600px;
+  min-height: 800px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #d1d5db;
+}
+
+/* Right Panel */
+.editor-right-panel {
+  width: 350px;
+  background-color: white;
+  border-left: 1px solid #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.editor-right-panel-header {
+  padding: 16px;
+  border-bottom: 1px solid #e5e7eb;
+  background-color: white;
+}
+
+.editor-right-panel-header h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.editor-right-panel-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .editor-left-panel {
+    width: 250px;
+  }
+
+  .editor-right-panel {
+    width: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .editor-main {
+    flex-direction: column;
+  }
+
+  .editor-left-panel,
+  .editor-right-panel {
+    width: 100%;
+    height: 200px;
+    border: none;
+  }
+
+  .editor-left-panel {
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .pdf-viewer-placeholder {
+    min-width: auto;
+    min-height: 400px;
+  }
+}

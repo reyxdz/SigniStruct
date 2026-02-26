@@ -475,7 +475,7 @@ const Documents = () => {
                           ) : (
                             <>
                               <a
-                                href={`/documents/${doc._id || doc.id}`}
+                                href={`/documents/${doc._id || doc.id}/editor`}
                                 style={documentsStyles.actionButton}
                                 onMouseOver={(e) => {
                                   e.target.style.backgroundColor =
