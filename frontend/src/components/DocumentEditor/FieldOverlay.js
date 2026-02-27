@@ -243,8 +243,8 @@ const FieldOverlay = ({
         />
       )}
 
-      {/* Field Icon/Symbol - Only show when selected */}
-      {isSelected && (
+      {/* Field Icon/Symbol - Only show when selected and not dragging */}
+      {isSelected && !isDragging && (
         <span style={{...styles.fieldIcon, position: 'absolute', top: '2px', left: '2px'}}>
           {fieldIcon}
         </span>
