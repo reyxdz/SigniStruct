@@ -214,17 +214,14 @@ const FieldOverlay = ({
         top: `${field.y}%`,
         width: `${field.width}px`,
         height: `${field.height}px`,
-        borderColor: fieldColor,
-        borderWidth: isSelected ? '3px' : '2px',
-        borderStyle: isSelected ? 'solid' : 'dashed',
+        border: isSelected ? `3px solid ${fieldColor}` : 'none',
         backgroundColor: 'transparent',
         backgroundImage: isSelected ? `repeating-linear-gradient(45deg, transparent, transparent 10px, ${fieldColor}08 10px, ${fieldColor}08 20px)` : 'none',
         zIndex: isSelected ? 1000 : 100,
         transform: `scale(${zoomLevel / 100})`,
         transformOrigin: 'top left',
-        cursor: isDragging ? 'grabbing' : isResizing ? 'nwse-resize' : (isSelected ? 'grab' : 'pointer'),
+        cursor: isSelected ? (isDragging ? 'grabbing' : 'grab') : 'pointer',
         boxShadow: isDragging || isResizing ? `0 4px 12px ${fieldColor}40` : isSelected ? `0 0 0 3px ${fieldColor}25, inset 0 0 0 1px ${fieldColor}50` : 'none',
-        opacity: isSelected ? 1 : 0.4,
       }}
       onClick={(e) => {
         e.stopPropagation();
@@ -233,20 +230,21 @@ const FieldOverlay = ({
       onMouseDown={handleDragStart}
       title={`${field.label} - Click to select, drag to move`}
     >
-      {/* Field Icon/Symbol */}
-      <div style={{
-        ...styles.fieldContent,
-        color: fieldColor,
-      }}>
-        <span style={styles.fieldIcon}>{fieldIcon}</span>
-        {field.type === 'signature' && field.value && (
-          <img
-            src={field.value}
-            alt="Signature"
-            style={styles.signatureImage}
-          />
-        )}
-      </div>
+      {/* Signature Image - Show when field has a signature value, always visible */}
+      {field.type === 'signature' && field.value && (
+        <img
+          src={field.value}
+          alt="Signature"
+          style={styles.signatureImage}
+        />
+      )}
+
+      {/* Field Icon/Symbol - Only show when selected */}
+      {isSelected && (
+        <span style={{...styles.fieldIcon, position: 'absolute', top: '2px', left: '2px'}}>
+          {fieldIcon}
+        </span>
+      )}
 
       {/* Selection Indicators */}
       {isSelected && (
