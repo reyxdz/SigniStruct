@@ -233,6 +233,12 @@ const SignUpForm = () => {
       // Store token
       setAuthToken(response.data.token);
       
+      // Store user data to localStorage
+      if (response.data.user) {
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        console.log('User data saved to localStorage:', response.data.user);
+      }
+      
       // Redirect to dashboard
       navigate('/dashboard');
     } catch (error) {
