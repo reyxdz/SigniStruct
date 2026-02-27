@@ -41,6 +41,11 @@ const DocumentViewer = ({
   // Zoom preset values
   const ZOOM_PRESETS = [50, 75, 100, 125, 150];
 
+  // Log when fields prop changes
+  useEffect(() => {
+    console.log('📺 DocumentViewer received fields prop:', fields.length, 'fields');
+  }, [fields]);
+
   // Fetch PDF file from backend on mount or documentId change
   useEffect(() => {
     if (documentId) {
@@ -401,22 +406,29 @@ const DocumentViewer = ({
             </Document>
 
             {/* Render field overlays */}
-            {fields && fields.map((field) => (
-              field.pageNumber === currentPage && (
-                <FieldOverlay
-                  key={field.id}
-                  field={field}
-                  isSelected={selectedFieldId === field.id}
-                  onSelect={onFieldSelect || (() => {})}
-                  onRemove={handleRemoveField}
-                  onMove={handleFieldMove}
-                  onResize={handleFieldResize}
-                  zoomLevel={zoom}
-                  containerWidth={400}
-                  containerHeight={600}
-                />
-              )
-            ))}
+            {fields && (
+              <>
+                {console.log('📺 DocumentViewer rendering fields:', fields.length, 'fields on page', currentPage)}
+                {fields.map((field) => {
+                  const shouldRender = field.pageNumber === currentPage;
+                  console.log(`  Field ${field.id}: pageNumber=${field.pageNumber}, currentPage=${currentPage}, shouldRender=${shouldRender}`);
+                  return shouldRender && (
+                    <FieldOverlay
+                      key={field.id}
+                      field={field}
+                      isSelected={selectedFieldId === field.id}
+                      onSelect={onFieldSelect || (() => {})}
+                      onRemove={handleRemoveField}
+                      onMove={handleFieldMove}
+                      onResize={handleFieldResize}
+                      zoomLevel={zoom}
+                      containerWidth={400}
+                      containerHeight={600}
+                    />
+                  );
+                })}
+              </>
+            )}
 
             {/* Drag-over indicator */}
             {isDragOver && (

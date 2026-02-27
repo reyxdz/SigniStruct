@@ -36,6 +36,8 @@ const DocumentEditorContent = ({ documentId, document, loading, error, isSaving,
     addField(toolData, x, y, pageNumber);
   };
 
+  console.log('📄 DocumentEditorContent rendering with', fields.length, 'fields');
+
   /**
    * Handle field move
    */
