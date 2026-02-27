@@ -544,6 +544,60 @@ class DocumentController {
   }
 
   /**
+   * Update document fields
+   * PUT /api/documents/:documentId/fields
+   * @access Private
+   * @body { fields: array, lastEditedAt: Date }
+   */
+  static async updateFields(req, res) {
+    try {
+      const { documentId } = req.params;
+      const { fields, lastEditedAt } = req.body;
+      const userId = req.user.id;
+
+      // Verify document exists
+      const document = await Document.findById(documentId);
+      if (!document) {
+        return res.status(404).json({
+          success: false,
+          error: 'Document not found'
+        });
+      }
+
+      // Verify user owns the document
+      if (document.owner_id.toString() !== userId) {
+        return res.status(403).json({
+          success: false,
+          error: 'You are not authorized to update this document'
+        });
+      }
+
+      // Update fields and lastEditedAt
+      document.fields = fields || [];
+      document.lastEditedAt = lastEditedAt || new Date();
+      
+      await document.save();
+
+      return res.status(200).json({
+        success: true,
+        message: 'Document fields updated successfully',
+        document: {
+          _id: document._id,
+          fields: document.fields,
+          lastEditedAt: document.lastEditedAt
+        }
+      });
+    } catch (error) {
+      console.error('Update fields error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to update document fields',
+        message: error.message
+      });
+    }
+  }
+
+  /**
    * Get all documents for the user
    * GET /api/documents
    * @access Private

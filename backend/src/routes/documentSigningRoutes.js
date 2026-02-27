@@ -11,7 +11,8 @@ const {
   getUserDocuments,
   uploadDocument,
   getDocument,
-  getDocumentPreview
+  getDocumentPreview,
+  updateFields
 } = require('../controllers/documentController');
 const {
   validateSignDocument,
@@ -306,6 +307,39 @@ router.post(
   verifyToken,
   validateDocumentId,
   revokeSignature
+);
+
+/**
+ * PUT /api/documents/:documentId/fields
+ * Update document fields placement and metadata
+ * 
+ * @params {
+ *   documentId: string (ObjectId)
+ * }
+ * 
+ * @body {
+ *   fields: array,
+ *   lastEditedAt: Date (optional)
+ * }
+ * 
+ * @response {
+ *   success: boolean,
+ *   message: string,
+ *   document: {
+ *     _id: ObjectId,
+ *     fields: array,
+ *     lastEditedAt: Date
+ *   }
+ * }
+ * 
+ * @access Private
+ * @security Requires document ownership
+ */
+router.put(
+  '/:documentId/fields',
+  verifyToken,
+  validateDocumentId,
+  updateFields
 );
 
 module.exports = router;
