@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import * as pdfjs from 'pdfjs-dist';
 import { Document, Page } from 'react-pdf';
 import 'react-pdf/dist/Page/AnnotationLayer.css';
 import 'react-pdf/dist/Page/TextLayer.css';
@@ -7,6 +8,9 @@ import { colors, spacing, typography, borderRadius } from '../../theme';
 import { FiChevronLeft, FiChevronRight, FiZoomIn, FiZoomOut } from 'react-icons/fi';
 import FieldOverlay from './FieldOverlay';
 import './DocumentViewer.css';
+
+// Configure PDF.js worker
+pdfjs.GlobalWorkerOptions.workerSrc = `${process.env.PUBLIC_URL || ''}/pdf.worker.min.js`;
 
 /**
  * DocumentViewer Component

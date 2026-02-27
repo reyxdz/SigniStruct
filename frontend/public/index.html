@@ -7,6 +7,13 @@
     <meta name="description" content="SigniStruct - MERN Stack Application" />
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75' fill='%232563eb'>S</text></svg>" />
     <title>SigniStruct</title>
+    <!-- Configure PDF.js worker BEFORE React loads -->
+    <script>
+      // Set worker path globally - will be picked up by pdfjs-dist
+      if (typeof window !== 'undefined') {
+        window.__PDF_WORKER_ENTRY_POINT__ = '/pdf.worker.min.js';
+      }
+    </script>
     <style>
       * {
         margin: 0;

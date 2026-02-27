@@ -27,8 +27,7 @@ function App() {
   };
 
   // Routes that require the header (authenticated routes)
-  // Note: Editor route excluded - it has its own header
-  const authenticatedRoutes = ['/dashboard', '/forms', '/documents', '/form-builder', '/document-sign', '/create-signature'];
+  const authenticatedRoutes = ['/dashboard', '/forms', '/documents', '/documents/:documentId/editor', '/form-builder', '/document-sign', '/create-signature'];
   
   return (
     <AuthProvider>
@@ -42,12 +41,15 @@ function App() {
 function AppContent({ user, handleLogout, authenticatedRoutes }) {
   const location = useLocation();
   const isAuthenticatedRoute = authenticatedRoutes.some(route => location.pathname.startsWith(route));
+  // Don't show header on document editor page (it has its own header)
+  const isDocumentEditor = location.pathname.includes('/editor');
+  const shouldShowHeader = isAuthenticatedRoute && !isDocumentEditor;
 
   return (
     <div className="App" style={{ backgroundColor: colors.lightGray, minHeight: '100vh' }}>
-      {isAuthenticatedRoute && <Header user={user} onLogout={handleLogout} />}
+      {shouldShowHeader && <Header user={user} onLogout={handleLogout} />}
       
-      <main style={isAuthenticatedRoute && !location.pathname.includes('/editor') ? { paddingTop: spacing.md } : {}}>
+      <main style={!isDocumentEditor ? (isAuthenticatedRoute ? { paddingTop: spacing.md } : {}) : {}}>
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />

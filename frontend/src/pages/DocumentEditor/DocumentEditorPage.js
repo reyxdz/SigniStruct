@@ -284,8 +284,11 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     height: '100vh',
+    width: '100vw',
     backgroundColor: colors.lightGray,
     fontFamily: 'inherit',
+    margin: 0,
+    padding: 0,
   },
   container: {
     display: 'flex',
