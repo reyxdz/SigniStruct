@@ -214,13 +214,15 @@ const FieldOverlay = ({
         top: `${field.y}%`,
         width: `${field.width}px`,
         height: `${field.height}px`,
-        borderColor: isSelected ? fieldColor : `${fieldColor}80`,
-        backgroundColor: isSelected ? `${fieldColor}15` : `${fieldColor}08`,
+        borderColor: fieldColor,
+        borderWidth: isSelected ? '3px' : '2px',
+        backgroundColor: 'transparent',
+        backgroundImage: `repeating-linear-gradient(45deg, transparent, transparent 10px, ${fieldColor}08 10px, ${fieldColor}08 20px)`,
         zIndex: isSelected ? 1000 : 100,
         transform: `scale(${zoomLevel / 100})`,
         transformOrigin: 'top left',
         cursor: isDragging ? 'grabbing' : isResizing ? 'nwse-resize' : (isSelected ? 'grab' : 'pointer'),
-        boxShadow: isDragging || isResizing ? `0 4px 12px ${fieldColor}40` : '0 1px 3px rgba(0, 0, 0, 0.1)',
+        boxShadow: isDragging || isResizing ? `0 4px 12px ${fieldColor}40` : isSelected ? `0 0 0 3px ${fieldColor}25, inset 0 0 0 1px ${fieldColor}50` : 'none',
       }}
       onClick={(e) => {
         e.stopPropagation();
@@ -320,6 +322,7 @@ const styles = {
     fontSize: typography.sizes.sm,
     fontWeight: typography.weights.medium,
     position: 'relative',
+    background: 'transparent',
   },
 
   fieldIcon: {
@@ -331,6 +334,8 @@ const styles = {
     maxWidth: '90%',
     maxHeight: '80%',
     objectFit: 'contain',
+    filter: 'drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2))',
+    backgroundColor: 'transparent',
   },
 
   // Selection State Styles
