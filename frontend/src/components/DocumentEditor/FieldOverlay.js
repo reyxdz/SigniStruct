@@ -25,24 +25,6 @@ const FieldOverlay = ({
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const overlayRef = useRef(null);
 
-  // Get field type icon styling
-  const getFieldIcon = () => {
-    switch (field.type) {
-      case FIELD_TYPES.SIGNATURE:
-        return '✓';
-      case FIELD_TYPES.INITIAL:
-        return field.value?.charAt(0).toUpperCase() || 'I';
-      case FIELD_TYPES.EMAIL:
-        return '@';
-      case FIELD_TYPES.NAME:
-        return 'N';
-      case FIELD_TYPES.TEXT:
-        return 'T';
-      default:
-        return '□';
-    }
-  };
-
   // Get field type color
   const getFieldColor = () => {
     if (field.isRecipient) {
