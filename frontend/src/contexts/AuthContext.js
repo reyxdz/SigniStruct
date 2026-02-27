@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext();
 
@@ -12,7 +12,24 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Initialize user from localStorage on mount
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const savedUser = localStorage.getItem('user');
+    
+    if (token && savedUser) {
+      try {
+        setUser(JSON.parse(savedUser));
+      } catch (error) {
+        console.error('Error parsing saved user:', error);
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+      }
+    }
+    setLoading(false);
+  }, []);
 
   const login = async (email, password) => {
     setLoading(true);
@@ -26,6 +43,7 @@ export const AuthProvider = ({ children }) => {
       const data = await response.json();
       setUser(data.user);
       localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
       return data;
     } catch (error) {
       console.error('Login error:', error);
@@ -38,6 +56,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     setUser(null);
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
   };
 
   const value = {

@@ -7,6 +7,7 @@ import {
   FiType,
   FiMail,
   FiUser,
+  FiPhone,
   FiChevronDown,
   FiChevronUp,
   FiAlertCircle,
@@ -26,6 +27,19 @@ const LeftPanel = () => {
   const [mySignature, setMySignature] = useState(null);
   const [loading, setLoading] = useState(true);
   const [expandedSection, setExpandedSection] = useState('my-info');
+
+  // Debug: Log user data when it changes
+  useEffect(() => {
+    if (user) {
+      console.log('LeftPanel user data:', {
+        email: user?.email,
+        phone: user?.phone,
+        firstName: user?.firstName,
+        lastName: user?.lastName,
+        fullUser: user
+      });
+    }
+  }, [user]);
 
   // Fetch user's signature on mount
   useEffect(() => {
@@ -72,17 +86,15 @@ const LeftPanel = () => {
       toolId: 1,
       icon: FaSignature,
       type: 'signature',
-      value: mySignature?.signature_image || null,
-      hasData: !!mySignature
+      value: mySignature?.signature_image || null
     },
     {
-      id: 'my-initial',
-      label: 'My Initial',
+      id: 'my-phone',
+      label: 'My Phone Number',
       toolId: 2,
-      icon: FiType,
-      type: 'initial',
-      value: user?.firstName?.charAt(0) || '',
-      hasData: true
+      icon: FiPhone,
+      type: 'phone',
+      value: user?.phone || ''
     },
     {
       id: 'my-email',
@@ -90,8 +102,7 @@ const LeftPanel = () => {
       toolId: 3,
       icon: FiMail,
       type: 'email',
-      value: user?.email || '',
-      hasData: !!user?.email
+      value: user?.email || ''
     },
     {
       id: 'my-name',
@@ -99,8 +110,7 @@ const LeftPanel = () => {
       toolId: 4,
       icon: FiUser,
       type: 'name',
-      value: `${user?.firstName || ''} ${user?.lastName || ''}`.trim(),
-      hasData: !!user?.firstName
+      value: `${user?.firstName || ''} ${user?.lastName || ''}`.trim()
     }
   ];
 
@@ -144,7 +154,9 @@ const LeftPanel = () => {
    */
   const ToolButton = ({ tool }) => {
     const Icon = tool.icon;
-    const isDisabled = !tool.hasData && !tool.isRecipient;
+    // Only disable if it's truly missing data (not a recipient field)
+    const hasActualValue = tool.type === 'signature' ? !!mySignature : !!tool.value;
+    const isDisabled = !hasActualValue && !tool.isRecipient;
 
     return (
       <div
@@ -176,17 +188,18 @@ const LeftPanel = () => {
             <p style={styles.toolPlaceholder}>Drag to add</p>
           ) : (
             <div style={styles.valueDisplay}>
-              {isDisabled ? (
-                <span style={styles.missingDataText}>Data not set</span>
-              ) : (
+              {hasActualValue ? (
                 <>
                   <span style={styles.dataIndicator}>✓</span>
                   <p style={styles.toolValue}>
                     {tool.type === 'signature' && mySignature ? '[Signature]' : 
-                     tool.type === 'initial' ? tool.value :
+                     tool.type === 'phone' ? (tool.value || '[Phone not set]') :
+                     tool.type === 'email' ? (tool.value || '[Email not set]') :
                      tool.value || '[Not set]'}
                   </p>
                 </>
+              ) : (
+                <span style={styles.missingDataText}>Data not set</span>
               )}
             </div>
           )}
@@ -276,6 +289,9 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     height: '100%',
+    width: '300px',
+    minWidth: '300px',
+    flexShrink: 0,
     backgroundColor: colors.white,
     borderRight: `1px solid ${colors.gray200}`,
   },
