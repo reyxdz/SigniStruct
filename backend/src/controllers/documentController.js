@@ -593,13 +593,6 @@ class DocumentController {
       });
     }
   }
-      return res.status(500).json({
-        success: false,
-        error: 'Failed to retrieve documents',
-        message: error.message
-      });
-    }
-  }
 
   /**
    * Upload a new document
