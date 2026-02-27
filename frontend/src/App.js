@@ -46,10 +46,10 @@ function AppContent({ user, handleLogout, authenticatedRoutes }) {
   const shouldShowHeader = isAuthenticatedRoute && !isDocumentEditor;
 
   return (
-    <div className="App" style={{ backgroundColor: colors.lightGray, minHeight: '100vh' }}>
+    <div className="App" style={{ backgroundColor: colors.lightGray, minHeight: '100vh', width: '100%' }}>
       {shouldShowHeader && <Header user={user} onLogout={handleLogout} />}
       
-      <main style={!isDocumentEditor ? (isAuthenticatedRoute ? { paddingTop: spacing.md } : {}) : {}}>
+      <main style={!isDocumentEditor ? (isAuthenticatedRoute ? { paddingTop: spacing.md } : {}) : { width: '100%', margin: 0, padding: 0 }}>
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />

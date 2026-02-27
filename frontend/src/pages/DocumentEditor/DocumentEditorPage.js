@@ -284,11 +284,12 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     height: '100vh',
-    width: '100vw',
+    width: '100%',
     backgroundColor: colors.lightGray,
     fontFamily: 'inherit',
     margin: 0,
     padding: 0,
+    overflow: 'hidden',
   },
   container: {
     display: 'flex',
@@ -401,6 +402,7 @@ const styles = {
     display: 'flex',
     flex: 1,
     overflow: 'hidden',
+    width: '100%',
   },
 
   // Center Panel
@@ -410,11 +412,14 @@ const styles = {
     flexDirection: 'column',
     backgroundColor: colors.lightGray,
     overflow: 'hidden',
+    minWidth: 0,
   },
 
   // Right Panel
   rightPanel: {
     width: '350px',
+    minWidth: '350px',
+    flexShrink: 0,
     backgroundColor: colors.white,
     borderLeft: `1px solid ${colors.gray200}`,
     display: 'flex',

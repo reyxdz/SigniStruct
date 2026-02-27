@@ -441,6 +441,8 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     height: '100%',
+    width: '100%',
+    flex: 1,
     backgroundColor: colors.lightGray,
   },
 
