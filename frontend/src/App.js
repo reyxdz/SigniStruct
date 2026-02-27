@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
 import Header from './components/Navigation/Header';
 import Dashboard from './pages/Dashboard/Dashboard';
 import Forms from './pages/Forms/Forms';
@@ -26,12 +27,15 @@ function App() {
   };
 
   // Routes that require the header (authenticated routes)
-  const authenticatedRoutes = ['/dashboard', '/forms', '/documents', '/documents/:documentId/editor', '/form-builder', '/document-sign', '/create-signature'];
+  // Note: Editor route excluded - it has its own header
+  const authenticatedRoutes = ['/dashboard', '/forms', '/documents', '/form-builder', '/document-sign', '/create-signature'];
   
   return (
-    <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-      <AppContent user={user} handleLogout={handleLogout} authenticatedRoutes={authenticatedRoutes} />
-    </Router>
+    <AuthProvider>
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <AppContent user={user} handleLogout={handleLogout} authenticatedRoutes={authenticatedRoutes} />
+      </Router>
+    </AuthProvider>
   );
 }
 
@@ -43,7 +47,7 @@ function AppContent({ user, handleLogout, authenticatedRoutes }) {
     <div className="App" style={{ backgroundColor: colors.lightGray, minHeight: '100vh' }}>
       {isAuthenticatedRoute && <Header user={user} onLogout={handleLogout} />}
       
-      <main style={isAuthenticatedRoute ? { paddingTop: spacing.md } : {}}>
+      <main style={isAuthenticatedRoute && !location.pathname.includes('/editor') ? { paddingTop: spacing.md } : {}}>
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
