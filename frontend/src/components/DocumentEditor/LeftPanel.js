@@ -60,13 +60,17 @@ const LeftPanel = () => {
   const fetchUserSignature = async () => {
     try {
       setLoading(true);
-      const response = await api.get(`/signatures/my-signatures`);
+      const response = await api.get(`/signatures/user`);
+      console.log('Signature API response:', response.data);
       
       if (response.data.success && response.data.signatures?.length > 0) {
         // Get the default signature
         const defaultSig = response.data.signatures.find(s => s.is_default) ||
                           response.data.signatures[0];
         setMySignature(defaultSig);
+        console.log('User signature loaded successfully:', defaultSig);
+      } else {
+        console.warn('No signatures found for user');
       }
     } catch (error) {
       console.error('Failed to fetch user signature:', error);
