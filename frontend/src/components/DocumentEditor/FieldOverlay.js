@@ -25,6 +25,10 @@ const FieldOverlay = ({
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const overlayRef = useRef(null);
 
+  useEffect(() => {
+    console.log(`🎯 FieldOverlay rendering: Field ${field.id}, isSelected=${isSelected}, x=${field.x}, y=${field.y}`);
+  }, [field.id, field.x, field.y, isSelected]);
+
   // Get field type color
   const getFieldColor = () => {
     if (field.isRecipient) {
