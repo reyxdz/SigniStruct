@@ -555,9 +555,16 @@ class DocumentController {
       const { fields, lastEditedAt } = req.body;
       const userId = req.user.id;
 
+      console.log('💾 Updating document fields');
+      console.log('  Document ID:', documentId);
+      console.log('  User ID:', userId);
+      console.log('  Fields count:', fields?.length || 0);
+      console.log('  Fields:', fields);
+
       // Verify document exists
       const document = await Document.findById(documentId);
       if (!document) {
+        console.log('❌ Document not found');
         return res.status(404).json({
           success: false,
           error: 'Document not found'
@@ -566,6 +573,7 @@ class DocumentController {
 
       // Verify user owns the document
       if (document.owner_id.toString() !== userId) {
+        console.log('❌ User does not own this document');
         return res.status(403).json({
           success: false,
           error: 'You are not authorized to update this document'
@@ -578,6 +586,9 @@ class DocumentController {
       
       await document.save();
 
+      console.log('✅ Document fields updated');
+      console.log('  Saved fields:', document.fields);
+
       return res.status(200).json({
         success: true,
         message: 'Document fields updated successfully',
@@ -588,7 +599,7 @@ class DocumentController {
         }
       });
     } catch (error) {
-      console.error('Update fields error:', error);
+      console.error('❌ Update fields error:', error);
       return res.status(500).json({
         success: false,
         error: 'Failed to update document fields',

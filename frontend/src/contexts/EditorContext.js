@@ -35,8 +35,12 @@ export const EditorProvider = ({ children, initialDocument = null }) => {
   // ============================================
 
   useEffect(() => {
+    console.log('📖 EditorContext initializing with document:', initialDocument);
     if (initialDocument && initialDocument.fields) {
+      console.log('📑 Loading fields from initialDocument:', initialDocument.fields);
       setFields(Array.isArray(initialDocument.fields) ? initialDocument.fields : []);
+    } else {
+      console.log('⚠️ No fields in initialDocument');
     }
   }, [initialDocument]);
 

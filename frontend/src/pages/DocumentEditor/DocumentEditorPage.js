@@ -193,6 +193,8 @@ const DocumentEditorPage = () => {
       
       if (response.data.success || response.data.document) {
         const doc = response.data.document || response.data.data;
+        console.log('📄 Fetched document:', doc);
+        console.log('📋 Document fields:', doc?.fields);
         setDocument(doc);
       }
     } catch (err) {
@@ -219,13 +221,16 @@ const DocumentEditorPage = () => {
   const handleSaveDocument = async (fieldsToSave = []) => {
     try {
       setIsSaving(true);
-      await api.put(`/documents/${documentId}/fields`, {
+      console.log('💾 Saving document fields:', fieldsToSave);
+      const response = await api.put(`/documents/${documentId}/fields`, {
         fields: fieldsToSave,
         lastEditedAt: new Date()
       });
+      console.log('✅ Save response:', response.data);
       alert('Document saved successfully!');
     } catch (err) {
-      console.error('Failed to save document:', err);
+      console.error('❌ Failed to save document:', err);
+      console.error('  Response:', err.response?.data);
       alert('Failed to save document');
     } finally {
       setIsSaving(false);
