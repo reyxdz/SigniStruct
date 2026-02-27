@@ -114,14 +114,18 @@ const FieldOverlay = ({
   }, [isDragging, isSelected, dragStart, zoomLevel, containerWidth, containerHeight, field.id, onMove]);
 
   /**
-   * Handle mouse up - stop dragging
+   * Handle mouse up - stop dragging and deselect field
    */
   const handleMouseUp = useCallback((e) => {
     if (isDragging) {
       setIsDragging(false);
       e.stopPropagation();
+      // Deselect the field after dropping it
+      setTimeout(() => {
+        onSelect(null);
+      }, 0);
     }
-  }, [isDragging]);
+  }, [isDragging, onSelect]);
 
   /**
    * Handle resize start - resizing field
