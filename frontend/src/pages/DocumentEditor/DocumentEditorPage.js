@@ -219,9 +219,8 @@ const DocumentEditorPage = () => {
   const handleSaveDocument = async () => {
     try {
       setIsSaving(true);
-      // Note: This will be updated in Phase 4.3 to use context fields
       await api.put(`/documents/${documentId}/fields`, {
-        fields: [],
+        fields: fields,
         lastEditedAt: new Date()
       });
       alert('Document saved successfully!');

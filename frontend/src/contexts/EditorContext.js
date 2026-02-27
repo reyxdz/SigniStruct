@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useCallback, useState } from 'react';
+import React, { createContext, useContext, useCallback, useState, useEffect } from 'react';
 import { createField, updateField, updateFieldPosition, updateFieldSize, updateFieldStyling, cloneField } from '../utils/fieldUtils';
 
 /**
@@ -29,6 +29,16 @@ export const EditorProvider = ({ children, initialDocument = null }) => {
   // UI state
   const [selectedFieldId, setSelectedFieldId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+
+  // ============================================
+  // Initialize Fields from Document
+  // ============================================
+
+  useEffect(() => {
+    if (initialDocument && initialDocument.fields) {
+      setFields(Array.isArray(initialDocument.fields) ? initialDocument.fields : []);
+    }
+  }, [initialDocument]);
 
   // ============================================
   // Field Operations
