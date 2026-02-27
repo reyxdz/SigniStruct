@@ -38,6 +38,12 @@ const LeftPanel = () => {
         lastName: user?.lastName,
         fullUser: user
       });
+
+      // If user exists but is missing critical fields, fetch fresh data
+      if (!user.email || !user.phone) {
+        console.warn('User missing critical fields, fetching fresh data...');
+        fetchUserDataFromAPI();
+      }
     }
   }, [user]);
 
@@ -67,6 +73,26 @@ const LeftPanel = () => {
       // Continue without signature - not critical
     } finally {
       setLoading(false);
+    }
+  };
+
+  /**
+   * Fetch fresh user data from the API if not available
+   */
+  const fetchUserDataFromAPI = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+
+      const response = await api.get('/users/profile');
+      if (response.data.success) {
+        console.log('Fetched fresh user data from API:', response.data.data);
+        // Update localStorage with fresh data
+        localStorage.setItem('user', JSON.stringify(response.data.data));
+        return response.data.data;
+      }
+    } catch (error) {
+      console.error('Failed to fetch user profile:', error);
     }
   };
 
