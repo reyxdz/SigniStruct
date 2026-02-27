@@ -101,7 +101,7 @@ const DocumentEditorContent = ({ documentId, document, loading, error, isSaving,
         
         <div style={styles.headerRight}>
           <button 
-            onClick={onSave}
+            onClick={() => onSave(fields)}
             style={{ ...styles.headerBtn, ...styles.saveBtn }}
             disabled={isSaving}
           >
@@ -214,13 +214,13 @@ const DocumentEditorPage = () => {
   };
 
   /**
-   * Save document fields to backend
+   * Save document - will be called with fields from DocumentEditorContent
    */
-  const handleSaveDocument = async () => {
+  const handleSaveDocument = async (fieldsToSave = []) => {
     try {
       setIsSaving(true);
       await api.put(`/documents/${documentId}/fields`, {
-        fields: fields,
+        fields: fieldsToSave,
         lastEditedAt: new Date()
       });
       alert('Document saved successfully!');

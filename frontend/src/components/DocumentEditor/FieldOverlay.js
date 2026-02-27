@@ -207,7 +207,6 @@ const FieldOverlay = ({
   if (!field) return null;
 
   const fieldColor = getFieldColor();
-  const fieldIcon = getFieldIcon();
 
   return (
     <div
