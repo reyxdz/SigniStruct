@@ -61,20 +61,36 @@ const LeftPanel = () => {
     try {
       setLoading(true);
       const response = await api.get(`/signatures/user`);
-      console.log('Signature API response:', response.data);
+      console.log('=== Signature API Response ===');
+      console.log('Full response:', response.data);
+      console.log('Signatures array:', response.data.signatures);
+      console.log('Signatures count:', response.data.count);
       
-      if (response.data.success && response.data.signatures?.length > 0) {
-        // Get the default signature
+      if (response.data.success && response.data.signatures && response.data.signatures.length > 0) {
+        console.log('Found', response.data.signatures.length, 'signature(s)');
+        response.data.signatures.forEach((sig, idx) => {
+          console.log(`Signature ${idx}:`, {
+            _id: sig._id,
+            signature_type: sig.signature_type,
+            is_default: sig.is_default,
+            has_image: !!sig.signature_image,
+            image_length: sig.signature_image?.length || 0,
+            created_at: sig.created_at
+          });
+        });
+        
+        // Get the default signature or first one
         const defaultSig = response.data.signatures.find(s => s.is_default) ||
                           response.data.signatures[0];
+        console.log('Selected signature:', defaultSig);
         setMySignature(defaultSig);
-        console.log('User signature loaded successfully:', defaultSig);
+        console.log('✓ User signature loaded successfully');
       } else {
-        console.warn('No signatures found for user');
+        console.warn('No signatures found for user. Response:', response.data);
       }
     } catch (error) {
-      console.error('Failed to fetch user signature:', error);
-      // Continue without signature - not critical
+      console.error('Failed to fetch user signature error:', error.message);
+      console.error('Error response:', error.response?.data);
     } finally {
       setLoading(false);
     }
