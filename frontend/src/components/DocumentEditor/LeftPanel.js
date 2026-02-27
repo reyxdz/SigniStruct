@@ -49,10 +49,12 @@ const LeftPanel = () => {
 
   // Fetch user's signature on mount
   useEffect(() => {
-    if (user?._id) {
+    const userId = user?._id || user?.id || user?.fullUser?.id;
+    console.log('Checking user ID for signature fetch:', userId);
+    if (userId) {
       fetchUserSignature();
     }
-  }, [user?._id]);
+  }, [user?.id, user?._id, user?.fullUser?.id]);
 
   /**
    * Fetch user's default signature
