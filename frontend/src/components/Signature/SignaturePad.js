@@ -66,49 +66,44 @@ const SignaturePad = ({ onSignatureComplete, onCancel }) => {
 
   /**
    * Remove white background from signature
-   * Creates a completely transparent image with only the signature strokes
+   * Keeps only dark (signature) pixels, removes all light pixels
    */
   const stripWhiteBackground = (sourceCanvas) => {
-    // Create a new canvas with transparent background
+    // Create a new canvas with explicitly transparent background
     const newCanvas = document.createElement('canvas');
     newCanvas.width = sourceCanvas.width;
     newCanvas.height = sourceCanvas.height;
     const ctx = newCanvas.getContext('2d', { alpha: true });
 
-    // Ensure canvas has transparent background
+    // Set background to transparent
     ctx.clearRect(0, 0, newCanvas.width, newCanvas.height);
 
-    // Draw the source canvas onto new canvas
+    // Copy image data from source canvas
     ctx.drawImage(sourceCanvas, 0, 0);
 
-    // Get image data
+    // Get pixel data
     const imageData = ctx.getImageData(0, 0, newCanvas.width, newCanvas.height);
     const data = imageData.data;
 
-    // Process every pixel to remove white background
+    // Process each pixel: remove white background, keep signature
     for (let i = 0; i < data.length; i += 4) {
-      const red = data[i];
-      const green = data[i + 1];
-      const blue = data[i + 2];
-      const alpha = data[i + 3];
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      const a = data[i + 3];
 
-      // Calculate brightness/whiteness
-      const brightness = (red + green + blue) / 3;
-
-      // If pixel is very light (whitish), make it transparent
-      if (brightness > 230) {
-        data[i + 3] = 0; // Full transparency
-      } 
-      // For lighter pixels (200-230), reduce opacity gradually
-      else if (brightness > 200) {
-        const intensity = (brightness - 200) / 30; // 0 to 1
-        data[i + 3] = Math.round(alpha * (1 - intensity * 0.8)); // Reduce alpha
+      // If pixel is white-ish (all RGB channels > 200), make it transparent
+      const isWhite = r > 200 && g > 200 && b > 200;
+      
+      if (isWhite) {
+        data[i + 3] = 0; // Make transparent
       }
     }
 
+    // Put the processed image data back
     ctx.putImageData(imageData, 0, 0);
-    
-    // Return as PNG with alpha channel
+
+    // Return as PNG
     return newCanvas.toDataURL('image/png');
   };
 
@@ -156,7 +151,6 @@ const SignaturePad = ({ onSignatureComplete, onCancel }) => {
             onTouchEnd={handleTouchEnd}
             onTouchStart={handleMouseDown}
             penColor="black"
-            backgroundColor="transparent"
           />
         </div>
 
