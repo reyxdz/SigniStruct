@@ -66,41 +66,49 @@ const SignaturePad = ({ onSignatureComplete, onCancel }) => {
 
   /**
    * Remove white background from signature
-   * Creates a new canvas with transparent background and draws signature onto it
+   * Creates a completely transparent image with only the signature strokes
    */
   const stripWhiteBackground = (sourceCanvas) => {
     // Create a new canvas with transparent background
     const newCanvas = document.createElement('canvas');
     newCanvas.width = sourceCanvas.width;
     newCanvas.height = sourceCanvas.height;
-    const ctx = newCanvas.getContext('2d');
+    const ctx = newCanvas.getContext('2d', { alpha: true });
 
-    // Draw the source canvas onto new canvas with transparent background
+    // Ensure canvas has transparent background
+    ctx.clearRect(0, 0, newCanvas.width, newCanvas.height);
+
+    // Draw the source canvas onto new canvas
     ctx.drawImage(sourceCanvas, 0, 0);
 
-    // Get image data and process pixels
+    // Get image data
     const imageData = ctx.getImageData(0, 0, newCanvas.width, newCanvas.height);
     const data = imageData.data;
 
-    // Iterate through all pixels and make white/near-white pixels transparent
+    // Process every pixel to remove white background
     for (let i = 0; i < data.length; i += 4) {
       const red = data[i];
       const green = data[i + 1];
       const blue = data[i + 2];
+      const alpha = data[i + 3];
 
-      // If pixel is white or very close to white, make it transparent
-      // Using threshold of 250 to catch light gray anti-aliasing too
-      if (red > 250 && green > 250 && blue > 250) {
-        data[i + 3] = 0; // Set alpha to 0 (fully transparent)
-      }
-      // For slightly less white pixels (250-240), reduce opacity gradually
-      else if (red > 240 && green > 240 && blue > 240) {
-        const avg = (red + green + blue) / 3;
-        data[i + 3] = Math.round((255 - avg) * 2); // Reduce opacity based on whiteness
+      // Calculate brightness/whiteness
+      const brightness = (red + green + blue) / 3;
+
+      // If pixel is very light (whitish), make it transparent
+      if (brightness > 230) {
+        data[i + 3] = 0; // Full transparency
+      } 
+      // For lighter pixels (200-230), reduce opacity gradually
+      else if (brightness > 200) {
+        const intensity = (brightness - 200) / 30; // 0 to 1
+        data[i + 3] = Math.round(alpha * (1 - intensity * 0.8)); // Reduce alpha
       }
     }
 
     ctx.putImageData(imageData, 0, 0);
+    
+    // Return as PNG with alpha channel
     return newCanvas.toDataURL('image/png');
   };
 

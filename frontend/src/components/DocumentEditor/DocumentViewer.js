@@ -430,14 +430,7 @@ const DocumentViewer = ({
               </>
             )}
 
-            {/* Drag-over indicator */}
-            {isDragOver && (
-              <div style={styles.dragOverOverlay}>
-                <div style={styles.dragOverMessage}>
-                  {/* Indicator only, no text */}
-                </div>
-              </div>
-            )}
+            {/* Drag-over indicator - removed, no visual feedback needed */}
           </div>
         )}
       </div>
