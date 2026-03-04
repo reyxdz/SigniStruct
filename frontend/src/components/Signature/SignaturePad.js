@@ -135,7 +135,6 @@ const SignaturePad = ({ onSignatureComplete, onCancel }) => {
       const r = data[i];
       const g = data[i + 1];
       const b = data[i + 2];
-      const a = data[i + 3];
 
       // Calculate brightness using luminance formula
       // This is more reliable than checking individual RGB channels
