@@ -30,7 +30,7 @@ const FieldOverlay = ({
     if (field.type === 'signature') {
       console.log(`  Signature field: has image=${!!field.value}, image length=${field.value?.length || 0}`);
     }
-  }, [field.id, field.x, field.y, isSelected, field.width, field.height, field.value]);
+  }, [field.id, field.x, field.y, isSelected, field.width, field.height, field.value, field.type]);
 
   // Get field type color
   const getFieldColor = () => {
