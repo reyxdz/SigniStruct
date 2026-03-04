@@ -88,7 +88,7 @@ export const createField = (toolData, x, y, pageNumber) => {
     id: `field-${Date.now()}`,
     toolId: toolData.toolId,
     label: toolData.label || 'Untitled Field',
-    type: toolData.type || FIELD_TYPES.TEXT,
+    fieldType: toolData.fieldType || toolData.type || FIELD_TYPES.TEXT,
     pageNumber: pageNumber || 1,
     x: Math.min(Math.max(x || 0, 0), 100),
     y: Math.min(Math.max(y || 0, 0), 100),
@@ -209,7 +209,7 @@ export const validateField = (field) => {
   if (!field.id) errors.push('Field ID is required');
   if (field.toolId === undefined) errors.push('Tool ID is required');
   if (!field.label) errors.push('Field label is required');
-  if (!field.type) errors.push('Field type is required');
+  if (!field.fieldType && !field.type) errors.push('Field type is required');
   if (!field.pageNumber) errors.push('Page number is required');
 
   // Numeric properties
@@ -283,7 +283,7 @@ export const getFieldsOnPage = (fields, pageNumber) => {
  */
 export const getFieldsByType = (fields, type) => {
   if (!Array.isArray(fields)) return [];
-  return fields.filter(field => field.type === type);
+  return fields.filter(field => (field.fieldType || field.type) === type);
 };
 
 /**

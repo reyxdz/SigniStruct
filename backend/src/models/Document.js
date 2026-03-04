@@ -74,27 +74,28 @@ const documentSchema = new mongoose.Schema(
     // Document editor fields (for field placement on PDF)
     fields: [
       {
-        id: String,
-        toolId: Number,
-        label: String,
-        pageNumber: Number,
-        x: Number,          // Percentage from left (0-100)
-        y: Number,          // Percentage from top (0-100)
-        width: Number,      // In pixels
-        height: Number,     // In pixels
-        value: String,
+        id: { type: String },
+        fieldType: { type: String },  // Renamed from 'type' to avoid Mongoose keyword conflicts
+        toolId: { type: Number },
+        label: { type: String },
+        pageNumber: { type: Number },
+        x: { type: Number },          // Percentage from left (0-100)
+        y: { type: Number },          // Percentage from top (0-100)
+        width: { type: Number },      // In pixels
+        height: { type: Number },     // In pixels
+        value: { type: String },
         assignedRecipients: [
           {
-            recipientId: mongoose.Schema.Types.ObjectId,
-            recipientEmail: String,
-            recipientName: String,
+            recipientId: { type: mongoose.Schema.Types.ObjectId },
+            recipientEmail: { type: String },
+            recipientName: { type: String },
             status: {
               type: String,
               enum: ['pending', 'signed', 'declined'],
               default: 'pending'
             },
-            signatureData: String,
-            signedAt: Date
+            signatureData: { type: String },
+            signedAt: { type: Date }
           }
         ],
         fontFamily: {

@@ -73,8 +73,14 @@ export const EditorProvider = ({ children, initialDocument = null }) => {
    * @param {string} fieldId - Field ID to remove
    */
   const removeField = useCallback((fieldId) => {
-    setFields(prev => prev.filter(f => f.id !== fieldId));
+    console.log(`🗑️ EditorContext.removeField triggered for field: ${fieldId}`);
+    setFields(prev => {
+      const filtered = prev.filter(f => f.id !== fieldId);
+      console.log(`  Fields before: ${prev.length}, after: ${filtered.length}`);
+      return filtered;
+    });
     if (selectedFieldId === fieldId) {
+      console.log(`  Clearing selection as deleted field was selected`);
       setSelectedFieldId(null);
     }
   }, [selectedFieldId]);

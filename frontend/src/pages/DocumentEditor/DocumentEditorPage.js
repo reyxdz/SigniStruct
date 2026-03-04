@@ -56,6 +56,7 @@ const DocumentEditorContent = ({ documentId, document, loading, error, isSaving,
    * Handle field remove
    */
   const handleFieldRemove = (fieldId) => {
+    console.log(`🗑️ Removing field: ${fieldId}`);
     removeField(fieldId);
   };
 

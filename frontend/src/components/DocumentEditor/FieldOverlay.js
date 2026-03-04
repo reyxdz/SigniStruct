@@ -27,17 +27,21 @@ const FieldOverlay = ({
 
   useEffect(() => {
     console.log(`🎯 FieldOverlay rendering: Field ${field.id}, isSelected=${isSelected}, x=${field.x}%, y=${field.y}%, width=${field.width}px, height=${field.height}px`);
-    if (field.type === 'signature') {
+    if ((field.fieldType || field.type) === 'signature') {
       console.log(`  Signature field: has image=${!!field.value}, image length=${field.value?.length || 0}`);
+      if (field.value) {
+        const srcPreview = field.value.substring(0, 150);
+        console.log(`  Image src (first 150 chars): ${srcPreview}...`);
+      }
     }
-  }, [field.id, field.x, field.y, isSelected, field.width, field.height, field.value, field.type]);
+  }, [field.id, field.x, field.y, isSelected, field.width, field.height, field.value, field.fieldType, field.type]);
 
   // Get field type color
   const getFieldColor = () => {
     if (field.isRecipient) {
       return '#f59e0b'; // Amber for recipient fields
     }
-    switch (field.type) {
+    switch (field.fieldType || field.type) {
       case FIELD_TYPES.SIGNATURE:
         return '#3b82f6'; // Blue
       case FIELD_TYPES.INITIAL:
@@ -223,11 +227,19 @@ const FieldOverlay = ({
       title={`${field.label} - Click to select, drag to move`}
     >
       {/* Signature Image - Show when field has a signature value, always visible */}
-      {field.type === 'signature' && field.value && (
+      {(field.fieldType || field.type) === 'signature' && field.value && (
         <img
           src={field.value}
           alt="Signature"
           style={styles.signatureImage}
+          onError={(e) => {
+            console.error(`🔴 FieldOverlay: Image failed to load for field ${field.id}`);
+            console.error(`  Src preview: ${field.value?.substring(0, 100) || 'null'}...`);
+            console.error(`  Error:`, e);
+          }}
+          onLoad={() => {
+            console.log(`✅ FieldOverlay: Image loaded successfully for field ${field.id}`);
+          }}
         />
       )}
 
