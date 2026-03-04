@@ -65,6 +65,33 @@ const SignaturePad = ({ onSignatureComplete, onCancel }) => {
   };
 
   /**
+   * Remove white background from canvas and make it transparent
+   * Converts white/near-white pixels to transparent
+   */
+  const stripWhiteBackground = (canvas) => {
+    const ctx = canvas.getContext('2d');
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+
+    // Iterate through all pixels
+    for (let i = 0; i < data.length; i += 4) {
+      const red = data[i];
+      const green = data[i + 1];
+      const blue = data[i + 2];
+      const alpha = data[i + 3];
+
+      // If pixel is white or near-white (high R, G, B values), make it transparent
+      // Using threshold of 240 to catch anti-aliased edges too
+      if (red > 240 && green > 240 && blue > 240 && alpha === 255) {
+        data[i + 3] = 0; // Set alpha to 0 (transparent)
+      }
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+    return canvas.toDataURL('image/png');
+  };
+
+  /**
    * Save the signature
    */
   const handleSave = () => {
@@ -80,7 +107,9 @@ const SignaturePad = ({ onSignatureComplete, onCancel }) => {
       return;
     }
 
-    const signatureImage = signatureCanvasRef.current.toDataURL('image/png');
+    // Get the canvas element and strip white background
+    const canvas = signatureCanvasRef.current.getCanvas();
+    const signatureImage = stripWhiteBackground(canvas);
     onSignatureComplete(signatureImage, 'handwritten');
   };
 
@@ -106,7 +135,7 @@ const SignaturePad = ({ onSignatureComplete, onCancel }) => {
             onTouchEnd={handleTouchEnd}
             onTouchStart={handleMouseDown}
             penColor="black"
-            backgroundColor="white"
+            backgroundColor="rgba(255, 255, 255, 0.05)"
           />
         </div>
 
