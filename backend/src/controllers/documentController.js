@@ -188,7 +188,14 @@ class DocumentController {
       console.log('  Fields in database:', document.fields?.length || 0);
       if (document.fields && document.fields.length > 0) {
         document.fields.forEach((f, idx) => {
-          console.log(`    Field ${idx}: type=${f.type}, hasValue=${!!f.value}, valueLength=${f.value?.length || 0}`);
+          console.log(`    Field ${idx}:`);
+          console.log(`      - id: ${f.id}`);
+          console.log(`      - type: ${f.type}`);
+          console.log(`      - label: ${f.label}`);
+          console.log(`      - hasValue: ${!!f.value}`);
+          console.log(`      - valueLength: ${f.value?.length || 0}`);
+          console.log(`      - x: ${f.x}, y: ${f.y}, width: ${f.width}, height: ${f.height}`);
+          console.log(`      - All keys: ${Object.keys(f).join(', ')}`);
         });
       }
 
@@ -594,7 +601,14 @@ class DocumentController {
       if (fields && fields.length > 0) {
         console.log('  Fields being saved:');
         fields.forEach((f, idx) => {
-          console.log(`    Field ${idx}: type=${f.type}, hasValue=${!!f.value}, valueLength=${f.value?.length || 0}, x=${f.x}, y=${f.y}, width=${f.width}, height=${f.height}`);
+          console.log(`    Field ${idx}:`);
+          console.log(`      - id: ${f.id}`);
+          console.log(`      - type: ${f.type}`);
+          console.log(`      - label: ${f.label}`);
+          console.log(`      - hasValue: ${!!f.value}`);
+          console.log(`      - valueLength: ${f.value?.length || 0}`);
+          console.log(`      - x: ${f.x}, y: ${f.y}, width: ${f.width}, height: ${f.height}`);
+          console.log(`      - All keys: ${Object.keys(f).join(', ')}`);
         });
       }
       
