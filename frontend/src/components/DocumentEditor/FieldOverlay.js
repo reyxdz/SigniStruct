@@ -332,7 +332,7 @@ const styles = {
     maxHeight: '80%',
     objectFit: 'contain',
     backgroundColor: 'transparent',
-    mixBlendMode: 'multiply',
+    mixBlendMode: 'darken',
   },
 
   // Selection State Styles

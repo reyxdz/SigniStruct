@@ -66,7 +66,8 @@ const SignaturePad = ({ onSignatureComplete, onCancel }) => {
 
   /**
    * Remove white background from signature
-   * Keeps only dark (signature) pixels, removes all light pixels
+   * Uses brightness/luminance to detect and remove light pixels
+   * Keeps signature pixels (dark) and removes background (light)
    */
   const stripWhiteBackground = (sourceCanvas) => {
     // Create a new canvas with explicitly transparent background
@@ -85,18 +86,26 @@ const SignaturePad = ({ onSignatureComplete, onCancel }) => {
     const imageData = ctx.getImageData(0, 0, newCanvas.width, newCanvas.height);
     const data = imageData.data;
 
-    // Process each pixel: remove white background, keep signature
+    // Process each pixel: remove light background, keep dark signature
     for (let i = 0; i < data.length; i += 4) {
       const r = data[i];
       const g = data[i + 1];
       const b = data[i + 2];
       const a = data[i + 3];
 
-      // If pixel is white-ish (all RGB channels > 200), make it transparent
-      const isWhite = r > 200 && g > 200 && b > 200;
+      // Calculate brightness using luminance formula
+      // This is more reliable than checking individual RGB channels
+      const brightness = (r * 0.299 + g * 0.587 + b * 0.114);
       
-      if (isWhite) {
-        data[i + 3] = 0; // Make transparent
+      // Remove light pixels (brightness > 180)
+      // Signature pixels are dark (black), so brightness << 100
+      // Light background/anti-aliasing edges are > 150-200
+      if (brightness > 180) {
+        data[i + 3] = 0; // Make fully transparent
+      } else if (brightness > 150) {
+        // For anti-aliased edges, reduce opacity gradually
+        const alpha = Math.max(0, 255 * ((200 - brightness) / 50));
+        data[i + 3] = Math.round(alpha);
       }
     }
 
