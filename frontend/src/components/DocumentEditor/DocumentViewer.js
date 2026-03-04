@@ -434,7 +434,7 @@ const DocumentViewer = ({
             {isDragOver && (
               <div style={styles.dragOverOverlay}>
                 <div style={styles.dragOverMessage}>
-                  <p style={styles.dragOverText}>Drop here to add field</p>
+                  {/* Indicator only, no text */}
                 </div>
               </div>
             )}

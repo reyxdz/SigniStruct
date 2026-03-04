@@ -65,34 +65,47 @@ const SignaturePad = ({ onSignatureComplete, onCancel }) => {
   };
 
   /**
-   * Remove white background from canvas and make it transparent
-   * Converts white/near-white pixels to transparent
+   * Remove white background from signature
+   * Creates a new canvas with transparent background and draws signature onto it
    */
-  const stripWhiteBackground = (canvas) => {
-    const ctx = canvas.getContext('2d');
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const stripWhiteBackground = (sourceCanvas) => {
+    // Create a new canvas with transparent background
+    const newCanvas = document.createElement('canvas');
+    newCanvas.width = sourceCanvas.width;
+    newCanvas.height = sourceCanvas.height;
+    const ctx = newCanvas.getContext('2d');
+
+    // Draw the source canvas onto new canvas with transparent background
+    ctx.drawImage(sourceCanvas, 0, 0);
+
+    // Get image data and process pixels
+    const imageData = ctx.getImageData(0, 0, newCanvas.width, newCanvas.height);
     const data = imageData.data;
 
-    // Iterate through all pixels
+    // Iterate through all pixels and make white/near-white pixels transparent
     for (let i = 0; i < data.length; i += 4) {
       const red = data[i];
       const green = data[i + 1];
       const blue = data[i + 2];
-      const alpha = data[i + 3];
 
-      // If pixel is white or near-white (high R, G, B values), make it transparent
-      // Using threshold of 240 to catch anti-aliased edges too
-      if (red > 240 && green > 240 && blue > 240 && alpha === 255) {
-        data[i + 3] = 0; // Set alpha to 0 (transparent)
+      // If pixel is white or very close to white, make it transparent
+      // Using threshold of 250 to catch light gray anti-aliasing too
+      if (red > 250 && green > 250 && blue > 250) {
+        data[i + 3] = 0; // Set alpha to 0 (fully transparent)
+      }
+      // For slightly less white pixels (250-240), reduce opacity gradually
+      else if (red > 240 && green > 240 && blue > 240) {
+        const avg = (red + green + blue) / 3;
+        data[i + 3] = Math.round((255 - avg) * 2); // Reduce opacity based on whiteness
       }
     }
 
     ctx.putImageData(imageData, 0, 0);
-    return canvas.toDataURL('image/png');
+    return newCanvas.toDataURL('image/png');
   };
 
   /**
-   * Save the signature
+   * Handle save - extract canvas and process it
    */
   const handleSave = () => {
     if (!signatureCanvasRef.current) {
@@ -107,9 +120,9 @@ const SignaturePad = ({ onSignatureComplete, onCancel }) => {
       return;
     }
 
-    // Get the canvas element and strip white background
-    const canvas = signatureCanvasRef.current.getCanvas();
-    const signatureImage = stripWhiteBackground(canvas);
+    // Get the canvas element and create a clean version with transparent background
+    const sourceCanvas = signatureCanvasRef.current.getCanvas();
+    const signatureImage = stripWhiteBackground(sourceCanvas);
     onSignatureComplete(signatureImage, 'handwritten');
   };
 
@@ -135,7 +148,7 @@ const SignaturePad = ({ onSignatureComplete, onCancel }) => {
             onTouchEnd={handleTouchEnd}
             onTouchStart={handleMouseDown}
             penColor="black"
-            backgroundColor="rgba(255, 255, 255, 0.05)"
+            backgroundColor="transparent"
           />
         </div>
 
