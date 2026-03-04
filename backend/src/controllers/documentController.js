@@ -185,6 +185,12 @@ class DocumentController {
       }
 
       console.log('✅ Document Retrieved');
+      console.log('  Fields in database:', document.fields?.length || 0);
+      if (document.fields && document.fields.length > 0) {
+        document.fields.forEach((f, idx) => {
+          console.log(`    Field ${idx}: type=${f.type}, hasValue=${!!f.value}, valueLength=${f.value?.length || 0}`);
+        });
+      }
 
       // Return document with all details
       return res.status(200).json({
@@ -584,10 +590,18 @@ class DocumentController {
       document.fields = fields || [];
       document.lastEditedAt = lastEditedAt || new Date();
       
+      // Log field data for debugging
+      if (fields && fields.length > 0) {
+        console.log('  Fields being saved:');
+        fields.forEach((f, idx) => {
+          console.log(`    Field ${idx}: type=${f.type}, hasValue=${!!f.value}, valueLength=${f.value?.length || 0}, x=${f.x}, y=${f.y}, width=${f.width}, height=${f.height}`);
+        });
+      }
+      
       await document.save();
 
       console.log('✅ Document fields updated');
-      console.log('  Saved fields:', document.fields);
+      console.log('  Saved fields count:', document.fields.length);
 
       return res.status(200).json({
         success: true,

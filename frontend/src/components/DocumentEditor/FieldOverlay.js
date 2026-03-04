@@ -27,7 +27,10 @@ const FieldOverlay = ({
 
   useEffect(() => {
     console.log(`🎯 FieldOverlay rendering: Field ${field.id}, isSelected=${isSelected}, x=${field.x}%, y=${field.y}%, width=${field.width}px, height=${field.height}px`);
-  }, [field.id, field.x, field.y, isSelected, field.width, field.height]);
+    if (field.type === 'signature') {
+      console.log(`  Signature field: has image=${!!field.value}, image length=${field.value?.length || 0}`);
+    }
+  }, [field.id, field.x, field.y, isSelected, field.width, field.height, field.value]);
 
   // Get field type color
   const getFieldColor = () => {
