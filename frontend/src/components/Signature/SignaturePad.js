@@ -65,9 +65,53 @@ const SignaturePad = ({ onSignatureComplete, onCancel }) => {
   };
 
   /**
-   * Remove white background from signature
+   * Find the bounding box of non-transparent pixels in canvas
+   * This detects the actual signature content area
+   */
+  const findSignatureBoundingBox = (ctx, width, height) => {
+    const imageData = ctx.getImageData(0, 0, width, height);
+    const data = imageData.data;
+
+    let minX = width;
+    let maxX = -1;
+    let minY = height;
+    let maxY = -1;
+
+    // Scan all pixels to find bounds of non-transparent content
+    for (let i = 0; i < data.length; i += 4) {
+      const alpha = data[i + 3];
+      if (alpha > 0) {
+        // Non-transparent pixel found
+        const pixelIndex = i / 4;
+        const x = pixelIndex % width;
+        const y = Math.floor(pixelIndex / width);
+
+        minX = Math.min(minX, x);
+        maxX = Math.max(maxX, x);
+        minY = Math.min(minY, y);
+        maxY = Math.max(maxY, y);
+      }
+    }
+
+    // Return bounding box with padding for clean edges
+    if (maxX === -1) {
+      // No content found
+      return { x: 0, y: 0, width: 0, height: 0 };
+    }
+
+    const padding = 5;
+    return {
+      x: Math.max(0, minX - padding),
+      y: Math.max(0, minY - padding),
+      width: Math.min(width, maxX - minX + 1 + padding * 2),
+      height: Math.min(height, maxY - minY + 1 + padding * 2),
+    };
+  };
+
+  /**
+   * Remove white background from signature and crop to content
    * Uses brightness/luminance to detect and remove light pixels
-   * Keeps signature pixels (dark) and removes background (light)
+   * Then crops the canvas to only the actual signature bounds
    */
   const stripWhiteBackground = (sourceCanvas) => {
     // Create a new canvas with explicitly transparent background
@@ -96,7 +140,7 @@ const SignaturePad = ({ onSignatureComplete, onCancel }) => {
       // Calculate brightness using luminance formula
       // This is more reliable than checking individual RGB channels
       const brightness = (r * 0.299 + g * 0.587 + b * 0.114);
-      
+
       // Remove light pixels (brightness > 180)
       // Signature pixels are dark (black), so brightness << 100
       // Light background/anti-aliasing edges are > 150-200
@@ -112,8 +156,35 @@ const SignaturePad = ({ onSignatureComplete, onCancel }) => {
     // Put the processed image data back
     ctx.putImageData(imageData, 0, 0);
 
-    // Return as PNG
-    return newCanvas.toDataURL('image/png');
+    // Find bounding box of actual signature content
+    const boundingBox = findSignatureBoundingBox(ctx, newCanvas.width, newCanvas.height);
+
+    // If signature is too small, return empty
+    if (boundingBox.width <= 0 || boundingBox.height <= 0) {
+      return newCanvas.toDataURL('image/png');
+    }
+
+    // Create a cropped canvas with only the signature content
+    const croppedCanvas = document.createElement('canvas');
+    croppedCanvas.width = boundingBox.width;
+    croppedCanvas.height = boundingBox.height;
+    const croppedCtx = croppedCanvas.getContext('2d', { alpha: true });
+
+    // Copy the bounding box area from the cleaned canvas to the cropped canvas
+    croppedCtx.drawImage(
+      newCanvas,
+      boundingBox.x,
+      boundingBox.y,
+      boundingBox.width,
+      boundingBox.height,
+      0,
+      0,
+      boundingBox.width,
+      boundingBox.height
+    );
+
+    // Return cropped signature as PNG
+    return croppedCanvas.toDataURL('image/png');
   };
 
   /**
