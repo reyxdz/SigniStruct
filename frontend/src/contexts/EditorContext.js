@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useCallback, useState, useEffect } from 'react';
 import { createField, updateField, updateFieldPosition, updateFieldSize, updateFieldStyling, cloneField } from '../utils/fieldUtils';
+import api from '../services/api';
 
 /**
  * EditorContext
@@ -281,6 +282,38 @@ export const EditorProvider = ({ children, initialDocument = null }) => {
     setCurrentPage(1);
   }, [initialDocument]);
 
+  /**
+   * Save fields to backend
+   * @param {string} documentId - Document ID to save to
+   * @returns {Promise<Object>} Response from server
+   */
+  const saveFields = useCallback(async (documentId) => {
+    try {
+      console.log('💾 Saving fields to backend...');
+      console.log('  Document ID:', documentId);
+      console.log('  Fields count:', fields.length);
+
+      const response = await api.put(`/documents/${documentId}/fields`, {
+        fields,
+        lastEditedAt: new Date().toISOString()
+      });
+
+      if (response.data.success) {
+        console.log('✅ Fields saved successfully');
+        return {
+          success: true,
+          data: response.data.document
+        };
+      }
+    } catch (error) {
+      console.error('❌ Error saving fields:', error);
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Failed to save fields'
+      };
+    }
+  }, [fields]);
+
   // ============================================
   // Context Value
   // ============================================
@@ -313,6 +346,7 @@ export const EditorProvider = ({ children, initialDocument = null }) => {
     updateDocument,
     loadFields,
     reset,
+    saveFields,
   };
 
   return (
