@@ -79,7 +79,8 @@ const RightPanel = () => {
       updateFieldData(selectedFieldId, { fontSize: null });
     } else {
       const size = parseInt(value);
-      if (!isNaN(size)) {
+      if (!isNaN(size) && size <= 15) {
+        // Only allow values up to 15
         updateFieldData(selectedFieldId, { fontSize: size });
       }
     }
