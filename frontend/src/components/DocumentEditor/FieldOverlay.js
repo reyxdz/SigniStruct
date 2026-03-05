@@ -246,7 +246,7 @@ const FieldOverlay = ({
       {/* Text Content - Show for non-signature fields */}
       {(field.fieldType || field.type) !== 'signature' && field.value && (
         <div style={styles.fieldContent}>
-          <span style={{ color: getFieldColor(), overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          <span style={{ color: '#000000', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {field.value}
           </span>
         </div>
