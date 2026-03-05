@@ -350,7 +350,9 @@ const styles = {
 
   content: {
     flex: 1,
-    overflow: 'auto',
+    minHeight: 0,
+    overflowY: 'auto',
+    overflowX: 'hidden',
     padding: spacing.md,
     display: 'flex',
     flexDirection: 'column',
