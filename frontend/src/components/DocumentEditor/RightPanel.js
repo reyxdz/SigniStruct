@@ -73,8 +73,21 @@ const RightPanel = () => {
   };
 
   const handleFontSizeChange = (e) => {
-    const size = parseInt(e.target.value) || 14;
-    updateFieldData(selectedFieldId, { fontSize: size });
+    const value = e.target.value;
+    if (value === '') {
+      // Allow empty input while user is typing
+      updateFieldData(selectedFieldId, { fontSize: null });
+    } else {
+      const size = Math.max(8, Math.min(72, parseInt(value) || 14));
+      updateFieldData(selectedFieldId, { fontSize: size });
+    }
+  };
+
+  const handleFontSizeBlur = (e) => {
+    // Set default if field is empty or invalid when losing focus
+    if (e.target.value === '') {
+      updateFieldData(selectedFieldId, { fontSize: 14 });
+    }
   };
 
   const handleColorChange = (e) => {
@@ -183,8 +196,10 @@ const RightPanel = () => {
               type="number"
               min="8"
               max="72"
-              value={selectedField.fontSize || 14}
+              value={selectedField.fontSize || ''}
               onChange={handleFontSizeChange}
+              onBlur={handleFontSizeBlur}
+              placeholder="14"
               style={styles.numberInput}
             />
           </div>
