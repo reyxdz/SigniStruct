@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const UserSignature = require('../models/UserSignature');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -202,5 +203,59 @@ exports.searchUsers = async (req, res) => {
   } catch (error) {
     console.error('Search users error:', error);
     res.status(500).json({ error: 'Server error searching users' });
+  }
+};
+
+// @desc    Get user profile with signature
+// @route   GET /api/users/:userId/profile
+// @access  Private
+exports.getUserProfile = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Fetch user data
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'User not found'
+      });
+    }
+
+    // Fetch user's default signature
+    let signature = null;
+    try {
+      signature = await UserSignature.findOne({
+        user_id: userId,
+        is_default: true
+      });
+    } catch (err) {
+      console.warn('Could not fetch signature for user:', userId, err.message);
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone,
+        address: user.address,
+        signature: signature ? {
+          _id: signature._id,
+          signature_image: signature.signature_image,
+          signature_type: signature.signature_type,
+          is_default: signature.is_default,
+          created_at: signature.created_at
+        } : null
+      }
+    });
+  } catch (error) {
+    console.error('Get user profile error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Server error fetching user profile'
+    });
   }
 };
