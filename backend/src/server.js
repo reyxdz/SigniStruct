@@ -4,6 +4,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
 const certificateRoutes = require('./routes/certificateRoutes');
 const signatureRoutes = require('./routes/signatureRoutes');
 const documentSigningRoutes = require('./routes/documentSigningRoutes');
@@ -45,6 +46,7 @@ connectDB();
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/certificates', certificateRoutes);
 app.use('/api/signatures', signatureRoutes);
 app.use('/api/documents', documentSigningRoutes);

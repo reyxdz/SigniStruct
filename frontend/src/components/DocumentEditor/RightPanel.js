@@ -276,6 +276,14 @@ const RightPanel = () => {
                       {recipient.recipientName && (
                         <span style={styles.recipientName}>{recipient.recipientName}</span>
                       )}
+                      <span style={{
+                        ...styles.recipientStatus,
+                        ...(recipient.status === 'signed' ? styles.statusSigned :
+                           recipient.status === 'declined' ? styles.statusDeclined :
+                           styles.statusPending)
+                      }}>
+                        {recipient.status ? recipient.status.charAt(0).toUpperCase() + recipient.status.slice(1) : 'Pending'}
+                      </span>
                     </div>
                     <button
                       onClick={() => handleRemoveRecipient(recipient.recipientEmail)}
@@ -546,6 +554,30 @@ const styles = {
   recipientName: {
     color: colors.gray500,
     fontSize: typography.sizes.xs,
+  },
+
+  recipientStatus: {
+    marginTop: spacing.xs,
+    padding: `2px ${spacing.xs}`,
+    borderRadius: borderRadius.sm,
+    fontSize: typography.sizes.xs,
+    fontWeight: typography.weights.medium,
+    display: 'inline-block',
+  },
+
+  statusPending: {
+    backgroundColor: '#FEE4E2',
+    color: '#B42318',
+  },
+
+  statusSigned: {
+    backgroundColor: '#D1FADF',
+    color: '#027A48',
+  },
+
+  statusDeclined: {
+    backgroundColor: '#FFEAEA',
+    color: '#C21807',
   },
 
   removeButton: {

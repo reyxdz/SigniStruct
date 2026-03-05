@@ -163,3 +163,44 @@ exports.getMe = async (req, res) => {
     res.status(500).json({ error: 'Server error fetching user' });
   }
 };
+
+// @desc    Search users by email or name
+// @route   GET /api/users/search?q={query}
+// @access  Private
+exports.searchUsers = async (req, res) => {
+  try {
+    const query = req.query.q || '';
+
+    if (!query.trim()) {
+      return res.status(200).json({
+        success: true,
+        data: [],
+      });
+    }
+
+    // Search by email, firstName, or lastName
+    const users = await User.find({
+      $or: [
+        { email: { $regex: query, $options: 'i' } },
+        { firstName: { $regex: query, $options: 'i' } },
+        { lastName: { $regex: query, $options: 'i' } },
+      ],
+    })
+      .select('_id firstName lastName email phone')
+      .limit(10); // Limit results to 10
+
+    res.status(200).json({
+      success: true,
+      data: users.map(user => ({
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        phone: user.phone,
+      })),
+    });
+  } catch (error) {
+    console.error('Search users error:', error);
+    res.status(500).json({ error: 'Server error searching users' });
+  }
+};
