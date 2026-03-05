@@ -58,6 +58,24 @@ const FieldOverlay = ({
   };
 
   /**
+   * Get placeholder text based on field type
+   */
+  const getPlaceholderText = (fieldType) => {
+    switch (fieldType) {
+      case 'phone':
+        return '+63 9** *** ****';
+      case 'email':
+      case FIELD_TYPES.EMAIL:
+        return 'your@email.com';
+      case 'name':
+      case FIELD_TYPES.NAME:
+        return 'John Doe';
+      default:
+        return '[Field value]';
+    }
+  };
+
+  /**
    * Handle drag start - moving field
    */
   const handleDragStart = useCallback((e) => {
@@ -260,20 +278,20 @@ const FieldOverlay = ({
       )}
 
       {/* Text Content - Show for non-signature fields */}
-      {(field.fieldType || field.type) !== 'signature' && field.value && (
+      {(field.fieldType || field.type) !== 'signature' && (
         <div style={styles.fieldContent}>
           <span style={{
-            color: field.fontColor || '#000000',
+            color: field.value ? (field.fontColor || '#000000') : '#d1d5db',
             fontFamily: field.fontFamily || 'Arial',
             fontSize: `${field.fontSize || 14}px`,
             fontWeight: field.fontStyles?.bold ? 'bold' : 'normal',
-            fontStyle: field.fontStyles?.italic ? 'italic' : 'normal',
+            fontStyle: field.fontStyles?.italic ? 'italic' : (field.value ? 'normal' : 'italic'),
             textDecoration: field.fontStyles?.underline ? 'underline' : 'none',
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
           }}>
-            {field.value}
+            {field.value || getPlaceholderText(field.fieldType || field.type)}
           </span>
         </div>
       )}
