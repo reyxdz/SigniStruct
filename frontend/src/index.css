@@ -6,9 +6,13 @@
 
 html {
   scroll-behavior: smooth;
+  height: 100%;
+  width: 100%;
 }
 
 body {
+  height: 100%;
+  width: 100%;
   font-family: 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   font-size: 16px;
   font-weight: 400;
@@ -64,5 +68,6 @@ select {
 }
 
 #root {
-  min-height: 100vh;
+  height: 100%;
+  width: 100%;
 }
