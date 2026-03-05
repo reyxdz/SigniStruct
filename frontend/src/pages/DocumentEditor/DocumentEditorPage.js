@@ -19,6 +19,7 @@ const DocumentEditorContent = ({ documentId, document, loading, error, isSaving,
     fields, 
     selectedFieldId, 
     currentPage, 
+    saveStatus,
     addField, 
     selectField,
     changePage, 
@@ -99,7 +100,15 @@ const DocumentEditorContent = ({ documentId, document, loading, error, isSaving,
           </button>
           <div style={styles.documentInfo}>
             <h1 style={styles.documentTitle}>{document?.title || 'Untitled Document'}</h1>
-            <p style={styles.documentStatus}>Status: {document?.status || 'draft'}</p>
+            <div style={styles.documentMeta}>
+              <p style={styles.documentStatus}>Status: {document?.status || 'draft'}</p>
+              {saveStatus === 'saving' && (
+                <p style={{...styles.documentStatus, color: colors.orange}}>💾 Saving...</p>
+              )}
+              {saveStatus === 'saved' && (
+                <p style={{...styles.documentStatus, color: colors.green}}>✓ Saved</p>
+              )}
+            </div>
           </div>
         </div>
         
@@ -363,6 +372,11 @@ const styles = {
     fontWeight: typography.weights.semibold,
     color: colors.gray900,
     margin: 0,
+  },
+  documentMeta: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: spacing.lg,
   },
   documentStatus: {
     fontSize: typography.sizes.xs,

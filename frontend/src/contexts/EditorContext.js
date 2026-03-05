@@ -31,6 +31,10 @@ export const EditorProvider = ({ children, initialDocument = null }) => {
   const [selectedFieldId, setSelectedFieldId] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Auto-save state
+  const [saveStatus, setSaveStatus] = useState('idle'); // idle, saving, saved
+  const autoSaveTimeoutRef = React.useRef(null);
+
   // ============================================
   // Initialize Fields from Document
   // ============================================
@@ -44,6 +48,52 @@ export const EditorProvider = ({ children, initialDocument = null }) => {
       console.log('⚠️ No fields in initialDocument');
     }
   }, [initialDocument]);
+
+  // ============================================
+  // Auto-Save (Debounced)
+  // ============================================
+
+  useEffect(() => {
+    // Don't auto-save if no document ID
+    if (!document?._id) return;
+
+    // Clear previous timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // Set save status to "saving" after 500ms of inactivity
+    setSaveStatus('saving');
+
+    // Create new timeout
+    autoSaveTimeoutRef.current = setTimeout(async () => {
+      try {
+        console.log('💾 Auto-saving fields...');
+        const response = await api.put(`/documents/${document._id}/fields`, {
+          fields,
+          lastEditedAt: new Date().toISOString()
+        });
+
+        if (response.data.success) {
+          console.log('✅ Auto-save successful');
+          setSaveStatus('saved');
+          
+          // Reset to idle after 2 seconds
+          setTimeout(() => setSaveStatus('idle'), 2000);
+        }
+      } catch (error) {
+        console.error('❌ Auto-save failed:', error);
+        setSaveStatus('idle');
+      }
+    }, 500);
+
+    // Cleanup on unmount
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [fields, document?._id]);
 
   // ============================================
   // Field Operations
@@ -324,6 +374,7 @@ export const EditorProvider = ({ children, initialDocument = null }) => {
     fields,
     selectedFieldId,
     currentPage,
+    saveStatus,
 
     // Field operations
     addField,
