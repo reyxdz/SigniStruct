@@ -93,7 +93,7 @@ const RightPanel = () => {
     } else {
       const size = parseInt(value);
       if (!isNaN(size)) {
-        const clamped = Math.max(8, Math.min(72, size));
+        const clamped = Math.max(8, Math.min(15, size));
         updateFieldData(selectedFieldId, { fontSize: clamped });
       }
     }
@@ -204,7 +204,7 @@ const RightPanel = () => {
             <input
               type="number"
               min="8"
-              max="72"
+              max="15"
               value={selectedField.fontSize || ''}
               onChange={handleFontSizeChange}
               onBlur={handleFontSizeBlur}
