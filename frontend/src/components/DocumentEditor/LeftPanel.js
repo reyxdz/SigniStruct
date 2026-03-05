@@ -26,7 +26,7 @@ const LeftPanel = () => {
   const { user } = useAuth();
   const [mySignature, setMySignature] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [expandedSection, setExpandedSection] = useState('my-info');
+  const [expandedSections, setExpandedSections] = useState(new Set(['my-info', 'recipient-fields']));
 
   // Debug: Log user data when it changes
   useEffect(() => {
@@ -263,13 +263,23 @@ const LeftPanel = () => {
    * Render a collapsible section
    */
   const Section = ({ id, title, tools, icon: SectionIcon }) => {
-    const isExpanded = expandedSection === id;
+    const isExpanded = expandedSections.has(id);
+
+    const toggleSection = () => {
+      const newExpanded = new Set(expandedSections);
+      if (newExpanded.has(id)) {
+        newExpanded.delete(id);
+      } else {
+        newExpanded.add(id);
+      }
+      setExpandedSections(newExpanded);
+    };
 
     return (
       <div style={styles.section}>
         <button
           style={styles.sectionHeader}
-          onClick={() => setExpandedSection(isExpanded ? null : id)}
+          onClick={toggleSection}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
             <SectionIcon size={18} style={{ color: colors.primary }} />
@@ -339,6 +349,7 @@ const styles = {
     padding: spacing.md,
     borderBottom: `1px solid ${colors.gray200}`,
     backgroundColor: colors.white,
+    flexShrink: 0,
   },
 
   title: {
@@ -547,6 +558,7 @@ const styles = {
     padding: spacing.md,
     borderTop: `1px solid ${colors.gray200}`,
     backgroundColor: colors.gray50,
+    flexShrink: 0,
   },
 
   hint: {
