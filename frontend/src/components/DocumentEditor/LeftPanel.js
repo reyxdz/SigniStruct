@@ -337,12 +337,14 @@ const styles = {
   container: {
     display: 'flex',
     flexDirection: 'column',
-    height: '100%',
     width: '300px',
     minWidth: '300px',
+    maxWidth: '300px',
     flexShrink: 0,
     backgroundColor: colors.white,
     borderRight: `1px solid ${colors.gray200}`,
+    overflow: 'hidden',
+    height: '100%',
   },
 
   header: {
@@ -362,12 +364,12 @@ const styles = {
   content: {
     flex: 1,
     minHeight: 0,
-    overflowY: 'auto',
-    overflowX: 'hidden',
+    overflow: 'auto',
     padding: spacing.md,
     display: 'flex',
     flexDirection: 'column',
     gap: spacing.md,
+    WebkitOverflowScrolling: 'touch',
   },
 
   // Section Styles
