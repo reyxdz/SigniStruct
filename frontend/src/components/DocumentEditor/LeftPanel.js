@@ -295,7 +295,7 @@ const LeftPanel = () => {
         <h2 style={styles.title}>Tools</h2>
       </div>
 
-      <div style={styles.content}>
+      <div style={styles.content} className="left-panel-content">
         <Section
           id="my-info"
           title="My Information"
