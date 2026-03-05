@@ -138,7 +138,7 @@ const LeftPanel = () => {
     },
     {
       id: 'my-phone',
-      label: 'My Phone Number',
+      label: 'My Number',
       toolId: 2,
       icon: FiPhone,
       type: 'phone',
@@ -238,9 +238,8 @@ const LeftPanel = () => {
             <div style={styles.valueDisplay}>
               {hasActualValue ? (
                 <>
-                  <span style={styles.dataIndicator}>✓</span>
                   <p style={styles.toolValue}>
-                    {tool.type === 'signature' && mySignature ? '[Signature]' : 
+                    {tool.type === 'signature' && mySignature ? '' : 
                      tool.type === 'phone' ? (tool.value || '[Phone not set]') :
                      tool.type === 'email' ? (tool.value || '[Email not set]') :
                      tool.value || '[Not set]'}
@@ -256,12 +255,6 @@ const LeftPanel = () => {
         {isDisabled && !tool.isRecipient && (
           <div style={styles.missingBadge}>
             <FiAlertCircle size={16} />
-          </div>
-        )}
-
-        {!isDisabled && !tool.isRecipient && (
-          <div style={styles.readyBadge}>
-            <FiCheck size={14} />
           </div>
         )}
       </div>
