@@ -6,6 +6,7 @@ import { FiArrowLeft, FiSave, FiSend } from 'react-icons/fi';
 import { EditorProvider, useEditor } from '../../contexts/EditorContext';
 import DocumentViewer from '../../components/DocumentEditor/DocumentViewer';
 import LeftPanel from '../../components/DocumentEditor/LeftPanel';
+import RightPanel from '../../components/DocumentEditor/RightPanel';
 import './DocumentEditorPage.css';
 
 /**
@@ -143,18 +144,7 @@ const DocumentEditorContent = ({ documentId, document, loading, error, isSaving,
         />
 
         {/* Right Panel - Properties */}
-        <div style={styles.rightPanel}>
-          <div style={styles.panelHeader}>
-            <h2 style={styles.panelTitle}>Properties</h2>
-          </div>
-          <div style={styles.panelContent}>
-            {selectedFieldId ? (
-              <p style={styles.placeholderText}>Field properties will appear here...</p>
-            ) : (
-              <p style={styles.placeholderText}>Select a field to edit properties</p>
-            )}
-          </div>
-        </div>
+        <RightPanel />
 
       </div>
     </div>
