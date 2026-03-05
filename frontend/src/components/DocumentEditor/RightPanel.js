@@ -74,19 +74,28 @@ const RightPanel = () => {
 
   const handleFontSizeChange = (e) => {
     const value = e.target.value;
+    // Allow free typing - don't clamp while user is still editing
     if (value === '') {
-      // Allow empty input while user is typing
       updateFieldData(selectedFieldId, { fontSize: null });
     } else {
-      const size = Math.max(8, Math.min(72, parseInt(value) || 14));
-      updateFieldData(selectedFieldId, { fontSize: size });
+      const size = parseInt(value);
+      if (!isNaN(size)) {
+        updateFieldData(selectedFieldId, { fontSize: size });
+      }
     }
   };
 
   const handleFontSizeBlur = (e) => {
-    // Set default if field is empty or invalid when losing focus
-    if (e.target.value === '') {
+    // Enforce constraints only when losing focus
+    const value = e.target.value;
+    if (value === '') {
       updateFieldData(selectedFieldId, { fontSize: 14 });
+    } else {
+      const size = parseInt(value);
+      if (!isNaN(size)) {
+        const clamped = Math.max(8, Math.min(72, size));
+        updateFieldData(selectedFieldId, { fontSize: clamped });
+      }
     }
   };
 
