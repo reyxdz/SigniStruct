@@ -226,21 +226,37 @@ const FieldOverlay = ({
       onMouseDown={handleDragStart}
       title={`${field.label} - Click to select, drag to move`}
     >
-      {/* Signature Image - Show when field has a signature value, always visible */}
-      {(field.fieldType || field.type) === 'signature' && field.value && (
-        <img
-          src={field.value}
-          alt="Signature"
-          style={styles.signatureImage}
-          onError={(e) => {
-            console.error(`🔴 FieldOverlay: Image failed to load for field ${field.id}`);
-            console.error(`  Src preview: ${field.value?.substring(0, 100) || 'null'}...`);
-            console.error(`  Error:`, e);
-          }}
-          onLoad={() => {
-            console.log(`✅ FieldOverlay: Image loaded successfully for field ${field.id}`);
-          }}
-        />
+      {/* Signature Image or Placeholder - Show when field is a signature */}
+      {(field.fieldType || field.type) === 'signature' && (
+        <>
+          {field.value ? (
+            <img
+              src={field.value}
+              alt="Signature"
+              style={styles.signatureImage}
+              onError={(e) => {
+                console.error(`🔴 FieldOverlay: Image failed to load for field ${field.id}`);
+                console.error(`  Src preview: ${field.value?.substring(0, 100) || 'null'}...`);
+                console.error(`  Error:`, e);
+              }}
+              onLoad={() => {
+                console.log(`✅ FieldOverlay: Image loaded successfully for field ${field.id}`);
+              }}
+            />
+          ) : (
+            <div style={styles.signaturePlaceholder}>
+              <span style={{
+                fontFamily: "'Brush Script MT', 'Lucida Handwriting', 'Lucida Calligraphy', cursive",
+                fontSize: '24px',
+                color: '#9ca3af',
+                fontStyle: 'italic',
+                fontWeight: '400',
+              }}>
+                Signature
+              </span>
+            </div>
+          )}
+        </>
       )}
 
       {/* Text Content - Show for non-signature fields */}
@@ -352,6 +368,15 @@ const styles = {
     objectFit: 'contain',
     backgroundColor: 'transparent',
     mixBlendMode: 'darken',
+  },
+
+  signaturePlaceholder: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    height: '100%',
+    backgroundColor: 'transparent',
   },
 
   // Selection State Styles
