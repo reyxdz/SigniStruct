@@ -237,14 +237,12 @@ const LeftPanel = () => {
           ) : (
             <div style={styles.valueDisplay}>
               {hasActualValue ? (
-                <>
-                  <p style={styles.toolValue}>
-                    {tool.type === 'signature' && mySignature ? '' : 
-                     tool.type === 'phone' ? (tool.value || '[Phone not set]') :
-                     tool.type === 'email' ? (tool.value || '[Email not set]') :
-                     tool.value || '[Not set]'}
-                  </p>
-                </>
+                <p style={styles.toolValue}>
+                  {tool.type === 'signature' && mySignature ? '' : 
+                   tool.type === 'phone' ? (tool.value || '[Phone not set]') :
+                   tool.type === 'email' ? (tool.value || '[Email not set]') :
+                   tool.value || '[Not set]'}
+                </p>
               ) : (
                 <span style={styles.missingDataText}>Data not set</span>
               )}
