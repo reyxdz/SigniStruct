@@ -256,28 +256,6 @@ const LeftPanel = () => {
     );
   };
 
-  /**
-   * Render a collapsible section
-   */
-  const Section = ({ id, title, tools, icon: SectionIcon }) => {
-    return (
-      <div style={styles.section}>
-        <div style={styles.sectionHeader}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
-            <SectionIcon size={18} style={{ color: colors.primary }} />
-            <span style={styles.sectionTitle}>{title}</span>
-          </div>
-        </div>
-
-        <div style={styles.sectionContent}>
-          {tools.map((tool) => (
-            <ToolButton key={tool.id} tool={tool} />
-          ))}
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div style={styles.container}>
       <div style={styles.header}>
@@ -285,19 +263,21 @@ const LeftPanel = () => {
       </div>
 
       <div style={styles.content} className="left-panel-content">
-        <Section
-          id="my-info"
-          title="My Information"
-          tools={MY_INFO_TOOLS}
-          icon={FiUser}
-        />
+        {/* My Information divider */}
+        <div style={styles.divider}>
+          <span style={styles.dividerText}>My Information</span>
+        </div>
+        {MY_INFO_TOOLS.map((tool) => (
+          <ToolButton key={tool.id} tool={tool} />
+        ))}
 
-        <Section
-          id="recipient-fields"
-          title="Recipient Fields"
-          tools={RECIPIENT_TOOLS}
-          icon={FiPenTool}
-        />
+        {/* Recipient Fields divider */}
+        <div style={styles.divider}>
+          <span style={styles.dividerText}>Recipient Fields</span>
+        </div>
+        {RECIPIENT_TOOLS.map((tool) => (
+          <ToolButton key={tool.id} tool={tool} />
+        ))}
 
         {loading && <p style={styles.loadingText}>Loading signature...</p>}
       </div>
@@ -351,36 +331,23 @@ const styles = {
     WebkitOverflowScrolling: 'touch',
   },
 
-  // Section Styles
-  section: {
-    borderRadius: borderRadius.md,
-    border: `1px solid ${colors.gray200}`,
-    overflow: 'hidden',
-    backgroundColor: colors.white,
-  },
-
-  sectionHeader: {
+  // Section Styles (Dividers)
+  divider: {
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    width: '100%',
-    padding: spacing.md,
-    backgroundColor: colors.gray50,
+    gap: spacing.md,
+    padding: `${spacing.md} ${spacing.md}`,
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
   },
 
-  sectionTitle: {
+  dividerText: {
     fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
-    color: colors.gray900,
+    fontWeight: typography.weights.bold,
+    color: colors.gray700,
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px',
     margin: 0,
-  },
-
-  sectionContent: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: spacing.sm,
-    padding: spacing.md,
-    backgroundColor: colors.white,
   },
 
   // Tool Styles
