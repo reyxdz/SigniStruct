@@ -8,8 +8,6 @@ import {
   FiMail,
   FiUser,
   FiPhone,
-  FiChevronDown,
-  FiChevronUp,
   FiAlertCircle,
   FiCheck
 } from 'react-icons/fi';
@@ -26,7 +24,6 @@ const LeftPanel = () => {
   const { user } = useAuth();
   const [mySignature, setMySignature] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [expandedSections, setExpandedSections] = useState(new Set(['my-info', 'recipient-fields']));
 
   // Debug: Log user data when it changes
   useEffect(() => {
@@ -263,38 +260,20 @@ const LeftPanel = () => {
    * Render a collapsible section
    */
   const Section = ({ id, title, tools, icon: SectionIcon }) => {
-    const isExpanded = expandedSections.has(id);
-
-    const toggleSection = () => {
-      const newExpanded = new Set(expandedSections);
-      if (newExpanded.has(id)) {
-        newExpanded.delete(id);
-      } else {
-        newExpanded.add(id);
-      }
-      setExpandedSections(newExpanded);
-    };
-
     return (
       <div style={styles.section}>
-        <button
-          style={styles.sectionHeader}
-          onClick={toggleSection}
-        >
+        <div style={styles.sectionHeader}>
           <div style={{ display: 'flex', alignItems: 'center', gap: spacing.md }}>
             <SectionIcon size={18} style={{ color: colors.primary }} />
             <span style={styles.sectionTitle}>{title}</span>
           </div>
-          {isExpanded ? <FiChevronUp /> : <FiChevronDown />}
-        </button>
+        </div>
 
-        {isExpanded && (
-          <div style={styles.sectionContent}>
-            {tools.map((tool) => (
-              <ToolButton key={tool.id} tool={tool} />
-            ))}
-          </div>
-        )}
+        <div style={styles.sectionContent}>
+          {tools.map((tool) => (
+            <ToolButton key={tool.id} tool={tool} />
+          ))}
+        </div>
       </div>
     );
   };
@@ -386,10 +365,7 @@ const styles = {
     justifyContent: 'space-between',
     width: '100%',
     padding: spacing.md,
-    border: 'none',
     backgroundColor: colors.gray50,
-    cursor: 'pointer',
-    transition: 'background-color 0.2s ease',
   },
 
   sectionTitle: {
