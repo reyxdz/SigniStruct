@@ -169,14 +169,6 @@ const LeftPanel = () => {
       isRecipient: true
     },
     {
-      id: 'recipient-initial',
-      label: 'Recipient Initial',
-      toolId: 6,
-      icon: FiType,
-      type: 'initial',
-      isRecipient: true
-    },
-    {
       id: 'recipient-email',
       label: 'Recipient Email',
       toolId: 7,
