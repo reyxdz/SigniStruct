@@ -243,6 +243,15 @@ const FieldOverlay = ({
         />
       )}
 
+      {/* Text Content - Show for non-signature fields */}
+      {(field.fieldType || field.type) !== 'signature' && field.value && (
+        <div style={styles.fieldContent}>
+          <span style={{ color: getFieldColor(), overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {field.value}
+          </span>
+        </div>
+      )}
+
       {/* Selection Indicators */}
       {isSelected && (
         <>
