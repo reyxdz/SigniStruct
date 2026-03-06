@@ -597,14 +597,23 @@ class DocumentController {
       document.fields = fields || [];
       document.lastEditedAt = lastEditedAt || new Date();
       
+      // Explicitly mark fields as modified so Mongoose detects nested changes
+      document.markModified('fields');
+      
       // Log field data for debugging
       if (fields && fields.length > 0) {
         console.log('  Fields being saved:');
         fields.forEach((f, idx) => {
           console.log(`    Field ${idx}:`);
           console.log(`      - id: ${f.id}`);
-          console.log(`      - type: ${f.type}`);
+          console.log(`      - type: ${f.type || f.fieldType}`);
           console.log(`      - label: ${f.label}`);
+          console.log(`      - assignedRecipients count: ${f.assignedRecipients?.length || 0}`);
+          if (f.assignedRecipients && f.assignedRecipients.length > 0) {
+            f.assignedRecipients.forEach((r, ridx) => {
+              console.log(`        Recipient ${ridx}: ${r.recipientName} (${r.recipientEmail})`);
+            });
+          }
           console.log(`      - hasValue: ${!!f.value}`);
           console.log(`      - valueLength: ${f.value?.length || 0}`);
           console.log(`      - x: ${f.x}, y: ${f.y}, width: ${f.width}, height: ${f.height}`);
@@ -612,18 +621,26 @@ class DocumentController {
         });
       }
       
-      await document.save();
+      const savedDocument = await document.save();
 
       console.log('✅ Document fields updated');
-      console.log('  Saved fields count:', document.fields.length);
+      console.log('  Saved fields count:', savedDocument.fields.length);
+      
+      // Verify assignedRecipients were saved
+      if (savedDocument.fields && savedDocument.fields.length > 0) {
+        console.log('  Verifying saved fields:');
+        savedDocument.fields.forEach((f, idx) => {
+          console.log(`    Field ${idx} - assignedRecipients: ${f.assignedRecipients?.length || 0}`);
+        });
+      }
 
       return res.status(200).json({
         success: true,
         message: 'Document fields updated successfully',
         document: {
-          _id: document._id,
-          fields: document.fields,
-          lastEditedAt: document.lastEditedAt
+          _id: savedDocument._id,
+          fields: savedDocument.fields,
+          lastEditedAt: savedDocument.lastEditedAt
         }
       });
     } catch (error) {

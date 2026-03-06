@@ -9,6 +9,7 @@ const {
   getSignatureDetails,
   revokeSignature,
   getUserDocuments,
+  getAssignedDocuments,
   uploadDocument,
   getDocument,
   getDocumentPreview,
@@ -48,6 +49,31 @@ const {
  * @access Private
  */
 router.get('/', verifyToken, getUserDocuments);
+
+/**
+ * GET /api/documents/assigned
+ * Retrieve documents assigned to the current user for signing
+ * 
+ * @response {
+ *   success: boolean,
+ *   documents: [{
+ *     _id: ObjectId,
+ *     title: string,
+ *     owner_id: ObjectId,
+ *     status: string,
+ *     signingStatus: string (pending/signed),
+ *     progress: number (0-100),
+ *     signedFields: number,
+ *     totalFields: number,
+ *     created_at: Date,
+ *     lastEditedAt: Date
+ *   }],
+ *   count: number
+ * }
+ * 
+ * @access Private
+ */
+router.get('/assigned', verifyToken, getAssignedDocuments);
 
 /**
  * POST /api/documents/upload
