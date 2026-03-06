@@ -12,27 +12,42 @@ const Documents = () => {
   const [activeTab, setActiveTab] = useState('published');
   const [searchTerm, setSearchTerm] = useState('');
   const [allDocuments, setAllDocuments] = useState([]);
+  const [assignedDocuments, setAssignedDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
 
   // Fetch documents on component mount
   useEffect(() => {
-    fetchDocuments();
+    fetchAllData();
   }, []);
 
   /**
-   * Fetch documents from backend API
+   * Fetch both user documents and assigned documents
    */
-  const fetchDocuments = async () => {
+  const fetchAllData = async () => {
     try {
       setLoading(true);
       setError('');
-      const response = await api.get('/documents');
       
-      if (response.data.success || response.data.documents) {
-        const docs = response.data.documents || response.data.data || [];
+      // Fetch user's own documents (draft, published, etc.)
+      const docsResponse = await api.get('/documents');
+      if (docsResponse.data.success || docsResponse.data.documents) {
+        const docs = docsResponse.data.documents || docsResponse.data.data || [];
         setAllDocuments(docs);
+      }
+
+      // Fetch documents assigned to user for signing
+      try {
+        const assignedResponse = await api.get('/documents/assigned');
+        if (assignedResponse.data.success || assignedResponse.data.documents) {
+          const assigned = assignedResponse.data.documents || assignedResponse.data.data || [];
+          setAssignedDocuments(assigned);
+        }
+      } catch (assignedErr) {
+        console.error('Failed to fetch assigned documents:', assignedErr);
+        // Don't fail entire load if assigned endpoint fails
+        setAssignedDocuments([]);
       }
     } catch (err) {
       console.error('Failed to fetch documents:', err);
@@ -47,19 +62,20 @@ const Documents = () => {
    * Filter documents by status and search term
    */
   const getFilteredDocuments = () => {
-    let filtered = allDocuments;
+    let filtered = [];
 
-    // Filter by tab/status
-    if (activeTab === 'published') {
-      filtered = filtered.filter(doc => 
+    // Use different source depending on tab
+    if (activeTab === 'assigned') {
+      // Show documents assigned to user for signing
+      filtered = assignedDocuments;
+    } else if (activeTab === 'published') {
+      // Show documents published by user
+      filtered = allDocuments.filter(doc => 
         doc.status && ['fully_signed', 'partially_signed', 'pending_signature'].includes(doc.status)
       );
-    } else if (activeTab === 'assigned') {
-      filtered = filtered.filter(doc => 
-        doc.status === 'pending_signature'
-      );
     } else if (activeTab === 'draft') {
-      filtered = filtered.filter(doc => 
+      // Show user's draft documents
+      filtered = allDocuments.filter(doc => 
         doc.status === 'draft'
       );
     }
@@ -108,16 +124,18 @@ const Documents = () => {
    * Count documents by category
    */
   const getDocumentCount = (category) => {
-    return allDocuments.filter(doc => {
-      if (category === 'published') {
+    if (category === 'published') {
+      return allDocuments.filter(doc => {
         return doc.status && ['fully_signed', 'partially_signed', 'pending_signature'].includes(doc.status);
-      } else if (category === 'assigned') {
-        return doc.status === 'pending_signature';
-      } else if (category === 'draft') {
+      }).length;
+    } else if (category === 'assigned') {
+      return assignedDocuments.length;
+    } else if (category === 'draft') {
+      return allDocuments.filter(doc => {
         return doc.status === 'draft';
-      }
-      return false;
-    }).length;
+      }).length;
+    }
+    return 0;
   };
 
   /**
@@ -125,7 +143,7 @@ const Documents = () => {
    */
   const handleUploadSuccess = () => {
     setShowUploadModal(false);
-    fetchDocuments(); // Refresh the documents list
+    fetchAllData(); // Refresh all documents
   };
 
   const documentsStyles = {
@@ -398,17 +416,19 @@ const Documents = () => {
             <thead style={documentsStyles.thead}>
               <tr>
                 <th style={documentsStyles.th}>Document Name</th>
-                <th style={documentsStyles.th}>Signers</th>
+                <th style={documentsStyles.th}>{activeTab === 'assigned' ? 'Owner' : 'Signers'}</th>
                 <th style={documentsStyles.th}>Status</th>
                 <th style={documentsStyles.th}>Created</th>
-                {activeTab === 'assigned' && <th style={documentsStyles.th}>Due Date</th>}
+                {activeTab === 'assigned' && <th style={documentsStyles.th}>Progress</th>}
                 <th style={documentsStyles.th}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {!loading && getFilteredDocuments().length > 0 ? (
                 getFilteredDocuments().map(doc => {
-                  const statusType = getStatusType(doc.status);
+                  // For assigned documents, use signingStatus; otherwise use status
+                  const displayStatus = activeTab === 'assigned' ? doc.signingStatus : doc.status;
+                  const statusType = getStatusType(displayStatus);
                   return (
                     <tr
                       key={doc._id || doc.id}
@@ -426,7 +446,13 @@ const Documents = () => {
                           {doc.title}
                         </div>
                       </td>
-                      <td style={documentsStyles.td}>{getSignerCount(doc)}</td>
+                      <td style={documentsStyles.td}>
+                        {activeTab === 'assigned' ? (
+                          doc.owner_id || 'Unknown'
+                        ) : (
+                          getSignerCount(doc)
+                        )}
+                      </td>
                       <td style={documentsStyles.td}>
                         <span
                           style={{
@@ -450,8 +476,38 @@ const Documents = () => {
                       </td>
                       {activeTab === 'assigned' && (
                         <td style={documentsStyles.td}>
-                          {doc.dueDate &&
-                            new Date(doc.dueDate).toLocaleDateString()}
+                          {doc.progress !== undefined ? (
+                            <div style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '8px'
+                            }}>
+                              <div style={{
+                                flex: 1,
+                                height: '6px',
+                                backgroundColor: colors.gray200,
+                                borderRadius: '3px',
+                                overflow: 'hidden'
+                              }}>
+                                <div style={{
+                                  height: '100%',
+                                  width: `${doc.progress}%`,
+                                  backgroundColor: doc.progress === 100 ? colors.green : colors.secondary,
+                                  transition: 'width 0.3s ease'
+                                }} />
+                              </div>
+                              <span style={{
+                                fontSize: '12px',
+                                fontWeight: '500',
+                                minWidth: '35px',
+                                color: doc.progress === 100 ? colors.green : colors.gray700
+                              }}>
+                                {doc.progress}%
+                              </span>
+                            </div>
+                          ) : (
+                            doc.dueDate && new Date(doc.dueDate).toLocaleDateString()
+                          )}
                         </td>
                       )}
                       <td style={documentsStyles.td}>
