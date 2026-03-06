@@ -961,6 +961,247 @@ class DocumentController {
         message: error.message
       });
     }
-  }}
+  }
+
+  /**
+   * Get document for signing by a recipient using signing token
+   * GET /api/documents/:documentId/sign/:signingToken
+   * Verifies token and returns document with only recipient's assigned fields
+   * @access Public (token-based)
+   */
+  static async getDocumentForSigning(req, res) {
+    try {
+      const { documentId, signingToken } = req.params;
+
+      console.log('🔐 Verifying signing token');
+      console.log('  Document ID:', documentId);
+      console.log('  Token: ' + signingToken.substring(0, 20) + '...');
+
+      // Verify the signing token
+      const jwt = require('jsonwebtoken');
+      let tokenData;
+      try {
+        tokenData = jwt.verify(signingToken, process.env.JWT_SECRET);
+        console.log('  ✅ Token verified');
+        console.log('  Recipient Email:', tokenData.recipientEmail);
+        console.log('  Token Type:', tokenData.type);
+      } catch (error) {
+        console.log('  ❌ Token verification failed:', error.message);
+        return res.status(401).json({
+          success: false,
+          error: 'Invalid or expired signing token'
+        });
+      }
+
+      // Verify token type is 'signing'
+      if (tokenData.type !== 'signing') {
+        return res.status(401).json({
+          success: false,
+          error: 'Invalid token type'
+        });
+      }
+
+      // Verify document ID in token matches URL param
+      if (tokenData.documentId !== documentId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Document ID mismatch'
+        });
+      }
+
+      // Fetch document
+      const document = await Document.findById(documentId);
+      if (!document) {
+        return res.status(404).json({
+          success: false,
+          error: 'Document not found'
+        });
+      }
+
+      // Verify document status is pending_signature or partially_signed
+      if (!['pending_signature', 'partially_signed'].includes(document.status)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Document is not available for signing'
+        });
+      }
+
+      // Filter fields to only show those assigned to this recipient
+      const recipientFields = document.fields.filter(field => {
+        if (!field.assignedRecipients || field.assignedRecipients.length === 0) {
+          return false;
+        }
+        return field.assignedRecipients.some(r => r.recipientEmail === tokenData.recipientEmail);
+      });
+
+      console.log(`✅ Found ${recipientFields.length} fields for recipient ${tokenData.recipientEmail}`);
+
+      // Fetch DocumentSignature record to check signing status
+      const DocumentSignature = require('../models/DocumentSignature');
+      const signatureRecord = await DocumentSignature.findOne({
+        document_id: documentId,
+        recipient_email: tokenData.recipientEmail
+      });
+
+      // Return document with filtered fields
+      return res.status(200).json({
+        success: true,
+        data: {
+          document: {
+            _id: document._id,
+            title: document.title,
+            description: document.description,
+            file_url: document.file_url,
+            num_pages: document.num_pages,
+            file_size: document.file_size,
+            status: document.status,
+            fields: recipientFields,
+            created_at: document.created_at
+          },
+          recipient: {
+            email: tokenData.recipientEmail,
+            name: tokenData.recipientName
+          },
+          signingStatus: signatureRecord?.status || 'pending',
+          signingToken: signingToken
+        }
+      });
+    } catch (error) {
+      console.error('❌ Get document for signing error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to retrieve document',
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * Submit a signed field for a document
+   * POST /api/documents/:documentId/sign/:signingToken
+   * Records the signed field data in DocumentSignature
+   * @access Public (token-based)
+   */
+  static async submitSignedField(req, res) {
+    try {
+      const { documentId, signingToken } = req.params;
+      const { fieldId, fieldValue, allFieldsSigned } = req.body;
+
+      console.log('📝 Submitting signed field');
+      console.log('  Document ID:', documentId);
+      console.log('  Field ID:', fieldId);
+      console.log('  All Fields Signed:', allFieldsSigned);
+
+      // Verify the signing token
+      const jwt = require('jsonwebtoken');
+      let tokenData;
+      try {
+        tokenData = jwt.verify(signingToken, process.env.JWT_SECRET);
+      } catch (error) {
+        console.log('  ❌ Token verification failed:', error.message);
+        return res.status(401).json({
+          success: false,
+          error: 'Invalid or expired signing token'
+        });
+      }
+
+      // Fetch document
+      const document = await Document.findById(documentId);
+      if (!document) {
+        return res.status(404).json({
+          success: false,
+          error: 'Document not found'
+        });
+      }
+
+      // Find and update the field value for this recipient
+      let fieldUpdated = false;
+      document.fields.forEach(field => {
+        if (field.id === fieldId && field.assignedRecipients) {
+          const recipient = field.assignedRecipients.find(r => r.recipientEmail === tokenData.recipientEmail);
+          if (recipient) {
+            recipient.signatureData = fieldValue;
+            recipient.signedAt = new Date();
+            recipient.status = 'signed';
+            fieldUpdated = true;
+            console.log(`  ✅ Field ${fieldId} updated for ${tokenData.recipientEmail}`);
+          }
+        }
+      });
+
+      if (!fieldUpdated) {
+        return res.status(400).json({
+          success: false,
+          error: 'Field not found or not assigned to this recipient'
+        });
+      }
+
+      // Update DocumentSignature record
+      const DocumentSignature = require('../models/DocumentSignature');
+      const signatureRecord = await DocumentSignature.findOneAndUpdate(
+        {
+          document_id: documentId,
+          recipient_email: tokenData.recipientEmail
+        },
+        {
+          status: allFieldsSigned ? 'signed' : 'pending',
+          updated_at: new Date()
+        },
+        { new: true }
+      );
+
+      // If all fields are signed, update document status
+      if (allFieldsSigned) {
+        // Check if all recipients have signed all their fields
+        let allRecipientsSigned = true;
+        const uniqueRecipients = new Set();
+        
+        document.fields.forEach(field => {
+          if (field.assignedRecipients) {
+            field.assignedRecipients.forEach(recipient => {
+              uniqueRecipients.add(recipient.recipientEmail);
+              if (recipient.status !== 'signed') {
+                allRecipientsSigned = false;
+              }
+            });
+          }
+        });
+
+        // Update document status if all recipients have signed
+        if (allRecipientsSigned) {
+          document.status = 'fully_signed';
+          console.log('  ✅ All recipients have signed the document');
+        } else {
+          document.status = 'partially_signed';
+          console.log('  ⚠️ Document partially signed, awaiting other recipients');
+        }
+      }
+
+      // Save document with updated field values
+      await document.save();
+
+      console.log('✅ Signed field submitted successfully');
+
+      return res.status(200).json({
+        success: true,
+        message: allFieldsSigned ? 'Document signed successfully' : 'Field signed',
+        data: {
+          documentId: document._id,
+          fieldId: fieldId,
+          recipientEmail: tokenData.recipientEmail,
+          status: document.status,
+          signingComplete: allFieldsSigned
+        }
+      });
+    } catch (error) {
+      console.error('❌ Submit signed field error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to submit signed field',
+        message: error.message
+      });
+    }
+  }
+}
 
 module.exports = DocumentController;

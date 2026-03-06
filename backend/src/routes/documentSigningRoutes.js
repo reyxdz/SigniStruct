@@ -13,7 +13,9 @@ const {
   getDocument,
   getDocumentPreview,
   updateFields,
-  publishDocument
+  publishDocument,
+  getDocumentForSigning,
+  submitSignedField
 } = require('../controllers/documentController');
 const {
   validateSignDocument,
@@ -373,6 +375,66 @@ router.post(
   verifyToken,
   validateDocumentId,
   publishDocument
+);
+
+/**
+ * GET /api/documents/:documentId/sign/:signingToken
+ * Get document for signing by recipient using signing token
+ * 
+ * @params {
+ *   documentId: string (ObjectId),
+ *   signingToken: string (JWT token)
+ * }
+ * 
+ * @response {
+ *   success: boolean,
+ *   data: {
+ *     document: { ... with filtered fields },
+ *     recipient: { email, name },
+ *     signingStatus: string,
+ *     signingToken: string
+ *   }
+ * }
+ * 
+ * @access Public (token-based, no authentication required)
+ */
+router.get(
+  '/:documentId/sign/:signingToken',
+  getDocumentForSigning
+);
+
+/**
+ * POST /api/documents/:documentId/sign/:signingToken
+ * Submit a signed field for a document
+ * 
+ * @params {
+ *   documentId: string (ObjectId),
+ *   signingToken: string (JWT token)
+ * }
+ * 
+ * @body {
+ *   fieldId: string,
+ *   fieldValue: string (base64 for images, text for text fields),
+ *   allFieldsSigned: boolean
+ * }
+ * 
+ * @response {
+ *   success: boolean,
+ *   message: string,
+ *   data: {
+ *     documentId: ObjectId,
+ *     fieldId: string,
+ *     recipientEmail: string,
+ *     status: string,
+ *     signingComplete: boolean
+ *   }
+ * }
+ * 
+ * @access Public (token-based, no authentication required)
+ */
+router.post(
+  '/:documentId/sign/:signingToken',
+  submitSignedField
 );
 
 module.exports = router;
