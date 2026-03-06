@@ -240,20 +240,96 @@ const DocumentEditorPage = () => {
   };
 
   /**
+   * Validate publish requirements
+   * Checks that all recipient fields have at least one assigned recipient
+   * Returns validation result: { valid: boolean, message: string }
+   */
+  const validatePublishRequirements = (documentObj) => {
+    if (!documentObj?.fields || documentObj.fields.length === 0) {
+      return {
+        valid: false,
+        message: 'Document must have at least one field before publishing. Please add fields to the document.'
+      };
+    }
+
+    // Find all recipient fields (those with labels like "Recipient...")
+    const recipientFields = documentObj.fields.filter(f => 
+      f.label && f.label.toLowerCase().startsWith('recipient')
+    );
+
+    if (recipientFields.length === 0) {
+      return {
+        valid: false,
+        message: 'Document must have at least one recipient field before publishing.'
+      };
+    }
+
+    // Check that each recipient field has at least one assigned recipient
+    const fieldsWithoutRecipients = recipientFields.filter(f => 
+      !f.assignedRecipients || f.assignedRecipients.length === 0
+    );
+
+    if (fieldsWithoutRecipients.length > 0) {
+      return {
+        valid: false,
+        message: `The following recipient fields must have at least one assigned recipient: ${fieldsWithoutRecipients.map(f => f.label).join(', ')}`
+      };
+    }
+
+    return {
+      valid: true,
+      message: 'All validations passed'
+    };
+  };
+
+  /**
    * Publish document for signing
    */
   const handlePublishDocument = async () => {
     try {
+      // Validate requirements
+      const validation = validatePublishRequirements(document);
+      if (!validation.valid) {
+        alert(`Cannot publish: ${validation.message}`);
+        return;
+      }
+
+      // Show confirmation dialog
+      const confirmPublish = window.confirm(
+        `Are you sure you want to publish this document? Recipients will receive signing invitations via email.`
+      );
+
+      if (!confirmPublish) {
+        console.log('📄 Publish cancelled by user');
+        return;
+      }
+
       setIsSaving(true);
-      // Note: This will be updated in Phase 4.3 to use context fields
-      await api.post(`/documents/${documentId}/publish`, {
-        fields: []
-      });
-      alert('Document published successfully!');
-      navigate('/documents');
+      console.log('📤 Publishing document:', documentId);
+
+      const response = await api.post(`/documents/${documentId}/publish`);
+      
+      if (response.data.success) {
+        console.log('✅ Document published successfully');
+        console.log('  Recipients:', response.data.data.recipients);
+        console.log('  Email results:', response.data.data.emailResults);
+
+        // Show success message with details
+        alert(
+          `Document published successfully!\n\n` +
+          `Recipients: ${response.data.data.recipientCount}\n` +
+          `${response.data.data.emailResults.filter(r => r.success).length} invitations sent successfully`
+        );
+
+        // Refresh document data to show updated status
+        await fetchDocument();
+      }
     } catch (err) {
-      console.error('Failed to publish document:', err);
-      alert('Failed to publish document');
+      console.error('❌ Failed to publish document:', err);
+      console.error('  Response:', err.response?.data);
+
+      const errorMessage = err.response?.data?.error || 'Failed to publish document. Please try again.';
+      alert(`Failed to publish document:\n\n${errorMessage}`);
     } finally {
       setIsSaving(false);
     }
