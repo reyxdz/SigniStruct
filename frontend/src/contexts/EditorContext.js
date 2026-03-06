@@ -34,6 +34,58 @@ export const EditorProvider = ({ children, initialDocument = null }) => {
   // Auto-save state
   const [saveStatus, setSaveStatus] = useState('idle'); // idle, saving, saved
   const autoSaveTimeoutRef = React.useRef(null);
+  const fieldsRef = React.useRef(fields);
+  const documentRef = React.useRef(document);
+
+  // Keep refs up to date
+  React.useEffect(() => {
+    fieldsRef.current = fields;
+  }, [fields]);
+
+  React.useEffect(() => {
+    documentRef.current = document;
+  }, [document]);
+
+  /**
+   * Force save pending changes immediately
+   * Used when user navigates away or refresh before debounce completes
+   * Uses fetch with keepalive flag for page unload scenarios
+   */
+  const flushPendingSave = React.useCallback(() => {
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+      autoSaveTimeoutRef.current = null;
+    }
+
+    if (!documentRef.current?._id) return;
+
+    try {
+      console.log('💾 Flushing pending auto-save on page unload...');
+      
+      // Get auth token from localStorage (same as api service)
+      const token = localStorage.getItem('authToken');
+      
+      // Use fetch with keepalive for reliable save during page unload
+      fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/documents/${documentRef.current._id}/fields`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token && { Authorization: `Bearer ${token}` })
+        },
+        body: JSON.stringify({
+          fields: fieldsRef.current,
+          lastEditedAt: new Date().toISOString()
+        }),
+        keepalive: true // Critical: tells browser to complete this request even during unload
+      }).then(() => {
+        console.log('✅ Pending auto-save flushed successfully on page unload');
+      }).catch((error) => {
+        console.error('❌ Failed to flush pending save:', error);
+      });
+    } catch (error) {
+      console.error('❌ Error flushing pending save:', error);
+    }
+  }, []);
 
   // ============================================
   // Initialize Fields from Document
@@ -48,6 +100,28 @@ export const EditorProvider = ({ children, initialDocument = null }) => {
       console.log('⚠️ No fields in initialDocument');
     }
   }, [initialDocument]);
+
+  // ============================================
+  // Handle Page Unload - Flush Pending Saves
+  // ============================================
+
+  useEffect(() => {
+    const handleBeforeUnload = (e) => {
+      // Check if there's a pending save
+      if (autoSaveTimeoutRef.current) {
+        console.log('⚠️ Pending save detected on page unload');
+        // Flush the save synchronously or with keepalive
+        flushPendingSave();
+        
+        // Some browsers require returning a string for beforeunload
+        // e.preventDefault();
+        // e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [flushPendingSave]);
 
   // ============================================
   // Auto-Save (Debounced)
@@ -77,6 +151,7 @@ export const EditorProvider = ({ children, initialDocument = null }) => {
         if (response.data.success) {
           console.log('✅ Auto-save successful');
           setSaveStatus('saved');
+          autoSaveTimeoutRef.current = null;
           
           // Reset to idle after 2 seconds
           setTimeout(() => setSaveStatus('idle'), 2000);
@@ -87,7 +162,7 @@ export const EditorProvider = ({ children, initialDocument = null }) => {
       }
     }, 500);
 
-    // Cleanup on unmount
+    // Cleanup on unmount - flush pending saves
     return () => {
       if (autoSaveTimeoutRef.current) {
         clearTimeout(autoSaveTimeoutRef.current);
