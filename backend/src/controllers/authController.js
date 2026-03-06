@@ -4,8 +4,8 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 // Generate JWT Token
-const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+const generateToken = (id, email) => {
+  return jwt.sign({ id, email }, process.env.JWT_SECRET, {
     expiresIn: '7d',
   });
 };
@@ -59,8 +59,8 @@ exports.signup = async (req, res) => {
 
     await user.save();
 
-    // Generate token
-    const token = generateToken(user._id);
+    // Generate token (include email for assigned documents query)
+    const token = generateToken(user._id, user.email);
 
     res.status(201).json({
       success: true,
@@ -116,8 +116,8 @@ exports.signin = async (req, res) => {
 
     console.log('Login successful for user:', user.email);
 
-    // Generate token
-    const token = generateToken(user._id);
+    // Generate token (include email for assigned documents query)
+    const token = generateToken(user._id, user.email);
 
     res.status(200).json({
       success: true,

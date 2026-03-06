@@ -17,12 +17,14 @@ const authMiddleware = (req, res, next) => {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     console.log('✅ Token decoded');
     console.log('  User ID in Token:', decoded.id);
+    console.log('  User Email in Token:', decoded.email);
     console.log('  Token Payload Keys:', Object.keys(decoded));
 
-    req.user = { id: decoded.id };
+    req.user = { id: decoded.id, email: decoded.email };
     req.userId = decoded.id; // Keep for backward compatibility
     
     console.log('  req.user.id set to:', req.user.id);
+    console.log('  req.user.email set to:', req.user.email);
     next();
   } catch (error) {
     console.error('❌ Auth middleware error:', error.message);
