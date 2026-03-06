@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard/Dashboard';
 import Forms from './pages/Forms/Forms';
 import Documents from './pages/Documents/Documents';
 import DocumentEditorPage from './pages/DocumentEditor/DocumentEditorPage';
+import DocumentSigningPage from './pages/DocumentEditor/DocumentSigningPage';
 import FormBuilder from './pages/FormBuilder/FormBuilder';
 import DocumentSign from './pages/DocumentSign/DocumentSign';
 import CreateSignaturePage from './pages/Signature/CreateSignaturePage';
@@ -43,13 +44,15 @@ function AppContent({ user, handleLogout, authenticatedRoutes }) {
   const isAuthenticatedRoute = authenticatedRoutes.some(route => location.pathname.startsWith(route));
   // Don't show header on document editor page (it has its own header)
   const isDocumentEditor = location.pathname.includes('/editor');
-  const shouldShowHeader = isAuthenticatedRoute && !isDocumentEditor;
+  // Don't show header on signing page
+  const isSigningPage = location.pathname.includes('/sign/');
+  const shouldShowHeader = isAuthenticatedRoute && !isDocumentEditor && !isSigningPage;
 
   return (
     <div className="App" style={{ backgroundColor: colors.lightGray, minHeight: '100vh', width: '100%' }}>
       {shouldShowHeader && <Header user={user} onLogout={handleLogout} />}
       
-      <main style={!isDocumentEditor ? (isAuthenticatedRoute ? { paddingTop: spacing.md } : {}) : { width: '100%', margin: 0, padding: 0 }}>
+      <main style={!isDocumentEditor && !isSigningPage ? (isAuthenticatedRoute ? { paddingTop: spacing.md } : {}) : { width: '100%', margin: 0, padding: 0 }}>
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<LandingPage />} />
@@ -61,6 +64,7 @@ function AppContent({ user, handleLogout, authenticatedRoutes }) {
           <Route path="/forms" element={<Forms />} />
           <Route path="/documents" element={<Documents />} />
           <Route path="/documents/:documentId/editor" element={<DocumentEditorPage />} />
+          <Route path="/documents/:documentId/sign/:signingToken" element={<DocumentSigningPage />} />
           <Route path="/form-builder/:formId" element={<FormBuilder />} />
           <Route path="/document-sign/:documentId" element={<DocumentSign />} />
           <Route path="/create-signature" element={<CreateSignaturePage />} />
