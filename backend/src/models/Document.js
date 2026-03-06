@@ -84,6 +84,7 @@ const documentSchema = new mongoose.Schema(
         width: { type: Number },      // In pixels
         height: { type: Number },     // In pixels
         value: { type: String },
+        isRecipient: { type: Boolean, default: false },  // Whether this field is for recipient assignment
         assignedRecipients: [
           {
             recipientId: { type: mongoose.Schema.Types.ObjectId },
@@ -118,6 +119,10 @@ const documentSchema = new mongoose.Schema(
         createdAt: {
           type: Date,
           default: Date.now
+        },
+        updatedAt: {
+          type: Date,
+          default: null
         }
       }
     ],

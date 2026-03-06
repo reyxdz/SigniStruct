@@ -22,7 +22,7 @@ const RightPanel = () => {
 
   // Handle recipient search
   useEffect(() => {
-    if (!selectedField?.isRecipient) return;
+    if (!selectedField?.isRecipient && !(selectedField?.assignedRecipients?.length > 0)) return;
     if (!searchQuery.trim()) {
       setSearchResults([]);
       return;
@@ -262,7 +262,7 @@ const RightPanel = () => {
         </div>
 
         {/* Recipient Assignment Section (only for recipient fields) */}
-        {selectedField.isRecipient && (
+        {(selectedField.isRecipient || (selectedField.assignedRecipients?.length > 0)) && (
           <div style={styles.section}>
             <h4 style={styles.sectionTitle}>Assign Recipients</h4>
 
