@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
-import { FiArrowLeft, FiSave, FiSend } from 'react-icons/fi';
+import { FiArrowLeft, FiSend } from 'react-icons/fi';
 import { EditorProvider, useEditor } from '../../contexts/EditorContext';
 import DocumentViewer from '../../components/DocumentEditor/DocumentViewer';
 import LeftPanel from '../../components/DocumentEditor/LeftPanel';
@@ -14,7 +14,7 @@ import './DocumentEditorPage.css';
  * Inner component that uses EditorContext
  * Handles the actual editor UI and interactions
  */
-const DocumentEditorContent = ({ documentId, document, loading, error, isSaving, onSave, onPublish, onNavigateBack }) => {
+const DocumentEditorContent = ({ documentId, document, loading, error, onPublish, onNavigateBack }) => {
   const { 
     fields, 
     selectedFieldId, 
@@ -103,10 +103,10 @@ const DocumentEditorContent = ({ documentId, document, loading, error, isSaving,
             <div style={styles.documentMeta}>
               <p style={styles.documentStatus}>Status: {document?.status || 'draft'}</p>
               {saveStatus === 'saving' && (
-                <p style={{...styles.documentStatus, color: colors.orange}}>💾 Saving...</p>
+                <p style={{...styles.documentStatus, color: colors.orange, fontSize: '12px'}}>🔄 Autosaving...</p>
               )}
               {saveStatus === 'saved' && (
-                <p style={{...styles.documentStatus, color: colors.green}}>✓ Saved</p>
+                <p style={{...styles.documentStatus, color: colors.green, fontSize: '12px'}}>✓ All changes saved</p>
               )}
             </div>
           </div>
@@ -114,17 +114,8 @@ const DocumentEditorContent = ({ documentId, document, loading, error, isSaving,
         
         <div style={styles.headerRight}>
           <button 
-            onClick={() => onSave(fields)}
-            style={{ ...styles.headerBtn, ...styles.saveBtn }}
-            disabled={isSaving}
-          >
-            <FiSave style={{ marginRight: spacing.xs }} />
-            {isSaving ? 'Saving...' : 'Save Draft'}
-          </button>
-          <button 
             onClick={() => onPublish(fields)}
             style={{ ...styles.headerBtn, ...styles.publishBtn }}
-            disabled={isSaving}
           >
             <FiSend style={{ marginRight: spacing.xs }} />
             Publish
@@ -217,27 +208,7 @@ const DocumentEditorPage = () => {
     }
   };
 
-  /**
-   * Save document - will be called with fields from DocumentEditorContent
-   */
-  const handleSaveDocument = async (fieldsToSave = []) => {
-    try {
-      setIsSaving(true);
-      console.log('💾 Saving document fields:', fieldsToSave);
-      const response = await api.put(`/documents/${documentId}/fields`, {
-        fields: fieldsToSave,
-        lastEditedAt: new Date()
-      });
-      console.log('✅ Save response:', response.data);
-      alert('Document saved successfully!');
-    } catch (err) {
-      console.error('❌ Failed to save document:', err);
-      console.error('  Response:', err.response?.data);
-      alert('Failed to save document');
-    } finally {
-      setIsSaving(false);
-    }
-  };
+
 
   /**
    * Validate publish requirements
@@ -351,8 +322,6 @@ const DocumentEditorPage = () => {
         document={document}
         loading={loading}
         error={error}
-        isSaving={isSaving}
-        onSave={handleSaveDocument}
         onPublish={handlePublishDocument}
         onNavigateBack={handleNavigateBack}
         validatePublishRequirements={validatePublishRequirements}
