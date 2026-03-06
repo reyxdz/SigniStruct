@@ -333,7 +333,7 @@ class DocumentController {
       }
 
       // Verify token has required data
-      if (!tokenData.recipient_email || !tokenData.document_id) {
+      if (!tokenData.recipientEmail || !tokenData.documentId) {
         return res.status(401).json({
           success: false,
           error: 'Invalid token structure'
@@ -350,7 +350,7 @@ class DocumentController {
       }
 
       // Verify document ID matches token
-      if (document._id.toString() !== tokenData.document_id) {
+      if (document._id.toString() !== tokenData.documentId) {
         return res.status(403).json({
           success: false,
           error: 'Token does not match document'
