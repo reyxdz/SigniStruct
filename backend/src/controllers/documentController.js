@@ -238,7 +238,7 @@ class DocumentController {
   static async getDocumentPreview(req, res) {
     try {
       const { documentId } = req.params;
-      const userId = req.user.id;
+      const userId = req.user?.id;
       const fs = require('fs');
       const path = require('path');
 
@@ -252,7 +252,7 @@ class DocumentController {
       }
 
       // Verify user owns the document
-      if (document.owner_id.toString() !== userId) {
+      if (!userId || document.owner_id.toString() !== userId) {
         return res.status(403).json({
           success: false,
           error: 'You do not have permission to view this document'
@@ -1161,6 +1161,107 @@ class DocumentController {
       return res.status(500).json({
         success: false,
         error: 'Failed to retrieve document',
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * Get document PDF preview for signing (public endpoint)
+   * GET /api/documents/:documentId/sign/:signingToken/preview
+   * Allows recipients to view PDF without authentication
+   * @access Public (token-based)
+   */
+  static async getDocumentPreviewForSigning(req, res) {
+    try {
+      const { documentId, signingToken } = req.params;
+      const fs = require('fs');
+      const path = require('path');
+
+      console.log('🔐 Getting PDF preview for signing');
+      console.log('  Document ID:', documentId);
+
+      // Verify the signing token
+      const jwt = require('jsonwebtoken');
+      let tokenData;
+      try {
+        tokenData = jwt.verify(signingToken, process.env.JWT_SECRET);
+        console.log('  ✅ Token verified. Recipient email:', tokenData.recipientEmail);
+      } catch (error) {
+        console.log('  ❌ Token verification failed:', error.message);
+        return res.status(401).json({
+          success: false,
+          error: 'Invalid or expired signing token'
+        });
+      }
+
+      // Verify token type is 'signing'
+      if (tokenData.type !== 'signing') {
+        return res.status(401).json({
+          success: false,
+          error: 'Invalid token type'
+        });
+      }
+
+      // Verify document ID in token matches URL param
+      if (tokenData.documentId !== documentId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Document ID mismatch'
+        });
+      }
+
+      // Verify document exists
+      const document = await Document.findById(documentId);
+      if (!document) {
+        return res.status(404).json({
+          success: false,
+          error: 'Document not found'
+        });
+      }
+
+      // Build file path from file_url
+      const fileName = document.file_url.split('/').pop();
+      const filePath = path.join(__dirname, '../../uploads/documents', fileName);
+
+      // Check if file exists
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({
+          success: false,
+          error: 'Document file not found on server'
+        });
+      }
+
+      // Read file and convert to base64
+      const fileBuffer = fs.readFileSync(filePath);
+      const base64Data = fileBuffer.toString('base64');
+
+      console.log('  ✅ PDF loaded, size:', base64Data.length, 'bytes');
+
+      // Return document with file data as base64
+      return res.status(200).json({
+        success: true,
+        document: {
+          _id: document._id,
+          title: document.title,
+          description: document.description,
+          owner_id: document.owner_id,
+          file_url: document.file_url,
+          fileData: base64Data,
+          original_filename: document.original_filename,
+          file_type: document.file_type,
+          file_size: document.file_size,
+          num_pages: document.num_pages || 1,
+          status: document.status,
+          fields: document.fields || [],
+          created_at: document.created_at
+        }
+      });
+    } catch (error) {
+      console.error('❌ Get document preview for signing error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to retrieve document preview',
         message: error.message
       });
     }

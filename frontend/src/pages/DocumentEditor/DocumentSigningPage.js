@@ -303,6 +303,7 @@ const DocumentSigningPage = () => {
           onFieldSelect={setSelectedFieldId}
           isSigningMode={true}
           fieldValues={fieldValues}
+          signingToken={signingToken}
         />
 
         {/* Right Panel - Sign Fields */}

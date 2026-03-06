@@ -13,6 +13,7 @@ const {
   uploadDocument,
   getDocument,
   getDocumentPreview,
+  getDocumentPreviewForSigning,
   updateFields,
   publishDocument,
   getDocumentForSigning,
@@ -427,6 +428,27 @@ router.post(
 router.get(
   '/:documentId/sign/:signingToken',
   getDocumentForSigning
+);
+
+/**
+ * GET /api/documents/:documentId/sign/:signingToken/preview
+ * Get document PDF preview for signing
+ * 
+ * @params {
+ *   documentId: string (ObjectId),
+ *   signingToken: string (JWT token)
+ * }
+ * 
+ * @response {
+ *   success: boolean,
+ *   document: { ... with fileData (base64 PDF) }
+ * }
+ * 
+ * @access Public (token-based, no authentication required)
+ */
+router.get(
+  '/:documentId/sign/:signingToken/preview',
+  getDocumentPreviewForSigning
 );
 
 /**

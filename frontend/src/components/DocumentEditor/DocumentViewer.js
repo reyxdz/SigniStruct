@@ -28,6 +28,7 @@ const DocumentViewer = ({
   onFieldMove,
   onFieldResize,
   onFieldRemove,
+  signingToken, // Token for recipients signing documents
 }) => {
   // PDF state
   const [pdfUrl, setPdfUrl] = useState(null);
@@ -75,8 +76,11 @@ const DocumentViewer = ({
       setLoading(true);
       setError('');
 
-      // Use the preview endpoint to get the PDF file as base64
-      const response = await api.get(`/documents/${documentId}/preview`);
+      // Use signing endpoint if signing token provided, else use regular preview
+      const endpoint = signingToken 
+        ? `/documents/${documentId}/sign/${signingToken}/preview`
+        : `/documents/${documentId}/preview`;
+      const response = await api.get(endpoint);
 
       if (response.data.success || response.data.document) {
         const doc = response.data.document || response.data.data;
