@@ -650,7 +650,7 @@ const styles = {
   },
   textInput: {
     width: '100%',
-    padding: space spacing.sm,
+    padding: spacing.sm,
     border: `1px solid ${colors.gray300}`,
     borderRadius: borderRadius.md,
     fontSize: typography.sizes.sm,
