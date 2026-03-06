@@ -122,7 +122,7 @@ const DocumentEditorContent = ({ documentId, document, loading, error, isSaving,
             {isSaving ? 'Saving...' : 'Save Draft'}
           </button>
           <button 
-            onClick={onPublish}
+            onClick={() => onPublish(fields)}
             style={{ ...styles.headerBtn, ...styles.publishBtn }}
             disabled={isSaving}
           >
@@ -243,9 +243,10 @@ const DocumentEditorPage = () => {
    * Validate publish requirements
    * Checks that all recipient fields have at least one assigned recipient
    * Returns validation result: { valid: boolean, message: string }
+   * @param {Array} fieldsArray - Current fields from EditorContext (NOT document.fields)
    */
-  const validatePublishRequirements = (documentObj) => {
-    if (!documentObj?.fields || documentObj.fields.length === 0) {
+  const validatePublishRequirements = (fieldsArray = []) => {
+    if (!fieldsArray || fieldsArray.length === 0) {
       return {
         valid: false,
         message: 'Document must have at least one field before publishing. Please add fields to the document.'
@@ -253,7 +254,7 @@ const DocumentEditorPage = () => {
     }
 
     // Find all recipient fields (those with labels like "Recipient...")
-    const recipientFields = documentObj.fields.filter(f => 
+    const recipientFields = fieldsArray.filter(f => 
       f.label && f.label.toLowerCase().startsWith('recipient')
     );
 
@@ -284,11 +285,12 @@ const DocumentEditorPage = () => {
 
   /**
    * Publish document for signing
+   * @param {Array} currentFields - Current fields from EditorContext
    */
-  const handlePublishDocument = async () => {
+  const handlePublishDocument = async (currentFields = []) => {
     try {
-      // Validate requirements
-      const validation = validatePublishRequirements(document);
+      // Validate requirements using current fields from editor
+      const validation = validatePublishRequirements(currentFields);
       if (!validation.valid) {
         alert(`Cannot publish: ${validation.message}`);
         return;
@@ -353,6 +355,7 @@ const DocumentEditorPage = () => {
         onSave={handleSaveDocument}
         onPublish={handlePublishDocument}
         onNavigateBack={handleNavigateBack}
+        validatePublishRequirements={validatePublishRequirements}
       />
     </EditorProvider>
   );
