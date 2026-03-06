@@ -688,6 +688,101 @@ class DocumentController {
   }
 
   /**
+   * Get documents assigned to user for signing
+   * GET /api/documents/assigned
+   * Retrieves documents where the user is listed as a recipient
+   * @access Private
+   */
+  static async getAssignedDocuments(req, res) {
+    try {
+      const userId = req.user.id;
+      const userEmail = req.user.email;
+
+      console.log('📋 Fetching Assigned Documents for User');
+      console.log('  User ID:', userId);
+      console.log('  User Email:', userEmail);
+
+      // Find all DocumentSignature records for this user
+      const DocumentSignature = require('../models/DocumentSignature');
+      const assignedSignatures = await DocumentSignature.find({
+        recipient_email: userEmail,
+        status: { $in: ['pending', 'signed'] }
+      })
+        .select('document_id status recipient_email')
+        .lean();
+
+      console.log('  Found signature records:', assignedSignatures.length);
+
+      // Get unique document IDs
+      const documentIds = [...new Set(assignedSignatures.map(sig => sig.document_id.toString()))];
+      console.log('  Unique documents:', documentIds.length);
+
+      // Fetch document details
+      const documents = await Document.find({ 
+        _id: { $in: documentIds },
+        status: { $in: ['pending_signature', 'partially_signed', 'fully_signed'] }
+      })
+        .select('_id title owner_id status created_at lastEditedAt fields')
+        .lean();
+
+      // Enrich documents with signing status
+      const assignedDocuments = documents.map(doc => {
+        const signatures = assignedSignatures.filter(
+          sig => sig.document_id.toString() === doc._id.toString()
+        );
+        
+        // Count how many fields this user has signed
+        let signedFieldsCount = 0;
+        let totalFieldsCount = 0;
+        
+        if (doc.fields && Array.isArray(doc.fields)) {
+          doc.fields.forEach(field => {
+            if (field.assignedRecipients) {
+              const userRecipient = field.assignedRecipients.find(
+                r => r.recipientEmail === userEmail
+              );
+              if (userRecipient) {
+                totalFieldsCount++;
+                if (userRecipient.status === 'signed') {
+                  signedFieldsCount++;
+                }
+              }
+            }
+          });
+        }
+
+        return {
+          _id: doc._id,
+          title: doc.title,
+          owner_id: doc.owner_id,
+          status: doc.status,
+          signingStatus: signatures[0]?.status || 'pending',
+          created_at: doc.created_at,
+          lastEditedAt: doc.lastEditedAt,
+          progress: totalFieldsCount > 0 ? Math.round((signedFieldsCount / totalFieldsCount) * 100) : 0,
+          signedFields: signedFieldsCount,
+          totalFields: totalFieldsCount
+        };
+      });
+
+      console.log('✅ Assigned documents fetched:', assignedDocuments.length);
+
+      return res.status(200).json({
+        success: true,
+        documents: assignedDocuments,
+        count: assignedDocuments.length
+      });
+    } catch (error) {
+      console.error('❌ Get assigned documents error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to retrieve assigned documents',
+        message: error.message
+      });
+    }
+  }
+
+  /**
    * Upload a new document
    * POST /api/documents/upload
    * @access Private
@@ -852,12 +947,7 @@ class DocumentController {
 
       console.log(`✅ Found ${recipientMap.size} unique recipients`);
 
-      // Get EmailService instance
-      const EmailService = require('../services/emailService');
-      const emailService = new EmailService();
-      await emailService.initialize();
-
-      // Generate signing links and send emails
+      // Generate signing links (skip email sending for now)
       const jwt = require('jsonwebtoken');
       const emailResults = [];
       const documentSignatureRecords = [];
@@ -895,36 +985,19 @@ class DocumentController {
           // Create signing link
           const signingLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/documents/${documentId}/sign/${signingToken}`;
 
-          // Send email invitation
-          const emailTemplate = `
-            <h2>Document Signing Request</h2>
-            <p>Hello ${recipientInfo.name},</p>
-            <p>${document.owner_id.firstName || 'Someone'} has requested your signature on a document: <strong>${document.title}</strong></p>
-            <p>
-              <a href="${signingLink}" style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 4px;">
-                Sign Document
-              </a>
-            </p>
-            <p>This link will expire in 30 days.</p>
-            <p>Best regards,<br/>SigniStruct</p>
-          `;
-
-          const emailResult = await emailService.sendHtmlEmail(
-            email,
-            `Document Signing Request: ${document.title}`,
-            emailTemplate,
-            `Document signing request from ${document.owner_id.firstName || 'User'}. Click the link to sign: ${signingLink}`
-          );
+          // Skip email sending (to be implemented later)
+          console.log(`  ⏭️ Skipping email to ${email} (email service not configured)`);
+          console.log(`     Signing link: ${signingLink}`);
 
           emailResults.push({
             email,
-            success: !emailResult.skipped,
-            messageId: emailResult.messageId || emailResult.skipped
+            success: true,
+            status: 'skipped',
+            signingLink,
+            messageId: 'email_skipped'
           });
-
-          console.log(`  ✅ Email sent to ${email}`);
         } catch (error) {
-          console.error(`  ❌ Failed to send email to ${email}:`, error.message);
+          console.error(`  ❌ Failed to create signing token for ${email}:`, error.message);
           emailResults.push({
             email,
             success: false,
