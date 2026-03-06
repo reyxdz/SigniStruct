@@ -514,7 +514,7 @@ const Documents = () => {
                         <div style={documentsStyles.actions}>
                           {activeTab === 'assigned' ? (
                             <a
-                              href={`/document-sign/${doc._id || doc.id}`}
+                              href={`/documents/${doc._id || doc.id}/sign/${doc.signing_token}`}
                               style={{
                                 ...documentsStyles.actionButton,
                                 ...documentsStyles.signButton,

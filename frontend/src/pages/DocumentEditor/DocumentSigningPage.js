@@ -296,6 +296,7 @@ const DocumentSigningPage = () => {
         {/* Document Viewer */}
         <DocumentViewer
           documentId={documentId}
+          signingToken={signingToken}
           currentPage={currentPage}
           onPageChange={setCurrentPage}
           fields={document?.fields || []}
@@ -303,7 +304,6 @@ const DocumentSigningPage = () => {
           onFieldSelect={setSelectedFieldId}
           isSigningMode={true}
           fieldValues={fieldValues}
-          signingToken={signingToken}
         />
 
         {/* Right Panel - Sign Fields */}

@@ -19,6 +19,7 @@ pdfjs.GlobalWorkerOptions.workerSrc = `${process.env.PUBLIC_URL || ''}/pdf.worke
  */
 const DocumentViewer = ({
   documentId,
+  signingToken,
   currentPage,
   onPageChange,
   fields = [],
@@ -28,7 +29,6 @@ const DocumentViewer = ({
   onFieldMove,
   onFieldResize,
   onFieldRemove,
-  signingToken, // Token for recipients signing documents
 }) => {
   // PDF state
   const [pdfUrl, setPdfUrl] = useState(null);
@@ -47,13 +47,13 @@ const DocumentViewer = ({
     console.log('📺 DocumentViewer received fields prop:', fields.length, 'fields');
   }, [fields]);
 
-  // Fetch PDF file from backend on mount or documentId change
+  // Fetch PDF file from backend on mount or documentId/signingToken change
   useEffect(() => {
     if (documentId) {
       fetchPdfFile();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [documentId]);
+  }, [documentId, signingToken]);
 
   // Close zoom menu when clicking outside
   useEffect(() => {
@@ -70,15 +70,17 @@ const DocumentViewer = ({
   /**
    * Fetch PDF file from backend
    * Gets the document with file data from API
+   * Uses signing token endpoint if available (for recipients)
    */
   const fetchPdfFile = async () => {
     try {
       setLoading(true);
       setError('');
 
-      // Use signing endpoint if signing token provided, else use regular preview
-      const endpoint = signingToken 
-        ? `/documents/${documentId}/sign/${signingToken}/preview`
+      // Use token-based endpoint if signing token is available (for recipients)
+      // Otherwise use regular preview endpoint (for document owners)
+      const endpoint = signingToken
+        ? `/documents/${documentId}/preview/${signingToken}`
         : `/documents/${documentId}/preview`;
       const response = await api.get(endpoint);
 

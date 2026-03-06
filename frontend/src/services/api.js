@@ -11,9 +11,15 @@ const api = axios.create({
 
 // Add token to requests if available
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+  // Don't add bearer token to signing or token-based endpoints
+  // These use JWT tokens in the URL or are public endpoints
+  const isTokenBasedEndpoint = config.url?.includes('/sign/') || config.url?.includes('/preview/');
+  
+  if (!isTokenBasedEndpoint) {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
   }
   return config;
 });
@@ -22,9 +28,13 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Only redirect on 401 if user has a token (token expired)
+    // Don't redirect on token-based endpoints (signing, preview with token)
+    // These use JWT tokens in the URL, not bearer tokens
+    const isTokenBasedEndpoint = error.config?.url?.includes('/sign/') || error.config?.url?.includes('/preview/');
+    
+    // Only redirect on 401 if user has a token (token expired) and NOT a token-based endpoint
     // Don't redirect during signin/signup attempts
-    if (error.response?.status === 401 && localStorage.getItem('token')) {
+    if (error.response?.status === 401 && localStorage.getItem('token') && !isTokenBasedEndpoint) {
       localStorage.removeItem('token');
       window.location.href = '/signin';
     }

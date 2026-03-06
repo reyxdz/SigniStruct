@@ -102,6 +102,41 @@ router.get('/assigned', verifyToken, getAssignedDocuments);
 router.post('/upload', verifyToken, uploadPDF.single('document'), uploadDocument);
 
 /**
+ * GET /api/documents/:documentId/preview/:signingToken
+ * Retrieve document with PDF file data as base64 using signing token
+ * Used by PDF viewer to load and display documents for recipients
+ * Validates signing token and returns full file data for rendering
+ * No ownership check required - uses token-based access control
+ * 
+ * @params {
+ *   documentId: string (ObjectId),
+ *   signingToken: string (JWT token)
+ * }
+ * 
+ * @response {
+ *   success: boolean,
+ *   document: {
+ *     _id: ObjectId,
+ *     title: string,
+ *     description: string,
+ *     owner_id: ObjectId,
+ *     file_url: string,
+ *     fileData: string (base64 encoded PDF),
+ *     original_filename: string,
+ *     file_type: string,
+ *     file_size: number,
+ *     status: string,
+ *     fields: array,
+ *     created_at: Date,
+ *     updated_at: Date
+ *   }
+ * }
+ * 
+ * @access Public (token-based)
+ */
+router.get('/:documentId/preview/:signingToken', getDocumentPreviewForSigning);
+
+/**
  * GET /api/documents/:documentId/preview
  * Retrieve document with PDF file data as base64
  * Used by PDF viewer to load and display the document
@@ -428,27 +463,6 @@ router.post(
 router.get(
   '/:documentId/sign/:signingToken',
   getDocumentForSigning
-);
-
-/**
- * GET /api/documents/:documentId/sign/:signingToken/preview
- * Get document PDF preview for signing
- * 
- * @params {
- *   documentId: string (ObjectId),
- *   signingToken: string (JWT token)
- * }
- * 
- * @response {
- *   success: boolean,
- *   document: { ... with fileData (base64 PDF) }
- * }
- * 
- * @access Public (token-based, no authentication required)
- */
-router.get(
-  '/:documentId/sign/:signingToken/preview',
-  getDocumentPreviewForSigning
 );
 
 /**
