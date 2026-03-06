@@ -107,9 +107,12 @@ export const EditorProvider = ({ children, initialDocument = null }) => {
     console.log('📖 EditorContext initializing with document:', initialDocument);
     if (initialDocument && initialDocument.fields) {
       console.log('📑 Loading fields from initialDocument:', initialDocument.fields);
+      console.log('  Document ID:', initialDocument._id);
+      setDocument(initialDocument); // Update document state when initialDocument changes!
       setFields(Array.isArray(initialDocument.fields) ? initialDocument.fields : []);
     } else {
       console.log('⚠️ No fields in initialDocument');
+      setDocument(initialDocument);
     }
   }, [initialDocument]);
 
