@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import Header from './components/Navigation/Header';
 import Dashboard from './pages/Dashboard/Dashboard';
 import Forms from './pages/Forms/Forms';
@@ -17,30 +17,27 @@ import { colors, spacing } from './theme';
 import './App.css';
 
 function App() {
-  const [user] = useState({
-    name: 'John Doe',
-    email: 'john@example.com'
-  });
-
-  const handleLogout = () => {
-    // Handle logout logic
-    console.log('User logged out');
-  };
-
   // Routes that require the header (authenticated routes)
   const authenticatedRoutes = ['/dashboard', '/forms', '/documents', '/documents/:documentId/editor', '/form-builder', '/document-sign', '/create-signature'];
   
   return (
     <AuthProvider>
       <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <AppContent user={user} handleLogout={handleLogout} authenticatedRoutes={authenticatedRoutes} />
+        <AppContent authenticatedRoutes={authenticatedRoutes} />
       </Router>
     </AuthProvider>
   );
 }
 
-function AppContent({ user, handleLogout, authenticatedRoutes }) {
+function AppContent({ authenticatedRoutes }) {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const location = useLocation();
+  
+  const handleLogout = () => {
+    logout();
+    navigate('/signin');
+  };
   const isAuthenticatedRoute = authenticatedRoutes.some(route => location.pathname.startsWith(route));
   // Don't show header on document editor page (it has its own header)
   const isDocumentEditor = location.pathname.includes('/editor');
