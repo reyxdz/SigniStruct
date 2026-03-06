@@ -61,24 +61,36 @@ export const EditorProvider = ({ children, initialDocument = null }) => {
 
     try {
       console.log('💾 Flushing pending auto-save on page unload...');
+      console.log('  Document ID:', documentRef.current._id);
+      console.log('  Fields to save:', fieldsRef.current.length);
       
-      // Get auth token from localStorage (same as api service)
-      const token = localStorage.getItem('authToken');
+      // Get auth token from localStorage (key is 'token', not 'authToken')
+      const token = localStorage.getItem('token');
+      console.log('  Token available:', !!token);
       
       // Use fetch with keepalive for reliable save during page unload
-      fetch(`${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/documents/${documentRef.current._id}/fields`, {
+      const url = `${process.env.REACT_APP_API_URL || 'http://localhost:5000'}/api/documents/${documentRef.current._id}/fields`;
+      const payload = {
+        fields: fieldsRef.current,
+        lastEditedAt: new Date().toISOString()
+      };
+      
+      console.log('  Sending PUT to:', url);
+      console.log('  Payload:', JSON.stringify(payload).substring(0, 100) + '...');
+      
+      fetch(url, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           ...(token && { Authorization: `Bearer ${token}` })
         },
-        body: JSON.stringify({
-          fields: fieldsRef.current,
-          lastEditedAt: new Date().toISOString()
-        }),
+        body: JSON.stringify(payload),
         keepalive: true // Critical: tells browser to complete this request even during unload
-      }).then(() => {
-        console.log('✅ Pending auto-save flushed successfully on page unload');
+      }).then((response) => {
+        console.log('✅ Flush response status:', response.status);
+        if (!response.ok) {
+          console.error('❌ Flush response not ok:', response.statusText);
+        }
       }).catch((error) => {
         console.error('❌ Failed to flush pending save:', error);
       });
@@ -129,10 +141,16 @@ export const EditorProvider = ({ children, initialDocument = null }) => {
 
   useEffect(() => {
     // Don't auto-save if no document ID
-    if (!document?._id) return;
+    if (!document?._id) {
+      console.log('⏭️ Skipping auto-save: No document ID');
+      return;
+    }
+
+    console.log('⏲️ Auto-save timer started. Current fields count:', fields?.length || 0);
 
     // Clear previous timeout
     if (autoSaveTimeoutRef.current) {
+      console.log('  Clearing previous auto-save timeout');
       clearTimeout(autoSaveTimeoutRef.current);
     }
 
@@ -143,10 +161,17 @@ export const EditorProvider = ({ children, initialDocument = null }) => {
     autoSaveTimeoutRef.current = setTimeout(async () => {
       try {
         console.log('💾 Auto-saving fields...');
+        console.log('  Document ID:', document._id);
+        console.log('  Fields count:', fields?.length || 0);
+        
         const response = await api.put(`/documents/${document._id}/fields`, {
           fields,
           lastEditedAt: new Date().toISOString()
         });
+
+        console.log('📡 API Response:', response.status);
+        console.log('  Success:', response.data.success);
+        console.log('  Saved fields count:', response.data.document?.fields?.length || 0);
 
         if (response.data.success) {
           console.log('✅ Auto-save successful');
@@ -155,9 +180,14 @@ export const EditorProvider = ({ children, initialDocument = null }) => {
           
           // Reset to idle after 2 seconds
           setTimeout(() => setSaveStatus('idle'), 2000);
+        } else {
+          console.error('❌ API returned success=false');
+          setSaveStatus('idle');
         }
       } catch (error) {
-        console.error('❌ Auto-save failed:', error);
+        console.error('❌ Auto-save failed:', error.message);
+        console.error('  Status:', error.response?.status);
+        console.error('  Data:', error.response?.data);
         setSaveStatus('idle');
       }
     }, 500);
