@@ -12,7 +12,8 @@ const {
   uploadDocument,
   getDocument,
   getDocumentPreview,
-  updateFields
+  updateFields,
+  publishDocument
 } = require('../controllers/documentController');
 const {
   validateSignDocument,
@@ -342,4 +343,37 @@ router.put(
   updateFields
 );
 
+/**
+ * POST /api/documents/:documentId/publish
+ * Publish document for signing - sends invitations to recipients
+ * 
+ * @params {
+ *   documentId: string (ObjectId)
+ * }
+ * 
+ * @response {
+ *   success: boolean,
+ *   message: string,
+ *   data: {
+ *     documentId: ObjectId,
+ *     title: string,
+ *     status: string,
+ *     recipientCount: number,
+ *     recipients: array,
+ *     emailResults: array,
+ *     publishedAt: Date
+ *   }
+ * }
+ * 
+ * @access Private
+ * @security Requires document ownership
+ */
+router.post(
+  '/:documentId/publish',
+  verifyToken,
+  validateDocumentId,
+  publishDocument
+);
+
 module.exports = router;
+

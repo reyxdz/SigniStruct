@@ -11,27 +11,45 @@ const documentSignatureSchema = new mongoose.Schema(
     signer_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: true,
+      default: null
+    },
+    recipient_email: {
+      type: String,
+      default: null,
+      index: true
+    },
+    recipient_name: {
+      type: String,
+      default: null
+    },
+    signing_token: {
+      type: String,
+      default: null,
+      index: true
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'signed', 'declined', 'expired'],
+      default: 'pending',
       index: true
     },
     certificate_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'UserCertificate',
-      required: true,
-      index: true
+      default: null
     },
     signature_hash: {
       type: String,
-      required: true
+      default: null
     },
     user_signature_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'UserSignature',
-      required: true
+      default: null
     },
     document_hash: {
       type: String,
-      required: true
+      default: null
     },
     signature_placement: {
       x: Number,
@@ -47,6 +65,10 @@ const documentSignatureSchema = new mongoose.Schema(
     verification_timestamp: {
       type: Date,
       default: null
+    },
+    fields: {
+      type: [String],
+      default: []
     },
     timestamp: {
       type: Date,
@@ -66,6 +88,7 @@ const documentSignatureSchema = new mongoose.Schema(
 
 // Indexes for efficient queries
 documentSignatureSchema.index({ document_id: 1, signer_id: 1 });
+documentSignatureSchema.index({ document_id: 1, recipient_email: 1 });
 documentSignatureSchema.index({ timestamp: -1 });
 documentSignatureSchema.index({ certificate_id: 1 });
 

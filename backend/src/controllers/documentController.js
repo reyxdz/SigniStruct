@@ -781,6 +781,186 @@ class DocumentController {
       });
     }
   }
-}
+  /**
+   * Publish a document for signing
+   * POST /api/documents/:documentId/publish
+   * Validates all recipient fields, generates signing tokens, sends emails
+   * @access Private
+   */
+  static async publishDocument(req, res) {
+    try {
+      const { documentId } = req.params;
+      const userId = req.user.id;
+
+      console.log('📤 Publishing document');
+      console.log('  Document ID:', documentId);
+      console.log('  User ID:', userId);
+
+      // Verify document exists
+      const document = await Document.findById(documentId).populate('owner_id');
+      if (!document) {
+        console.log('❌ Document not found');
+        return res.status(404).json({
+          success: false,
+          error: 'Document not found'
+        });
+      }
+
+      // Verify user owns the document
+      if (document.owner_id._id.toString() !== userId) {
+        console.log('❌ User does not own this document');
+        return res.status(403).json({
+          success: false,
+          error: 'You are not authorized to publish this document'
+        });
+      }
+
+      // Validate that fields exist
+      if (!document.fields || document.fields.length === 0) {
+        console.log('❌ Document has no fields');
+        return res.status(400).json({
+          success: false,
+          error: 'Document must have at least one field before publishing'
+        });
+      }
+
+      // Collect all unique recipients from recipient fields
+      const recipientMap = new Map(); // email -> {name, id}
+      
+      document.fields.forEach(field => {
+        if (field.assignedRecipients && Array.isArray(field.assignedRecipients)) {
+          field.assignedRecipients.forEach(recipient => {
+            if (recipient.recipientEmail && !recipientMap.has(recipient.recipientEmail)) {
+              recipientMap.set(recipient.recipientEmail, {
+                email: recipient.recipientEmail,
+                name: recipient.recipientName || 'Recipient',
+                userId: recipient.recipientId
+              });
+            }
+          });
+        }
+      });
+
+      // Validate that there is at least one recipient
+      if (recipientMap.size === 0) {
+        console.log('❌ No recipients assigned to any fields');
+        return res.status(400).json({
+          success: false,
+          error: 'You must assign at least one recipient to a field before publishing'
+        });
+      }
+
+      console.log(`✅ Found ${recipientMap.size} unique recipients`);
+
+      // Get EmailService instance
+      const EmailService = require('../services/emailService');
+      const emailService = new EmailService();
+      await emailService.initialize();
+
+      // Generate signing links and send emails
+      const jwt = require('jsonwebtoken');
+      const emailResults = [];
+      const documentSignatureRecords = [];
+
+      for (const [email, recipientInfo] of recipientMap) {
+        try {
+          // Generate signing token
+          const signingToken = jwt.sign(
+            {
+              documentId: documentId.toString(),
+              recipientEmail: email,
+              recipientName: recipientInfo.name,
+              type: 'signing'
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: '30d' }
+          );
+
+          // Create document signature record
+          const documentSignature = new DocumentSignature({
+            document_id: documentId,
+            recipient_email: email,
+            recipient_name: recipientInfo.name,
+            signing_token: signingToken,
+            status: 'pending',
+            created_at: new Date(),
+            fields: document.fields
+              .filter(f => f.assignedRecipients?.some(r => r.recipientEmail === email))
+              .map(f => f.id)
+          });
+
+          await documentSignature.save();
+          documentSignatureRecords.push(documentSignature);
+
+          // Create signing link
+          const signingLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/documents/${documentId}/sign/${signingToken}`;
+
+          // Send email invitation
+          const emailTemplate = `
+            <h2>Document Signing Request</h2>
+            <p>Hello ${recipientInfo.name},</p>
+            <p>${document.owner_id.firstName || 'Someone'} has requested your signature on a document: <strong>${document.title}</strong></p>
+            <p>
+              <a href="${signingLink}" style="display: inline-block; padding: 10px 20px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 4px;">
+                Sign Document
+              </a>
+            </p>
+            <p>This link will expire in 30 days.</p>
+            <p>Best regards,<br/>SigniStruct</p>
+          `;
+
+          const emailResult = await emailService.sendHtmlEmail(
+            email,
+            `Document Signing Request: ${document.title}`,
+            emailTemplate,
+            `Document signing request from ${document.owner_id.firstName || 'User'}. Click the link to sign: ${signingLink}`
+          );
+
+          emailResults.push({
+            email,
+            success: !emailResult.skipped,
+            messageId: emailResult.messageId || emailResult.skipped
+          });
+
+          console.log(`  ✅ Email sent to ${email}`);
+        } catch (error) {
+          console.error(`  ❌ Failed to send email to ${email}:`, error.message);
+          emailResults.push({
+            email,
+            success: false,
+            error: error.message
+          });
+        }
+      }
+
+      // Update document status to pending_signature
+      document.status = 'pending_signature';
+      document.publishedAt = new Date();
+      await document.save();
+
+      console.log('✅ Document published successfully');
+
+      return res.status(200).json({
+        success: true,
+        message: 'Document published and invitations sent',
+        data: {
+          documentId: document._id,
+          title: document.title,
+          status: document.status,
+          recipientCount: recipientMap.size,
+          recipients: Array.from(recipientMap.values()),
+          emailResults,
+          publishedAt: document.publishedAt
+        }
+      });
+    } catch (error) {
+      console.error('❌ Publish document error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to publish document',
+        message: error.message
+      });
+    }
+  }}
 
 module.exports = DocumentController;
