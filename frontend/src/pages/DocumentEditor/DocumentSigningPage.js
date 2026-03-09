@@ -582,7 +582,18 @@ const styles = {
     gap: spacing.lg,
     padding: spacing.lg,
     flex: 1,
-    overflow: 'hidden',
+    overflow: 'visible',
+    minHeight: 0,
+  },
+
+  // Document Viewer Wrapper
+  viewerWrapper: {
+    flex: 1,
+    overflowY: 'auto',
+    overflowX: 'hidden',
+    borderRadius: borderRadius.lg,
+    backgroundColor: colors.white,
+    boxShadow: colors.shadowMd,
   },
 
   // Right Panel
