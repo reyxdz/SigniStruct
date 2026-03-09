@@ -4,7 +4,7 @@ import api from '../../services/api';
 import { FiArrowLeft, FiCheck, FiAlertCircle } from 'react-icons/fi';
 import DocumentViewer from '../../components/DocumentEditor/DocumentViewer';
 import SignatureCanvas from '../../components/DocumentEditor/SignatureCanvas';
-import './DocumentSigningPage.NEW.css';
+import './DocumentSigningPage.css';
 
 const DocumentSigningPage = () => {
   const { documentId, signingToken } = useParams();
