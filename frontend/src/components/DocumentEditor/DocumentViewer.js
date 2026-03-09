@@ -573,7 +573,7 @@ const styles = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: `${spacing.lg}`,
+    paddingTop: '60px',
     paddingRight: spacing.lg,
     paddingLeft: spacing.lg,
     paddingBottom: `calc(${spacing.lg} + 100px)`,
