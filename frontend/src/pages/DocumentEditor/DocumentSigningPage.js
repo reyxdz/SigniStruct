@@ -274,23 +274,6 @@ const DocumentSigningPage = () => {
         </div>
       </div>
 
-      {/* Signing Progress */}
-      <div style={styles.progressBar}>
-        <div style={styles.progressText}>
-          Signed: {Object.values(fieldValues).filter(v => v && v.trim().length > 0).length} of {document?.fields?.length || 0} fields
-        </div>
-        <div style={styles.progressFill}>
-          <div
-            style={{
-              ...styles.progressBar,
-              width: `${document?.fields?.length ? (Object.values(fieldValues).filter(v => v && v.trim().length > 0).length / document.fields.length) * 100 : 0}%`,
-              backgroundColor: colors.green,
-              transition: 'width 0.3s ease'
-            }}
-          />
-        </div>
-      </div>
-
       {/* Main Editor Container */}
       <div style={styles.editorContainer}>
         {/* Document Viewer */}
