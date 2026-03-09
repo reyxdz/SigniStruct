@@ -458,10 +458,10 @@ const styles = {
     position: 'relative',
   },
 
-  // Controls - Now floating
+  // Controls - Now floating at bottom
   controls: {
     position: 'absolute',
-    top: spacing.lg,
+    bottom: spacing.lg,
     left: spacing.lg,
     right: spacing.lg,
     display: 'flex',
@@ -574,7 +574,6 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.lg,
-    paddingTop: `calc(${spacing.lg} + 80px)`,
     overflow: 'auto',
     backgroundColor: colors.lightGray,
     position: 'relative',
