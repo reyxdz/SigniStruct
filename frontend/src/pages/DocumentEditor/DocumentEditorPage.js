@@ -276,7 +276,6 @@ const DocumentEditorPage = () => {
         return;
       }
 
-      setIsSaving(true);
       console.log('📤 Publishing document:', documentId);
 
       const response = await api.post(`/documents/${documentId}/publish`);
@@ -302,8 +301,6 @@ const DocumentEditorPage = () => {
 
       const errorMessage = err.response?.data?.error || 'Failed to publish document. Please try again.';
       alert(`Failed to publish document:\n\n${errorMessage}`);
-    } finally {
-      setIsSaving(false);
     }
   };
 
