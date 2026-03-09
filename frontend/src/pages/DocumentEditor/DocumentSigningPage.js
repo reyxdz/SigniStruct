@@ -204,7 +204,7 @@ const DocumentSigningPage = () => {
             {document?.fields?.map((field) => (
               <div key={field.id} className="field-card">
                 <div className="field-header">
-                  <span className="field-name">{field.name || 'Field'}</span>
+                  <span className="field-name">{field.label || field.fieldType || 'Field'}</span>
                   {signedFields.has(field.id) ? (
                     <span className="status-badge signed">✓ Signed</span>
                   ) : (
@@ -238,7 +238,7 @@ const DocumentSigningPage = () => {
         <SignatureCanvas
           onComplete={handleSignatureComplete}
           onCancel={() => setShowSignaturePad(false)}
-          fieldName={document?.fields?.find(f => f.id === selectedFieldId)?.name}
+          fieldName={document?.fields?.find(f => f.id === selectedFieldId)?.label || 'Signature'}
         />
       )}
     </div>
