@@ -455,17 +455,24 @@ const styles = {
     width: '100%',
     flex: 1,
     backgroundColor: colors.lightGray,
+    position: 'relative',
   },
 
-  // Controls
+  // Controls - Now floating
   controls: {
+    position: 'absolute',
+    top: spacing.lg,
+    left: spacing.lg,
+    right: spacing.lg,
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: `${spacing.md} ${spacing.lg}`,
     backgroundColor: colors.white,
-    borderBottom: `1px solid ${colors.gray200}`,
+    borderRadius: borderRadius.md,
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
     gap: spacing.lg,
+    zIndex: 100,
   },
   controlsLeft: {
     display: 'flex',
@@ -567,6 +574,7 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.lg,
+    paddingTop: `calc(${spacing.lg} + 80px)`,
     overflow: 'auto',
     backgroundColor: colors.lightGray,
     position: 'relative',
