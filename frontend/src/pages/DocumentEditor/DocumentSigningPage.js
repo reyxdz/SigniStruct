@@ -151,8 +151,6 @@ const DocumentSigningPage = () => {
     );
   }
 
-  const progress = document?.fields ? Math.round((signedFields.size / document.fields.length) * 100) : 0;
-
   return (
     <div className="signing-view">
       {/* Fixed Header */}
@@ -178,17 +176,6 @@ const DocumentSigningPage = () => {
           </button>
         </div>
       </header>
-
-      {/* Fixed Progress Bar */}
-      <div className="progress-bar-container">
-        <div className="progress-info">
-          <span>Signing Progress</span>
-          <span className="progress-text">{signedFields.size} of {document?.fields?.length || 0} fields</span>
-        </div>
-        <div className="progress-bar">
-          <div className="progress-fill" style={{ width: `${progress}%` }}></div>
-        </div>
-      </div>
 
       {/* Main Content Area */}
       <div className="content-wrapper">
