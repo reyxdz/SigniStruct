@@ -574,6 +574,7 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     padding: spacing.lg,
+    paddingBottom: `calc(${spacing.lg} + 100px)`,
     overflow: 'auto',
     backgroundColor: colors.lightGray,
     position: 'relative',
