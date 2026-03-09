@@ -165,7 +165,6 @@ const DocumentEditorPage = () => {
   const [document, setDocument] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [isSaving, setIsSaving] = useState(false);
 
   // Fetch document on mount
   useEffect(() => {

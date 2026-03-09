@@ -3,13 +3,10 @@ import { useAuth } from '../../contexts/AuthContext';
 import api from '../../services/api';
 import { colors, spacing, typography, borderRadius } from '../../theme';
 import {
-  FiPenTool,
-  FiType,
   FiMail,
   FiUser,
   FiPhone,
-  FiAlertCircle,
-  FiCheck
+  FiAlertCircle
 } from 'react-icons/fi';
 import { FaSignature } from 'react-icons/fa';
 import './LeftPanel.css';

@@ -28,6 +28,7 @@ const DocumentSigningPage = () => {
   // Fetch document on mount
   useEffect(() => {
     fetchDocument();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [documentId, signingToken]);
 
   const fetchDocument = async () => {
@@ -62,13 +63,6 @@ const DocumentSigningPage = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleFieldChange = (fieldId, value) => {
-    setFieldValues(prev => ({
-      ...prev,
-      [fieldId]: value
-    }));
   };
 
   const handleSignField = (fieldId) => {
@@ -216,7 +210,6 @@ const DocumentSigningPage = () => {
               return Object.entries(groupedFields).map(([label, fields]) => {
                 const totalCount = fields.length;
                 const signedCount = fields.filter(f => signedFields.has(f.id)).length;
-                const firstField = fields[0];
 
                 return (
                   <div key={label} className="field-card">
