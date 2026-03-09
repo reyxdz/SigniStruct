@@ -462,8 +462,8 @@ const styles = {
   controls: {
     position: 'absolute',
     bottom: spacing.lg,
-    left: spacing.lg,
-    right: spacing.lg,
+    left: '50%',
+    transform: 'translateX(-50%)',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -473,6 +473,8 @@ const styles = {
     boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
     gap: spacing.lg,
     zIndex: 100,
+    width: 'auto',
+    whiteSpace: 'nowrap',
   },
   controlsLeft: {
     display: 'flex',
