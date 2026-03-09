@@ -201,25 +201,49 @@ const DocumentSigningPage = () => {
           </div>
 
           <div className="fields-list">
-            {document?.fields?.map((field) => (
-              <div key={field.id} className="field-card">
-                <div className="field-header">
-                  <span className="field-name">{field.label || field.fieldType || 'Field'}</span>
-                  {signedFields.has(field.id) ? (
-                    <span className="status-badge signed">✓ Signed</span>
-                  ) : (
-                    <span className="status-badge pending">Pending</span>
-                  )}
-                </div>
-                <button
-                  className="field-btn"
-                  onClick={() => handleSignField(field.id)}
-                  disabled={isSigning}
-                >
-                  {signedFields.has(field.id) ? 'Edit' : 'Sign'}
-                </button>
-              </div>
-            ))}
+            {(() => {
+              // Group fields by label
+              const groupedFields = {};
+              document?.fields?.forEach(field => {
+                const label = field.label || field.fieldType || 'Field';
+                if (!groupedFields[label]) {
+                  groupedFields[label] = [];
+                }
+                groupedFields[label].push(field);
+              });
+
+              // Render grouped fields
+              return Object.entries(groupedFields).map(([label, fields]) => {
+                const totalCount = fields.length;
+                const signedCount = fields.filter(f => signedFields.has(f.id)).length;
+                const firstField = fields[0];
+
+                return (
+                  <div key={label} className="field-card">
+                    <div className="field-header">
+                      <span className="field-name">{label}</span>
+                      <span className="field-count">{signedCount}/{totalCount}</span>
+                    </div>
+                    <button
+                      className="field-btn"
+                      onClick={() => {
+                        // Find the first unsigned field of this type
+                        const unsignedField = fields.find(f => !signedFields.has(f.id));
+                        if (unsignedField) {
+                          handleSignField(unsignedField.id);
+                        } else if (fields[0]) {
+                          // If all are signed, allow editing the first one
+                          handleSignField(fields[0].id);
+                        }
+                      }}
+                      disabled={isSigning}
+                    >
+                      {signedCount === totalCount ? 'Edit' : 'Sign'}
+                    </button>
+                  </div>
+                );
+              });
+            })()}
           </div>
 
           <div className="sidebar-footer">

@@ -227,6 +227,16 @@
   color: #155724;
 }
 
+.field-count {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+  background: #e7f3ff;
+  color: #004085;
+}
+
 .field-btn {
   padding: 8px 12px;
   background: #2196F3;
