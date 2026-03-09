@@ -582,10 +582,7 @@ const styles = {
     position: 'relative',
   },
   pdfContainer: {
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.lg,
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-    padding: spacing.lg,
+    padding: 0,
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
