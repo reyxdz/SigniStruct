@@ -1,28 +1,445 @@
-/* DocumentSigningPage Styles */
+/* ========================================
+   DOCUMENT SIGNING PAGE - FRESH BUILD
+   Guaranteed vertical document scrolling
+   ======================================== */
 
-.document-signing-page {
+* {
+  box-sizing: border-box;
+}
+
+.signing-view {
   display: flex;
   flex-direction: column;
   height: 100vh;
   width: 100%;
+  background: #f5f5f5;
+}
+
+/* ========================================
+   FIXED HEADER
+   ======================================== */
+
+.signing-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: white;
+  border-bottom: 1px solid #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  z-index: 1000;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  padding: 0 24px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex: 1;
+}
+
+.nav-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: white;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.nav-btn:hover {
+  background: #f5f5f5;
+  border-color: #999;
+  color: #333;
+}
+
+.page-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #222;
+  margin: 0;
+}
+
+.recipient-label {
+  font-size: 13px;
+  color: #888;
+  margin: 2px 0 0 0;
+}
+
+.submit-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.submit-btn:hover:not(:disabled) {
+  background: #45a049;
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+}
+
+.submit-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ========================================
+   PROGRESS BAR - FIXED BELOW HEADER
+   ======================================== */
+
+.progress-bar-container {
+  position: fixed;
+  top: 64px;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: white;
+  border-bottom: 1px solid #e0e0e0;
+  padding: 16px 24px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #666;
+  font-weight: 500;
+}
+
+.progress-text {
+  color: #333;
+}
+
+.progress-bar {
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
   overflow: hidden;
 }
 
-/* Scrollbar styling for field list */
-.sign-fields-list::-webkit-scrollbar {
-  width: 6px;
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #2196F3, #1976D2);
+  border-radius: 4px;
+  transition: width 0.3s ease;
 }
 
-.sign-fields-list::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 3px;
+/* ========================================
+   CONTENT WRAPPER
+   ======================================== */
+
+.content-wrapper {
+  display: flex;
+  flex: 1;
+  margin-top: 144px;
+  overflow: hidden;
+  gap: 0;
 }
 
-.sign-fields-list::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
+/* ========================================
+   DOCUMENT AREA - SCROLLABLE
+   ======================================== */
+
+.document-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #fafafa;
 }
 
-.sign-fields-list::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+.document-area > * {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  overflow-y: scroll;
+  overflow-x: auto;
+  padding: 20px;
+}
+
+/* ========================================
+   FIELDS SIDEBAR
+   ======================================== */
+
+.fields-sidebar {
+  width: 300px;
+  background: white;
+  border-left: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 16px;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.sidebar-header {
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.sidebar-header h2 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #222;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fields-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.field-card {
+  padding: 12px;
+  background: #f9f9f9;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.2s;
+}
+
+.field-card:hover {
+  background: #f5f5f5;
+  border-color: #d0d0d0;
+}
+
+.field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.field-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: #222;
+  flex: 1;
+}
+
+.status-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 12px;
+  white-space: nowrap;
+}
+
+.status-badge.pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-badge.signed {
+  background: #d4edda;
+  color: #155724;
+}
+
+.field-btn {
+  padding: 8px 12px;
+  background: #2196F3;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.field-btn:hover:not(:disabled) {
+  background: #1976D2;
+}
+
+.field-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 12px;
+  border-top: 1px solid #e0e0e0;
+}
+
+.summary-stat {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px;
+  background: #f9f9f9;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #666;
+}
+
+/* ========================================
+   LOADING/ERROR/SUCCESS STATES
+   ======================================== */
+
+.signing-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  width: 100%;
+  background: #f5f5f5;
+}
+
+.loading {
+  font-size: 16px;
+  color: #666;
+}
+
+.error-box,
+.success-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+  text-align: center;
+}
+
+.error-icon {
+  font-size: 48px;
+  color: #f44336;
+}
+
+.success-icon {
+  font-size: 48px;
+  color: #4CAF50;
+}
+
+.error-message {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.5;
+}
+
+.error-box h1,
+.success-box h1 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #222;
+  margin: 0;
+}
+
+.error-box p,
+.success-box p {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+}
+
+.back-btn {
+  padding: 10px 20px;
+  background: #f5f5f5;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  color: #666;
+  transition: all 0.2s;
+}
+
+.back-btn:hover {
+  background: #e0e0e0;
+  border-color: #999;
+}
+
+/* ========================================
+   SCROLLBAR STYLING
+   ======================================== */
+
+.document-area::-webkit-scrollbar,
+.fields-list::-webkit-scrollbar,
+.fields-sidebar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.document-area::-webkit-scrollbar-track,
+.fields-list::-webkit-scrollbar-track,
+.fields-sidebar::-webkit-scrollbar-track {
+  background: #f0f0f0;
+}
+
+.document-area::-webkit-scrollbar-thumb,
+.fields-list::-webkit-scrollbar-thumb,
+.fields-sidebar::-webkit-scrollbar-thumb {
+  background: #c0c0c0;
+  border-radius: 4px;
+}
+
+.document-area::-webkit-scrollbar-thumb:hover,
+.fields-list::-webkit-scrollbar-thumb:hover,
+.fields-sidebar::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 768px) {
+  .content-wrapper {
+    flex-direction: column;
+  }
+
+  .fields-sidebar {
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid #e0e0e0;
+    max-height: 200px;
+  }
+
+  .document-area {
+    min-height: 300px;
+  }
 }

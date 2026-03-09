@@ -1,0 +1,28 @@
+/* DocumentSigningPage Styles */
+
+.document-signing-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Scrollbar styling for field list */
+.sign-fields-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sign-fields-list::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 3px;
+}
+
+.sign-fields-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.sign-fields-list::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
