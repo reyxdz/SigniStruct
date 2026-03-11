@@ -28,6 +28,30 @@ const DocumentEditorContent = ({ documentId, document, loading, error, onPublish
     removeField 
   } = useEditor();
 
+  // Determine if in view-only mode (published or fully signed)
+  const isViewOnly = document && ['pending_signature', 'partially_signed', 'fully_signed'].includes(document.status);
+
+  // Merge signature data from document fields into fieldValues for display
+  const getFieldValuesFromDocument = () => {
+    if (!isViewOnly || !document?.fields) {
+      return {};
+    }
+
+    const fieldValues = {};
+    document.fields.forEach(field => {
+      if (field.assignedRecipients && Array.isArray(field.assignedRecipients)) {
+        // Find any recipient who has signed this field
+        const signedRecipient = field.assignedRecipients.find(r => r.status === 'signed' && r.signatureData);
+        if (signedRecipient) {
+          fieldValues[field.id] = signedRecipient.signatureData;
+        }
+      }
+    });
+    return fieldValues;
+  };
+
+  const fieldValuesFromDocument = getFieldValuesFromDocument();
+
   /**
    * Wrapper for field drop to handle callback signature
    * DocumentViewer calls onFieldDrop with combined object
@@ -39,6 +63,10 @@ const DocumentEditorContent = ({ documentId, document, loading, error, onPublish
   };
 
   console.log('📄 DocumentEditorContent rendering with', fields.length, 'fields');
+  console.log('  View-only mode:', isViewOnly);
+  if (Object.keys(fieldValuesFromDocument).length > 0) {
+    console.log('  Found', Object.keys(fieldValuesFromDocument).length, 'signed fields to display');
+  }
 
   /**
    * Handle field move
@@ -113,21 +141,28 @@ const DocumentEditorContent = ({ documentId, document, loading, error, onPublish
         </div>
         
         <div style={styles.headerRight}>
-          <button 
-            onClick={() => onPublish(fields)}
-            style={{ ...styles.headerBtn, ...styles.publishBtn }}
-          >
-            <FiSend style={{ marginRight: spacing.xs }} />
-            Publish
-          </button>
+          {!isViewOnly && (
+            <button 
+              onClick={() => onPublish(fields)}
+              style={{ ...styles.headerBtn, ...styles.publishBtn }}
+            >
+              <FiSend style={{ marginRight: spacing.xs }} />
+              Publish
+            </button>
+          )}
+          {isViewOnly && (
+            <div style={{...styles.documentStatus, color: colors.success, fontSize: '14px'}}>
+              ✓ Published
+            </div>
+          )}
         </div>
       </div>
 
       {/* Main Editor Container - 3 Column Layout */}
       <div style={styles.editorContainer}>
         
-        {/* Left Panel - Tools */}
-        <LeftPanel />
+        {/* Left Panel - Tools (only in edit mode) */}
+        {!isViewOnly && <LeftPanel />}
 
         {/* Center - Document Viewer */}
         <DocumentViewer
@@ -135,16 +170,17 @@ const DocumentEditorContent = ({ documentId, document, loading, error, onPublish
           currentPage={currentPage}
           onPageChange={changePage}
           fields={fields}
-          selectedFieldId={selectedFieldId}
-          onFieldSelect={selectField}
-          onFieldDrop={handleFieldDrop}
-          onFieldMove={handleFieldMove}
-          onFieldResize={handleFieldResize}
-          onFieldRemove={handleFieldRemove}
+          selectedFieldId={isViewOnly ? null : selectedFieldId}
+          onFieldSelect={isViewOnly ? null : selectField}
+          onFieldDrop={isViewOnly ? null : handleFieldDrop}
+          onFieldMove={isViewOnly ? null : handleFieldMove}
+          onFieldResize={isViewOnly ? null : handleFieldResize}
+          onFieldRemove={isViewOnly ? null : handleFieldRemove}
+          fieldValues={fieldValuesFromDocument}
         />
 
-        {/* Right Panel - Properties */}
-        <RightPanel />
+        {/* Right Panel - Properties (only in edit mode) */}
+        {!isViewOnly && <RightPanel />}
 
       </div>
     </div>
