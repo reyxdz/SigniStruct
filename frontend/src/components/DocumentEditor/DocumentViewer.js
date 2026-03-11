@@ -421,17 +421,14 @@ const DocumentViewer = ({
                   const shouldRender = field.pageNumber === currentPage;
                   console.log(`  Field ${field.id}: pageNumber=${field.pageNumber}, currentPage=${currentPage}, shouldRender=${shouldRender}`);
                   
-                  // In view-only mode (when onFieldSelect is null), only render fields that have been signed
-                  const isViewOnly = !onFieldSelect;
-                  if (isViewOnly && !fieldValues[field.id]) {
-                    return null; // Skip rendering unsigned fields in view-only mode
-                  }
-                  
                   // Merge field values into the field object for display
                   const fieldWithValue = {
                     ...field,
                     value: fieldValues[field.id] || field.value
                   };
+                  
+                  // Determine if we're in view-only mode (no field selection callback)
+                  const isViewOnly = !onFieldSelect;
                   
                   return shouldRender && (
                     <FieldOverlay
@@ -445,6 +442,7 @@ const DocumentViewer = ({
                       zoomLevel={zoom}
                       containerWidth={400}
                       containerHeight={600}
+                      isViewOnly={isViewOnly}
                     />
                   );
                 })}

@@ -18,7 +18,8 @@ const FieldOverlay = ({
   onResize,
   zoomLevel = 100,
   containerWidth = 100,
-  containerHeight = 100
+  containerHeight = 100,
+  isViewOnly = false
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
@@ -335,7 +336,17 @@ const FieldOverlay = ({
       )}
 
       {/* Label for recipient fields */}
-      {field.isRecipient && (
+      {field.isRecipient && !isViewOnly && (
+        <div style={{
+          ...styles.recipientLabel,
+          backgroundColor: fieldColor,
+        }}>
+          R
+        </div>
+      )}
+      
+      {/* Label for recipient fields in view-only mode only if they have a signature */}
+      {field.isRecipient && isViewOnly && field.value && (
         <div style={{
           ...styles.recipientLabel,
           backgroundColor: fieldColor,
