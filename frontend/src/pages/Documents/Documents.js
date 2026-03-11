@@ -572,6 +572,18 @@ const Documents = () => {
                               >
                                 Share
                               </a>
+                              <a
+                                href={`/documents/${doc._id || doc.id}/verify`}
+                                style={{...documentsStyles.actionButton, backgroundColor: colors.info, color: colors.white, border: `1px solid ${colors.info}`}}
+                                onMouseOver={(e) => {
+                                  e.target.style.opacity = '0.9';
+                                }}
+                                onMouseOut={(e) => {
+                                  e.target.style.opacity = '1';
+                                }}
+                              >
+                                Verify
+                              </a>
                             </>
                           )}
                         </div>

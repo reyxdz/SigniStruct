@@ -10,6 +10,7 @@ import DocumentSigningPage from './pages/DocumentEditor/DocumentSigningPage';
 import FormBuilder from './pages/FormBuilder/FormBuilder';
 import DocumentSign from './pages/DocumentSign/DocumentSign';
 import CreateSignaturePage from './pages/Signature/CreateSignaturePage';
+import VerificationPage from './pages/Verification/VerificationPage';
 import LandingPage from './pages/LandingPage/LandingPage';
 import SignIn from './pages/Auth/SignIn';
 import SignUp from './pages/Auth/SignUp';
@@ -18,7 +19,7 @@ import './App.css';
 
 function App() {
   // Routes that require the header (authenticated routes)
-  const authenticatedRoutes = ['/dashboard', '/forms', '/documents', '/documents/:documentId/editor', '/form-builder', '/document-sign', '/create-signature'];
+  const authenticatedRoutes = ['/dashboard', '/forms', '/documents', '/documents/:documentId/editor', '/documents/:documentId/verify', '/form-builder', '/document-sign', '/create-signature'];
   
   return (
     <AuthProvider>
@@ -61,6 +62,7 @@ function AppContent({ authenticatedRoutes }) {
           <Route path="/forms" element={<Forms />} />
           <Route path="/documents" element={<Documents />} />
           <Route path="/documents/:documentId/editor" element={<DocumentEditorPage />} />
+          <Route path="/documents/:documentId/verify" element={<VerificationPage />} />
           <Route path="/documents/:documentId/sign/:signingToken" element={<DocumentSigningPage />} />
           <Route path="/form-builder/:formId" element={<FormBuilder />} />
           <Route path="/document-sign/:documentId" element={<DocumentSign />} />
