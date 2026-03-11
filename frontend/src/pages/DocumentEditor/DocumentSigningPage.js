@@ -109,15 +109,34 @@ const DocumentSigningPage = () => {
 
     try {
       setIsSigning(true);
-      const response = await api.post(
-        `/documents/${documentId}/sign/${signingToken}`,
-        { fieldValues }
+      
+      // Get all fields assigned to this recipient
+      const fieldsToSubmit = document.fields.filter(field => 
+        field.assignedRecipients && 
+        field.assignedRecipients.some(r => signedFields.has(field.id) || fieldValues[field.id])
       );
 
-      if (response.data.success) {
-        setSigningComplete(true);
-        setTimeout(() => navigate('/documents'), 2000);
+      // Submit each field
+      for (let i = 0; i < fieldsToSubmit.length; i++) {
+        const field = fieldsToSubmit[i];
+        const isLastField = i === fieldsToSubmit.length - 1;
+        
+        const response = await api.post(
+          `/documents/${documentId}/sign/${signingToken}`,
+          {
+            fieldId: field.id,
+            fieldValue: fieldValues[field.id] || field.value,
+            allFieldsSigned: isLastField
+          }
+        );
+
+        if (!response.data.success) {
+          throw new Error(response.data.error || `Failed to submit field ${field.label}`);
+        }
       }
+
+      setSigningComplete(true);
+      setTimeout(() => navigate('/documents'), 2000);
     } catch (err) {
       alert('Error submitting document: ' + (err.response?.data?.error || err.message));
     } finally {
