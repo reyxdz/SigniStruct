@@ -421,6 +421,12 @@ const DocumentViewer = ({
                   const shouldRender = field.pageNumber === currentPage;
                   console.log(`  Field ${field.id}: pageNumber=${field.pageNumber}, currentPage=${currentPage}, shouldRender=${shouldRender}`);
                   
+                  // In view-only mode (when onFieldSelect is null), only render fields that have been signed
+                  const isViewOnly = !onFieldSelect;
+                  if (isViewOnly && !fieldValues[field.id]) {
+                    return null; // Skip rendering unsigned fields in view-only mode
+                  }
+                  
                   // Merge field values into the field object for display
                   const fieldWithValue = {
                     ...field,
