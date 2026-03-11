@@ -28,7 +28,7 @@ const SignatureSelectorModal = ({
       setLoading(true);
       const response = await api.get('/signatures/user');
       if (response.data.success) {
-        setSignatures(response.data.data || []);
+        setSignatures(response.data.signatures || []);
       }
     } catch (err) {
       console.error('Failed to fetch signatures:', err);
