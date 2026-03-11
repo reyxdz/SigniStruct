@@ -29,6 +29,8 @@ const DocumentViewer = ({
   onFieldMove,
   onFieldResize,
   onFieldRemove,
+  isSigningMode,
+  fieldValues = {},
 }) => {
   // PDF state
   const [pdfUrl, setPdfUrl] = useState(null);
@@ -418,10 +420,17 @@ const DocumentViewer = ({
                 {fields.map((field) => {
                   const shouldRender = field.pageNumber === currentPage;
                   console.log(`  Field ${field.id}: pageNumber=${field.pageNumber}, currentPage=${currentPage}, shouldRender=${shouldRender}`);
+                  
+                  // Merge field values into the field object for display
+                  const fieldWithValue = {
+                    ...field,
+                    value: fieldValues[field.id] || field.value
+                  };
+                  
                   return shouldRender && (
                     <FieldOverlay
                       key={field.id}
-                      field={field}
+                      field={fieldWithValue}
                       isSelected={selectedFieldId === field.id}
                       onSelect={onFieldSelect || (() => {})}
                       onRemove={handleRemoveField}
