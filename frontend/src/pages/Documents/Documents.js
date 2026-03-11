@@ -22,6 +22,21 @@ const Documents = () => {
     fetchAllData();
   }, []);
 
+  // Refresh documents when page becomes visible (e.g., returning from signing)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log('📄 Documents page became visible - refreshing data');
+        fetchAllData();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   /**
    * Fetch both user documents and assigned documents
    */
