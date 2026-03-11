@@ -17,9 +17,17 @@ const Documents = () => {
   const [error, setError] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
 
-  // Fetch documents on component mount
+  // Fetch documents on component mount and when page regains focus
   useEffect(() => {
     fetchAllData();
+    
+    // Refresh data when user returns to the page
+    const handleFocus = () => {
+      fetchAllData();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
   /**
