@@ -1303,15 +1303,25 @@ class DocumentController {
 
       // Find and update the field value for this recipient
       let fieldUpdated = false;
-      document.fields.forEach(field => {
+      console.log(`  🔍 Looking for field ID: ${fieldId}`);
+      console.log(`  📊 Document has ${document.fields ? document.fields.length : 0} fields`);
+      
+      document.fields.forEach((field, index) => {
+        console.log(`    Field ${index}: id=${field.id}, hasAssignedRecipients=${!!field.assignedRecipients}`);
         if (field.id === fieldId && field.assignedRecipients) {
+          console.log(`    ✓ Found matching field ${fieldId}`);
+          console.log(`    👥 Field has ${field.assignedRecipients.length} assigned recipients`);
           const recipient = field.assignedRecipients.find(r => r.recipientEmail === tokenData.recipientEmail);
           if (recipient) {
+            console.log(`    ✓ Found recipient ${tokenData.recipientEmail}`);
             recipient.signatureData = fieldValue;
             recipient.signedAt = new Date();
             recipient.status = 'signed';
             fieldUpdated = true;
             console.log(`  ✅ Field ${fieldId} updated for ${tokenData.recipientEmail}`);
+          } else {
+            console.log(`    ✗ Recipient ${tokenData.recipientEmail} not found in field ${fieldId}`);
+            console.log(`    Recipient emails: ${field.assignedRecipients.map(r => r.recipientEmail).join(', ')}`);
           }
         }
       });
@@ -1325,13 +1335,36 @@ class DocumentController {
 
       // Update DocumentSignature record
       const DocumentSignature = require('../models/DocumentSignature');
-      console.log(`  📝 Updating DocumentSignature for ${tokenData.recipientEmail}`);
-      console.log(`     Document ID: ${documentId}`);
+      const ObjectId = require('mongoose').Types.ObjectId;
+      
+      console.log(`📝 Updating DocumentSignature for ${tokenData.recipientEmail}`);
+      console.log(`     Document ID (string): "${documentId}", ObjectId: "${new ObjectId(documentId)}"`);
+      console.log(`     Recipient Email: ${tokenData.recipientEmail}`);
       console.log(`     Setting status to: ${allFieldsSigned ? 'signed' : 'pending'}`);
+
+      // First check if record exists
+      const existingRecord = await DocumentSignature.findOne({
+        document_id: new ObjectId(documentId),
+        recipient_email: tokenData.recipientEmail
+      });
+      
+      if (existingRecord) {
+        console.log(`  ✓ Found existing DocumentSignature record: ${existingRecord._id}`);
+        console.log(`    Current status: ${existingRecord.status}`);
+        console.log(`    Document ID in record: ${existingRecord.document_id}`);
+      } else {
+        console.log(`  ✗ No existing DocumentSignature record found`);
+        const totalRecords = await DocumentSignature.countDocuments();
+        console.log(`     Total DocumentSignature records in collection: ${totalRecords}`);
+        // List all records for this document
+        const allForDoc = await DocumentSignature.find({ document_id: new ObjectId(documentId) });
+        console.log(`     Records for this document: ${allForDoc.length}`);
+        allForDoc.forEach(rec => console.log(`       - ${rec.recipient_email}: ${rec.status}`));
+      }
 
       const signatureRecord = await DocumentSignature.findOneAndUpdate(
         {
-          document_id: documentId,
+          document_id: new ObjectId(documentId),
           recipient_email: tokenData.recipientEmail
         },
         {
@@ -1343,8 +1376,23 @@ class DocumentController {
 
       if (signatureRecord) {
         console.log(`  ✅ DocumentSignature updated: ${signatureRecord._id}, status: ${signatureRecord.status}`);
+        console.log(`     New status confirmed: ${signatureRecord.status}`);
       } else {
         console.log(`  ⚠️ DocumentSignature not found or not updated`);
+        console.log(`  🔧 Attempting to create new DocumentSignature record...`);
+        
+        try {
+          const newSignatureRecord = await DocumentSignature.create({
+            document_id: new ObjectId(documentId),
+            recipient_email: tokenData.recipientEmail,
+            status: allFieldsSigned ? 'signed' : 'pending',
+            created_at: new Date(),
+            updated_at: new Date()
+          });
+          console.log(`  ✅ Created new DocumentSignature: ${newSignatureRecord._id}, status: ${newSignatureRecord.status}`);
+        } catch (createError) {
+          console.log(`  ❌ Failed to create DocumentSignature: ${createError.message}`);
+        }
       }
 
       // If all fields are signed, update document status
@@ -1375,7 +1423,18 @@ class DocumentController {
       }
 
       // Save document with updated field values
-      await document.save();
+      console.log(`💾 Saving document with ${document.fields.length} fields...`);
+      const savedDoc = await document.save();
+      console.log(`  ✅ Document saved successfully`);
+      
+      // Verify field was saved
+      const savedField = savedDoc.fields.find(f => f.id === fieldId);
+      if (savedField) {
+        const savedRecipient = savedField.assignedRecipients?.find(r => r.recipientEmail === tokenData.recipientEmail);
+        if (savedRecipient) {
+          console.log(`  ✓ Verified: Field ${fieldId} saved with recipient status: ${savedRecipient.status}`);
+        }
+      }
 
       console.log('✅ Signed field submitted successfully');
 
