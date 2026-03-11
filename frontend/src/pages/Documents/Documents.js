@@ -44,11 +44,13 @@ const Documents = () => {
     try {
       setLoading(true);
       setError('');
+      console.log('🔄 Fetching all documents...');
       
       // Fetch user's own documents (draft, published, etc.)
       const docsResponse = await api.get('/documents');
       if (docsResponse.data.success || docsResponse.data.documents) {
         const docs = docsResponse.data.documents || docsResponse.data.data || [];
+        console.log('  ✅ User documents fetched:', docs.length);
         setAllDocuments(docs);
       }
 
@@ -57,6 +59,10 @@ const Documents = () => {
         const assignedResponse = await api.get('/documents/assigned');
         if (assignedResponse.data.success || assignedResponse.data.documents) {
           const assigned = assignedResponse.data.documents || assignedResponse.data.data || [];
+          console.log('  ✅ Assigned documents fetched:', assigned.length);
+          assigned.forEach(doc => {
+            console.log(`     "${doc.title}": signingStatus=${doc.signingStatus}`);
+          });
           setAssignedDocuments(assigned);
         }
       } catch (assignedErr) {
@@ -130,8 +136,16 @@ const Documents = () => {
    * Get document status for styling
    */
   const getStatusType = (status) => {
-    if (status === 'fully_signed') return 'signed';
-    if (status === 'draft') return 'draft';
+    console.log(`  🔍 getStatusType: mapping "${status}"`);
+    if (status === 'fully_signed' || status === 'signed') {
+      console.log(`     → mapped to "signed"`);
+      return 'signed';
+    }
+    if (status === 'draft') {
+      console.log(`     → mapped to "draft"`);
+      return 'draft';
+    }
+    console.log(`     → mapped to "pending"`);
     return 'pending';
   };
 

@@ -844,6 +844,14 @@ class DocumentController {
           sig => sig.document_id.toString() === doc._id.toString()
         );
         
+        console.log(`  📄 Document "${doc.title}":`);
+        console.log(`     Signatures found: ${signatures.length}`);
+        if (signatures.length > 0) {
+          signatures.forEach((sig, idx) => {
+            console.log(`       Signature ${idx}: status=${sig.status}, recipient=${sig.recipient_email}`);
+          });
+        }
+        
         // Count how many fields this user has signed
         let signedFieldsCount = 0;
         let totalFieldsCount = 0;
@@ -864,12 +872,15 @@ class DocumentController {
           });
         }
 
+        const finalSigningStatus = signatures[0]?.status || 'pending';
+        console.log(`     Final signingStatus for response: ${finalSigningStatus}`);
+
         return {
           _id: doc._id,
           title: doc.title,
           owner_id: doc.owner_id,
           status: doc.status,
-          signingStatus: signatures[0]?.status || 'pending',
+          signingStatus: finalSigningStatus,
           created_at: doc.created_at,
           lastEditedAt: doc.lastEditedAt,
           signing_token: signatures[0]?.signing_token || null,
