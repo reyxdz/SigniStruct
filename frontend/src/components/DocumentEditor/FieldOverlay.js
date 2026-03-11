@@ -344,16 +344,6 @@ const FieldOverlay = ({
           R
         </div>
       )}
-      
-      {/* Label for recipient fields in view-only mode only if they have a signature */}
-      {field.isRecipient && isViewOnly && field.value && (
-        <div style={{
-          ...styles.recipientLabel,
-          backgroundColor: fieldColor,
-        }}>
-          R
-        </div>
-      )}
     </div>
   );
 };
