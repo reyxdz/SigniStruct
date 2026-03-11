@@ -1,5 +1,6 @@
 const User = require('../models/User');
 const UserSignature = require('../models/UserSignature');
+const RSAService = require('../services/rsaService');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -59,10 +60,35 @@ exports.signup = async (req, res) => {
 
     await user.save();
 
+    // ==================== NEW: Phase 8.2 - RSA Key Generation ====================
+    console.log(`[AUTH] Generating RSA certificate for user ${user._id}...`);
+    
+    let certificateInfo = null;
+    try {
+      // Generate RSA key pair and create user certificate
+      // Use password as encryption key for private key
+      certificateInfo = await RSAService.createUserCertificate(
+        user._id,
+        password, // Encrypt private key with user's password
+        {
+          name: `${user.firstName} ${user.lastName}`,
+          email: user.email
+        }
+      );
+
+      console.log(`[AUTH] RSA certificate created successfully: ${certificateInfo.certificate.certificate_id}`);
+    } catch (certError) {
+      console.error('[AUTH] Certificate generation error:', certError);
+      console.error('[AUTH] User created but certificate generation failed - this should be retried');
+      // Note: We still return success because user account is created
+      // Certificate generation should be retried via a separate endpoint if needed
+    }
+    // ==================== END Phase 8.2 ====================
+
     // Generate token (include email for assigned documents query)
     const token = generateToken(user._id, user.email);
 
-    res.status(201).json({
+    const response = {
       success: true,
       message: 'User registered successfully',
       token,
@@ -73,8 +99,21 @@ exports.signup = async (req, res) => {
         email: user.email,
         phone: user.phone,
         address: user.address,
-      },
-    });
+      }
+    };
+
+    // Include certificate info if generation was successful
+    if (certificateInfo && certificateInfo.success) {
+      response.certificate = {
+        certificate_id: certificateInfo.certificate.certificate_id,
+        fingerprint: certificateInfo.certificate.fingerprint_sha256,
+        status: certificateInfo.certificate.status,
+        valid_until: certificateInfo.certificate.not_after,
+        message: 'RSA keys generated and stored securely'
+      };
+    }
+
+    res.status(201).json(response);
   } catch (error) {
     console.error('Signup error:', error);
     res.status(500).json({ error: 'Server error during registration' });
