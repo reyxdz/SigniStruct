@@ -4,6 +4,7 @@ import api from '../../services/api';
 import { FiArrowLeft, FiCheck, FiAlertCircle } from 'react-icons/fi';
 import DocumentViewer from '../../components/DocumentEditor/DocumentViewer';
 import SignatureCanvas from '../../components/DocumentEditor/SignatureCanvas';
+import SignatureSelectorModal from '../../components/DocumentEditor/SignatureSelectorModal';
 import './DocumentSigningPage.css';
 
 const DocumentSigningPage = () => {
@@ -21,6 +22,7 @@ const DocumentSigningPage = () => {
   const [signedFields, setSignedFields] = useState(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedFieldId, setSelectedFieldId] = useState(null);
+  const [showSignatureSelector, setShowSignatureSelector] = useState(false);
   const [showSignaturePad, setShowSignaturePad] = useState(false);
   const [isSigning, setIsSigning] = useState(false);
   const [signingComplete, setSigningComplete] = useState(false);
@@ -67,6 +69,23 @@ const DocumentSigningPage = () => {
 
   const handleSignField = (fieldId) => {
     setSelectedFieldId(fieldId);
+    setShowSignatureSelector(true);
+  };
+
+  const handleSignatureSelected = (signatureData) => {
+    if (selectedFieldId) {
+      setFieldValues(prev => ({
+        ...prev,
+        [selectedFieldId]: signatureData
+      }));
+      setSignedFields(prev => new Set([...prev, selectedFieldId]));
+    }
+    setShowSignatureSelector(false);
+    setSelectedFieldId(null);
+  };
+
+  const handleDrawNewSignature = () => {
+    setShowSignatureSelector(false);
     setShowSignaturePad(true);
   };
 
@@ -249,6 +268,16 @@ const DocumentSigningPage = () => {
           </div>
         </aside>
       </div>
+
+      {/* Signature Selector Modal */}
+      {showSignatureSelector && (
+        <SignatureSelectorModal
+          onSignatureComplete={handleSignatureSelected}
+          onCancel={() => setShowSignatureSelector(false)}
+          fieldName={document?.fields?.find(f => f.id === selectedFieldId)?.label || 'Signature'}
+          onDrawNew={handleDrawNewSignature}
+        />
+      )}
 
       {/* Signature Canvas Modal */}
       {showSignaturePad && (
