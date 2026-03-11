@@ -505,21 +505,45 @@ const Documents = () => {
                       <td style={documentsStyles.td}>
                         <div style={documentsStyles.actions}>
                           {activeTab === 'assigned' ? (
-                            <a
-                              href={`/documents/${doc._id || doc.id}/sign/${doc.signing_token}`}
-                              style={{
-                                ...documentsStyles.actionButton,
-                                ...documentsStyles.signButton,
-                              }}
-                              onMouseOver={(e) => {
-                                e.target.style.opacity = '0.9';
-                              }}
-                              onMouseOut={(e) => {
-                                e.target.style.opacity = '1';
-                              }}
-                            >
-                              Sign
-                            </a>
+                            displayStatus === 'signed' ? (
+                              // Show View button for already signed documents
+                              <a
+                                href={`/documents/${doc._id || doc.id}/sign/${doc.signing_token}`}
+                                style={{
+                                  ...documentsStyles.actionButton,
+                                  backgroundColor: colors.gray100,
+                                  color: colors.gray700,
+                                  border: `1px solid ${colors.gray300}`,
+                                }}
+                                onMouseOver={(e) => {
+                                  e.target.style.opacity = '0.9';
+                                  e.target.style.backgroundColor = colors.gray200;
+                                }}
+                                onMouseOut={(e) => {
+                                  e.target.style.opacity = '1';
+                                  e.target.style.backgroundColor = colors.gray100;
+                                }}
+                              >
+                                View
+                              </a>
+                            ) : (
+                              // Show Sign button for pending documents
+                              <a
+                                href={`/documents/${doc._id || doc.id}/sign/${doc.signing_token}`}
+                                style={{
+                                  ...documentsStyles.actionButton,
+                                  ...documentsStyles.signButton,
+                                }}
+                                onMouseOver={(e) => {
+                                  e.target.style.opacity = '0.9';
+                                }}
+                                onMouseOut={(e) => {
+                                  e.target.style.opacity = '1';
+                                }}
+                              >
+                                Sign
+                              </a>
+                            )
                           ) : (
                             <>
                               <a
