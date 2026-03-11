@@ -588,7 +588,7 @@ const styles = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: '120px',
+    paddingTop: '200px',
     paddingRight: spacing.lg,
     paddingLeft: spacing.lg,
     paddingBottom: `calc(${spacing.lg} + 100px)`,
