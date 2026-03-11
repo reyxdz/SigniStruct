@@ -419,7 +419,6 @@ const Documents = () => {
                 <th style={documentsStyles.th}>{activeTab === 'assigned' ? 'Owner' : 'Signers'}</th>
                 <th style={documentsStyles.th}>Status</th>
                 <th style={documentsStyles.th}>Created</th>
-                {activeTab === 'assigned' && <th style={documentsStyles.th}>Progress</th>}
                 <th style={documentsStyles.th}>Actions</th>
               </tr>
             </thead>
@@ -474,42 +473,6 @@ const Documents = () => {
                       <td style={documentsStyles.td}>
                         {new Date(doc.created_at || doc.created).toLocaleDateString()}
                       </td>
-                      {activeTab === 'assigned' && (
-                        <td style={documentsStyles.td}>
-                          {doc.progress !== undefined ? (
-                            <div style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '8px'
-                            }}>
-                              <div style={{
-                                flex: 1,
-                                height: '6px',
-                                backgroundColor: colors.gray200,
-                                borderRadius: '3px',
-                                overflow: 'hidden'
-                              }}>
-                                <div style={{
-                                  height: '100%',
-                                  width: `${doc.progress}%`,
-                                  backgroundColor: doc.progress === 100 ? colors.green : colors.secondary,
-                                  transition: 'width 0.3s ease'
-                                }} />
-                              </div>
-                              <span style={{
-                                fontSize: '12px',
-                                fontWeight: '500',
-                                minWidth: '35px',
-                                color: doc.progress === 100 ? colors.green : colors.gray700
-                              }}>
-                                {doc.progress}%
-                              </span>
-                            </div>
-                          ) : (
-                            doc.dueDate && new Date(doc.dueDate).toLocaleDateString()
-                          )}
-                        </td>
-                      )}
                       <td style={documentsStyles.td}>
                         <div style={documentsStyles.actions}>
                           {activeTab === 'assigned' ? (
