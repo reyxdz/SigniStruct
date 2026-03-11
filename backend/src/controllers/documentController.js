@@ -1325,6 +1325,10 @@ class DocumentController {
 
       // Update DocumentSignature record
       const DocumentSignature = require('../models/DocumentSignature');
+      console.log(`  📝 Updating DocumentSignature for ${tokenData.recipientEmail}`);
+      console.log(`     Document ID: ${documentId}`);
+      console.log(`     Setting status to: ${allFieldsSigned ? 'signed' : 'pending'}`);
+
       const signatureRecord = await DocumentSignature.findOneAndUpdate(
         {
           document_id: documentId,
@@ -1336,6 +1340,12 @@ class DocumentController {
         },
         { new: true }
       );
+
+      if (signatureRecord) {
+        console.log(`  ✅ DocumentSignature updated: ${signatureRecord._id}, status: ${signatureRecord.status}`);
+      } else {
+        console.log(`  ⚠️ DocumentSignature not found or not updated`);
+      }
 
       // If all fields are signed, update document status
       if (allFieldsSigned) {
