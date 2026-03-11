@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import DocumentUploader from '../../components/Documents/DocumentUploader';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
-import { FiFileText, FiCheck, FiClock, FiUpload, FiRefreshCw } from 'react-icons/fi';
+import { FiFileText, FiCheck, FiClock, FiUpload } from 'react-icons/fi';
 
 /**
  * Documents Page
@@ -14,7 +14,6 @@ const Documents = () => {
   const [allDocuments, setAllDocuments] = useState([]);
   const [assignedDocuments, setAssignedDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
 
@@ -43,7 +42,7 @@ const Documents = () => {
    */
   const fetchAllData = async () => {
     try {
-      setRefreshing(true);
+      setLoading(true);
       setError('');
       
       // Fetch user's own documents (draft, published, etc.)
@@ -71,7 +70,6 @@ const Documents = () => {
       setAllDocuments([]);
     } finally {
       setLoading(false);
-      setRefreshing(false);
     }
   };
 
@@ -359,56 +357,22 @@ const Documents = () => {
 
   return (
     <div style={documentsStyles.container}>
-      <style>{`
-        @keyframes spin {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
-        }
-      `}</style>
       <div style={documentsStyles.content}>
         {/* Header */}
         <div style={documentsStyles.header}>
           <h1 style={documentsStyles.title}><FiFileText style={{ display: 'inline', marginRight: '12px' }} /> Documents</h1>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <button
-              style={{
-                ...documentsStyles.uploadButton,
-                opacity: refreshing ? 0.6 : 1,
-                cursor: refreshing ? 'not-allowed' : 'pointer'
-              }}
-              onClick={() => fetchAllData()}
-              disabled={refreshing}
-              title="Refresh documents"
-              onMouseOver={(e) => {
-                if (!refreshing) e.target.style.opacity = '0.9';
-              }}
-              onMouseOut={(e) => {
-                if (!refreshing) e.target.style.opacity = '1';
-              }}
-            >
-              <FiRefreshCw style={{ 
-                display: 'inline', 
-                marginRight: '6px',
-                animation: refreshing ? 'spin 1s linear infinite' : 'none'
-              }} /> Refresh
-            </button>
-            <button
-              style={documentsStyles.uploadButton}
-              onClick={() => setShowUploadModal(true)}
-              onMouseOver={(e) => {
-                e.target.style.opacity = '0.9';
-              }}
-              onMouseOut={(e) => {
-                e.target.style.opacity = '1';
-              }}
-            >
-              <FiUpload style={{ display: 'inline', marginRight: '6px' }} /> Upload Document
-            </button>
-          </div>
+          <button
+            style={documentsStyles.uploadButton}
+            onClick={() => setShowUploadModal(true)}
+            onMouseOver={(e) => {
+              e.target.style.opacity = '0.9';
+            }}
+            onMouseOut={(e) => {
+              e.target.style.opacity = '1';
+            }}
+          >
+            <FiUpload style={{ display: 'inline', marginRight: '6px' }} /> Upload Document
+          </button>
         </div>
 
         {/* Tabs */}
