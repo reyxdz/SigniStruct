@@ -588,7 +588,7 @@ const styles = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingTop: '60px',
+    paddingTop: '120px',
     paddingRight: spacing.lg,
     paddingLeft: spacing.lg,
     paddingBottom: `calc(${spacing.lg} + 100px)`,
@@ -597,7 +597,7 @@ const styles = {
     position: 'relative',
   },
   pdfContainer: {
-    padding: 0,
+    padding: `${spacing.lg} 0 0 0`,
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
