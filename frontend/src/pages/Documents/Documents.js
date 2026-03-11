@@ -476,7 +476,7 @@ const Documents = () => {
                       </td>
                       <td style={documentsStyles.td}>
                         {activeTab === 'assigned' ? (
-                          doc.owner_id || 'Unknown'
+                          doc.ownerName || 'Unknown'
                         ) : (
                           getSignerCount(doc)
                         )}

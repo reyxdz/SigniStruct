@@ -830,12 +830,17 @@ class DocumentController {
       const documentIds = [...new Set(assignedSignatures.map(sig => sig.document_id.toString()))];
       console.log('  Unique documents:', documentIds.length);
 
-      // Fetch document details
+      // Fetch document details with owner information
       const documents = await Document.find({ 
         _id: { $in: documentIds },
         status: { $in: ['pending_signature', 'partially_signed', 'fully_signed'] }
       })
         .select('_id title owner_id status created_at lastEditedAt fields')
+        .populate({
+          path: 'owner_id',
+          select: 'firstName lastName email',
+          model: 'User'
+        })
         .lean();
 
       // Enrich documents with signing status
@@ -874,11 +879,18 @@ class DocumentController {
 
         const finalSigningStatus = signatures[0]?.status || 'pending';
         console.log(`     Final signingStatus for response: ${finalSigningStatus}`);
+        
+        // Get owner's full name
+        const ownerName = doc.owner_id 
+          ? `${doc.owner_id.firstName || ''} ${doc.owner_id.lastName || ''}`.trim() 
+          : 'Unknown';
+        console.log(`     Owner name: ${ownerName}`);
 
         return {
           _id: doc._id,
           title: doc.title,
-          owner_id: doc.owner_id,
+          owner_id: doc.owner_id?._id || doc.owner_id,
+          ownerName: ownerName,
           status: doc.status,
           signingStatus: finalSigningStatus,
           created_at: doc.created_at,
