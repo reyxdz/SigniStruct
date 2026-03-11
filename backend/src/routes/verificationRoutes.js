@@ -6,8 +6,9 @@ const verificationController = require('../controllers/verificationController');
 /**
  * Verification Routes
  * All routes require authentication
- * POST /api/verification/documents/:documentId/verify
  * GET  /api/verification/documents/:documentId/status
+ * POST /api/verification/documents/:documentId/verify-all
+ * GET  /api/verification/documents/:documentId/certificate
  * GET  /api/verification/documents/:documentId/history
  * GET  /api/verification/signatures/:signatureId
  * GET  /api/verification/signatures/:signatureId/audit-trail
@@ -22,6 +23,20 @@ router.use(verifyToken);
 router.get(
   '/documents/:documentId/status',
   verificationController.getDocumentVerificationStatus
+);
+
+// POST /api/verification/documents/:documentId/verify-all
+// Trigger full verification and store results
+router.post(
+  '/documents/:documentId/verify-all',
+  verificationController.verifyAllSignatures
+);
+
+// GET /api/verification/documents/:documentId/certificate
+// Download verification certificate as JSON
+router.get(
+  '/documents/:documentId/certificate',
+  verificationController.getDocumentVerificationCertificate
 );
 
 // GET /api/verification/documents/:documentId/history
