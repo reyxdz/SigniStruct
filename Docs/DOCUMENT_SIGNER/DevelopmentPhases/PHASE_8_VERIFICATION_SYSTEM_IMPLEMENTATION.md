@@ -516,7 +516,7 @@ npm install node-rsa
 
 ---
 
-#### 8.2.2: Create RSA Key Generation Service
+#### ✅ 8.2.2: Create RSA Key Generation Service --- DONE
 
 **File**: `backend/src/services/rsaService.js`
 
@@ -694,7 +694,7 @@ module.exports = RSAService;
 
 ---
 
-#### 8.2.3: Update UserCertificate Model
+#### ✅ 8.2.3: Update UserCertificate Model --- DONE
 
 **File**: `backend/src/models/UserCertificate.js`
 
@@ -769,6 +769,30 @@ userCertificateSchema.index({ revoked: 1 });
 module.exports = mongoose.model('UserCertificate', userCertificateSchema);
 ```
 
+**Implementation Status**: ✅ COMPLETE
+- ✓ Schema fully implemented with all required fields
+- ✓ Unique constraints on certificate_id, serial_number, fingerprint_sha256
+- ✓ Database indexes optimized for common queries
+- ✓ Enum validations for status (active, revoked, expired) and certificate_type
+- ✓ Multi-user support with proper certificate isolation
+- ✓ Timestamp auto-management enabled
+- ✓ Collection named users_certificates
+- ✓ Test Coverage: 42/42 PASSED
+
+**Key Schema Features**:
+- **Core Fields**: user_id, certificate_id, public_key, private_key_encrypted, certificate_pem
+- **Metadata**: issuer, subject, serial_number, not_before, not_after, fingerprint_sha256
+- **Status**: status (enum), revoked_at, revocation_reason
+- **Additional**: last_used, certificate_type (enum), metadata (object)
+- **Timestamps**: created_at, updated_at (auto-managed)
+
+**Database Indexes**: 7 indexes for optimal query performance
+- Index on user_id (primary lookup)
+- Compound index on user_id + status
+- Index on created_at (by recency)
+- Index on not_after (expiry checking)
+- Unique indexes on certificate_id, serial_number, fingerprint_sha256
+
 ---
 
 ### Tasks for Phase 8.2
@@ -805,12 +829,24 @@ module.exports = mongoose.model('UserCertificate', userCertificateSchema);
 - ✅ `getAllCertificates()` - Admin list certificates
 - ✅ `getCertificateStatistics()` - Stats tracking
 
+**Phase 8.2.3 - UserCertificate Model** ✅ NEW
+- ✅ Schema with 23+ fields fully implemented
+- ✅ Core fields: user_id, certificate_id, public_key, private_key_encrypted, certificate_pem, issuer, subject, serial_number, not_before, not_after, fingerprint_sha256
+- ✅ Status fields: status (enum), revoked_at, revocation_reason
+- ✅ Additional fields: last_used, certificate_type (enum), metadata (object)
+- ✅ Timestamps: created_at, updated_at (auto-managed)
+- ✅ 7 database indexes for query optimization
+- ✅ Unique constraints on certificate_id, serial_number, fingerprint_sha256
+- ✅ Enum validations for status and certificate_type
+- ✅ Collection: users_certificates
+
 ### Test Results
 ✅ **test-phase-8-2-1.js**: 6/6 PASSED - RSA key generation on signup
 ✅ **test-phase-8-2-2.js**: 19/19 PASSED - RSA Service methods verification
+✅ **test-phase-8-2-3.js**: 42/42 PASSED - UserCertificate Model schema validation
 
 ### Estimated Time
-**COMPLETED** - Phase 8.2 took ~1 day (was estimated 3-4 days)
+**COMPLETED** - Phase 8.2 took ~1.5 days (was estimated 3-4 days)
 
 ### Dependencies
 - ✅ EncryptionService exists (for private key encryption/decryption)
