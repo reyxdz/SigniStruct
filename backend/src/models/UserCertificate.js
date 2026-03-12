@@ -66,6 +66,21 @@ const userCertificateSchema = new mongoose.Schema(
       type: String,
       default: null
     },
+    last_used: {
+      type: Date,
+      default: null
+    },
+    certificate_type: {
+      type: String,
+      enum: ['self-signed', 'ca-issued', 'ecc'],
+      default: 'self-signed'
+    },
+    metadata: {
+      key_size: { type: Number, default: 2048 },
+      algorithm: { type: String, default: 'RSA-2048' },
+      hash_algorithm: { type: String, default: 'SHA-256' },
+      _additional: mongoose.Schema.Types.Mixed // For future metadata
+    },
     created_at: {
       type: Date,
       default: Date.now,
