@@ -241,8 +241,258 @@ class SigningService {
   }
 
   /**
-   * Verify a document signature
+   * ═══════════════════════════════════════════════════════════════════
+   * PHASE 8.3.1: RSA Cryptographic Signing Methods
+   * ═══════════════════════════════════════════════════════════════════
+   */
+
+  /**
+   * Calculate SHA-256 hash of document or field content
+   * Used for creating the hash that will be signed with RSA private key
    * 
+   * @param {Buffer|string} content - Document or field content
+   * @returns {string} SHA-256 hash in hexadecimal format
+   * @throws {Error} If hash calculation fails
+   */
+  static calculateDocumentHash(content) {
+    try {
+      const hash = crypto.createHash('sha256');
+      
+      // Handle both buffer and string content
+      if (Buffer.isBuffer(content)) {
+        hash.update(content);
+      } else if (typeof content === 'string') {
+        hash.update(content);
+      } else if (typeof content === 'object') {
+        // If it's an object, stringify it
+        hash.update(JSON.stringify(content));
+      } else {
+        hash.update(String(content));
+      }
+      
+      return hash.digest('hex');
+    } catch (error) {
+      throw new Error(`Failed to calculate document hash: ${error.message}`);
+    }
+  }
+
+  /**
+   * Cryptographically sign a field with user's RSA private key
+   * 
+   * Process:
+   * 1. Calculate SHA-256 hash of field content
+   * 2. Decrypt user's private key using encryption key
+   * 3. Sign hash with RSA private key
+   * 4. Calculate integrity hash of the signature itself
+   * 5. Return cryptographic signature data
+   * 
+   * @param {string} documentId - Document being signed
+   * @param {string|Buffer} fieldContent - Field value to sign
+   * @param {string} userId - Signer's user ID
+   * @param {string} encryptionKey - Master encryption key for decrypting private key
+   * @returns {Promise<Object>} Cryptographic signature with metadata
+   * @throws {Error} If signing fails
+   */
+  static async signField(documentId, fieldContent, userId, encryptionKey) {
+    try {
+      // 1. Calculate hash of field content
+      const contentHash = this.calculateDocumentHash(fieldContent);
+      console.log(`[SIGN] Field hash calculated: ${contentHash.substring(0, 16)}...`);
+
+      // 2. Get user's certificate and private key
+      const certificate = await UserCertificate.findOne({ user_id: userId });
+      if (!certificate) {
+        throw new Error(`No certificate found for user ${userId}`);
+      }
+
+      // Verify certificate is valid
+      const now = new Date();
+      if (certificate.not_before > now) {
+        throw new Error('Certificate is not yet valid');
+      }
+      if (certificate.not_after < now) {
+        throw new Error('Certificate has expired');
+      }
+      if (certificate.status === 'revoked') {
+        throw new Error('Certificate has been revoked');
+      }
+
+      // 3. Decrypt private key
+      let privateKey;
+      try {
+        privateKey = EncryptionService.decryptPrivateKey(
+          certificate.private_key_encrypted,
+          encryptionKey
+        );
+      } catch (error) {
+        throw new Error(`Failed to decrypt private key: ${error.message}`);
+      }
+
+      // 4. Sign the hash with private key (RSA-SHA256)
+      const signatureHex = this._signHash(contentHash, privateKey);
+      console.log(`[SIGN] Signature created: ${signatureHex.substring(0, 16)}...`);
+
+      // 5. Calculate integrity hash of signature itself
+      const signatureHash = crypto
+        .createHash('sha256')
+        .update(signatureHex)
+        .digest('hex');
+
+      // 6. Return signature data
+      const result = {
+        signature: signatureHex,
+        content_hash: contentHash,
+        signature_hash: signatureHash,
+        algorithm: 'RSA-SHA256',
+        timestamp: new Date(),
+        signer_id: userId,
+        document_id: documentId,
+        certificate_id: certificate._id,
+        verified: true // Mark as cryptographically signed
+      };
+
+      console.log(`[SIGN] Signature data complete for field in document ${documentId}`);
+      return result;
+
+    } catch (error) {
+      console.error('[ERROR] Field signing failed:', error.message);
+      throw new Error(`Failed to sign field: ${error.message}`);
+    }
+  }
+
+  /**
+   * Verify a cryptographic signature against field/document content
+   * 
+   * Process:
+   * 1. Get signer's public key from certificate
+   * 2. Verify signature using RSA public key
+   * 3. Return verification result
+   * 
+   * @param {string} signatureHex - Hex-encoded RSA signature
+   * @param {string} contentHash - Original content hash  (SHA-256)
+   * @param {string} userId - Signer's user ID (to get public key)
+   * @returns {Promise<Object>} Verification result with validity and metadata
+   * @throws {Error} If verification fails
+   */
+  static async verifyCryptographicSignature(signatureHex, contentHash, userId) {
+    try {
+      // 1. Get signer's certificate and public key
+      const certificate = await UserCertificate.findOne({ user_id: userId });
+      if (!certificate) {
+        throw new Error(`No certificate found for user ${userId}`);
+      }
+
+      if (certificate.status !== 'active') {
+        return {
+          is_valid: false,
+          reason: 'Certificate is not active',
+          certificate_status: certificate.status
+        };
+      }
+
+      // 2. Verify signature against content hash
+      const isValid = this._verifyHashSignature(contentHash, signatureHex, certificate.public_key);
+
+      // 3. Return verification result
+      const result = {
+        is_valid: isValid,
+        signature_hex: signatureHex.substring(0, 32) + '...',
+        content_hash: contentHash.substring(0, 32) + '...',
+        signer_id: userId,
+        certificate_id: certificate._id,
+        certificate_fingerprint: certificate.fingerprint_sha256,
+        algorithm: 'RSA-SHA256',
+        timestamp: new Date()
+      };
+
+      if (isValid) {
+        result.reason = 'Signature verified successfully';
+      } else {
+        result.reason = 'Signature verification failed - invalid signature';
+      }
+
+      console.log(`[VERIFY] Signature ${isValid ? 'valid' : 'invalid'} for user ${userId}`);
+      return result;
+
+    } catch (error) {
+      console.error('[ERROR] Signature verification error:', error.message);
+      return {
+        is_valid: false,
+        reason: `Verification error: ${error.message}`,
+        signer_id: userId
+      };
+    }
+  }
+
+  /**
+   * Sign entire document with all field values
+   * Creates a comprehensive signature covering all document fields
+   * 
+   * @param {string} documentId - Document to sign
+   * @param {Object} allFieldValues - All field values in document
+   * @param {string} userId - Signer's user ID
+   * @param {string} encryptionKey - Master encryption key
+   * @returns {Promise<Object>} Complete document signature data
+   * @throws {Error} If signing fails
+   */
+  static async signCompleteDocument(documentId, allFieldValues, userId, encryptionKey) {
+    try {
+      // 1. Create document JSON representation
+      const documentJson = JSON.stringify(allFieldValues, null, 2);
+
+      // 2. Calculate document hash
+      const documentHash = this.calculateDocumentHash(documentJson);
+      console.log(`[SIGN] Document hash: ${documentHash.substring(0, 16)}...`);
+
+      // 3. Get user's certificate and private key
+      const certificate = await UserCertificate.findOne({ user_id: userId });
+      if (!certificate) {
+        throw new Error(`No certificate found for user ${userId}`);
+      }
+
+      // 4. Decrypt private key
+      let privateKey;
+      try {
+        privateKey = EncryptionService.decryptPrivateKey(
+          certificate.private_key_encrypted,
+          encryptionKey
+        );
+      } catch (error) {
+        throw new Error(`Failed to decrypt private key: ${error.message}`);
+      }
+
+      // 5. Sign document hash with private key
+      const documentSignature = this._signHash(documentHash, privateKey);
+
+      // 6. Get signer certificate info
+      const result = {
+        document_id: documentId,
+        document_hash: documentHash,
+        document_signature: documentSignature,
+        signer_id: userId,
+        signer_certificate_id: certificate._id,
+        algorithm: 'RSA-SHA256',
+        timestamp: new Date(),
+        field_count: Object.keys(allFieldValues).length,
+        all_fields_signed: true,
+        verified: true
+      };
+
+      console.log(`[SIGN] Complete document signed: ${documentId}`);
+      return result;
+
+    } catch (error) {
+      console.error('[ERROR] Complete document signing failed:', error.message);
+      throw new Error(`Failed to sign complete document: ${error.message}`);
+    }
+  }
+
+  /**
+   * End Phase 8.3.1 Methods
+   * ═══════════════════════════════════════════════════════════════════
+   */
+
+  
    * Process:
    * 1. Get certificate and public key
    * 2. Verify signature against document hash using public key (RSA)
