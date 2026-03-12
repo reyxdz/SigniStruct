@@ -354,14 +354,14 @@ class VerificationService {
       }
 
       const now = new Date();
-      const expiresAt = new Date(certificate.expires_at);
+      const expiresAt = new Date(certificate.not_after || certificate.expires_at);
       const isNotExpired = now < expiresAt;
 
       // Check revocation status
-      const isRevoked = certificate.is_revoked || false;
+      const isRevoked = certificate.is_revoked || certificate.status === 'revoked' || false;
 
-      // Check validity fields
-      const isValid = certificate.is_valid !== false;
+      // Check validity fields - certificate.status should be 'active' for valid
+      const isValid = certificate.status === 'active' || (certificate.is_valid !== false && certificate.status !== 'revoked' && certificate.status !== 'expired');
 
       // Calculate days until expiry
       const daysUntilExpiry = Math.ceil((expiresAt - now) / (1000 * 60 * 60 * 24));

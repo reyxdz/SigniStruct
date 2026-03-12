@@ -66,10 +66,15 @@ exports.signup = async (req, res) => {
     let certificateInfo = null;
     try {
       // Generate RSA key pair and create user certificate
-      // Use password as encryption key for private key
+      // Use MASTER_ENCRYPTION_KEY for consistent encryption/decryption
+      const encryptionKey = process.env.MASTER_ENCRYPTION_KEY;
+      if (!encryptionKey) {
+        throw new Error('MASTER_ENCRYPTION_KEY not configured in environment');
+      }
+      
       certificateInfo = await RSAService.createUserCertificate(
         user._id,
-        password, // Encrypt private key with user's password
+        encryptionKey, // Use master key for consistent encryption
         {
           name: `${user.firstName} ${user.lastName}`,
           email: user.email

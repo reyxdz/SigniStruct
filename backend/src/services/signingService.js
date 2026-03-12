@@ -5,6 +5,7 @@ const DocumentSignature = require('../models/DocumentSignature');
 const UserCertificate = require('../models/UserCertificate');
 const SignatureAuditLog = require('../models/SignatureAuditLog');
 const CertificateService = require('./certificateService');
+const EncryptionService = require('./encryptionService');
 const mongoose = require('mongoose');
 
 /**
@@ -41,8 +42,22 @@ class SigningService {
    * @throws {Error} If signing fails for any reason
    */
   static async signDocument(documentId, userId, signatureData, encryptionKey, metadata = {}) {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    let session = null;
+    let useTransactions = false;
+    
+    // NOTE: Transactions are disabled for standalone MongoDB compatibility
+    // In production with replica sets, you can enable this:
+    /*
+    try {
+      session = await mongoose.startSession();
+      await session.startTransaction();
+      useTransactions = true;
+    } catch (error) {
+      console.warn('[WARN] Transactions not supported:', error.message);
+      useTransactions = false;
+      session = null;
+    }
+    */
 
     try {
       // Validate inputs
@@ -55,7 +70,11 @@ class SigningService {
       }
 
       // 1. Get and validate document
-      const document = await Document.findById(documentId).session(session);
+      let documentQuery = Document.findById(documentId);
+      if (useTransactions && session) {
+        documentQuery = documentQuery.session(session);
+      }
+      const document = await documentQuery;
       if (!document) {
         throw new Error(`Document not found: ${documentId}`);
       }
@@ -67,7 +86,11 @@ class SigningService {
       }
 
       // 3. Get user's certificate
-      const certificate = await UserCertificate.findOne({ user_id: userId }).session(session);
+      let certQuery = UserCertificate.findOne({ user_id: userId });
+      if (useTransactions && session) {
+        certQuery = certQuery.session(session);
+      }
+      const certificate = await certQuery;
       if (!certificate) {
         throw new Error(`No certificate found for user: ${userId}`);
       }
@@ -81,10 +104,9 @@ class SigningService {
       // 4. Decrypt private key
       let privateKey;
       try {
-        privateKey = CertificateService.decryptPrivateKey(
+        privateKey = EncryptionService.decryptPrivateKey(
           certificate.private_key_encrypted,
-          encryptionKey,
-          userId
+          encryptionKey
         );
       } catch (error) {
         throw new Error(`Failed to decrypt private key: ${error.message}`);
@@ -107,13 +129,21 @@ class SigningService {
       });
 
       // 7. Save signature
-      await documentSignature.save({ session });
+      if (useTransactions) {
+        await documentSignature.save({ session });
+      } else {
+        await documentSignature.save();
+      }
 
       // 8. Update document status
       // Check if this completes all required signatures
-      const allSignatures = await DocumentSignature.find({
+      let sigQuery = DocumentSignature.find({
         document_id: documentId
-      }).session(session);
+      });
+      if (useTransactions && session) {
+        sigQuery = sigQuery.session(session);
+      }
+      const allSignatures = await sigQuery;
 
       const requiredSigners = document.signers || [];
       const completedSigners = allSignatures.map(sig => sig.signer_id.toString());
@@ -125,10 +155,14 @@ class SigningService {
 
       document.status = newStatus;
       document.updated_at = new Date();
-      await document.save({ session });
+      if (useTransactions) {
+        await document.save({ session });
+      } else {
+        await document.save();
+      }
 
       // 9. Log to audit trail
-      await SignatureAuditLog.create([{
+      const auditEntry = {
         signer_id: userId,
         document_id: documentId,
         action: 'document_signed',
@@ -142,9 +176,17 @@ class SigningService {
           placement: signatureData.placement
         },
         status: 'success'
-      }], { session });
+      };
+      
+      if (useTransactions) {
+        await SignatureAuditLog.create([auditEntry], { session });
+      } else {
+        await SignatureAuditLog.create(auditEntry);
+      }
 
-      await session.commitTransaction();
+      if (session && useTransactions) {
+        await session.commitTransaction();
+      }
 
       return {
         _id: documentSignature._id,
@@ -158,7 +200,13 @@ class SigningService {
         message: 'Document signed successfully'
       };
     } catch (error) {
-      await session.abortTransaction();
+      if (session && useTransactions) {
+        try {
+          await session.abortTransaction();
+        } catch (abortError) {
+          console.error('[ERROR] Failed to abort transaction:', abortError.message);
+        }
+      }
 
       // Log failure to audit trail
       try {
@@ -182,7 +230,13 @@ class SigningService {
 
       throw error;
     } finally {
-      await session.endSession();
+      if (session && useTransactions) {
+        try {
+          await session.endSession();
+        } catch (error) {
+          console.error('[ERROR] Failed to end session:', error.message);
+        }
+      }
     }
   }
 
