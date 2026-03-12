@@ -1771,6 +1771,320 @@ class DocumentController {
       });
     }
   }
+
+  /**
+   * Phase 8.3.3: Get cryptographic signatures for a document
+   * GET /api/documents/:documentId/signatures/crypto
+   * @access Private
+   */
+  static async getCryptoSignatures(req, res) {
+    try {
+      const { documentId } = req.params;
+
+      // Verify document exists
+      const document = await Document.findById(documentId);
+      if (!document) {
+        return res.status(404).json({
+          success: false,
+          error: 'Document not found'
+        });
+      }
+
+      // Check authorization
+      const isOwner = document.owner_id.toString() === req.user.id;
+      if (!isOwner) {
+        return res.status(403).json({
+          success: false,
+          error: 'Unauthorized to view cryptographic signatures'
+        });
+      }
+
+      // Get cryptographic signatures using query builder
+      const signatures = await DocumentSignature.findCryptoSignatures(documentId)
+        .populate('signer_id', 'name email')
+        .populate('verified_by', 'name email')
+        .sort({ timestamp: -1 });
+
+      // Calculate statistics
+      const verified = signatures.filter(s => s.verified).length;
+      const tampered = signatures.filter(s => !s.verified && s.content_hash).length;
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          total_crypto_signatures: signatures.length,
+          verified: verified,
+          tampered: tampered,
+          signatures: signatures.map(sig => ({
+            _id: sig._id,
+            signer: {
+              _id: sig.signer_id?._id,
+              name: sig.signer_id?.name,
+              email: sig.signer_id?.email
+            },
+            algorithm: sig.algorithm,
+            verified: sig.verified,
+            content_hash: sig.content_hash?.substring(0, 16) + '...',
+            verified_by: sig.verified_by?.name,
+            timestamp: sig.timestamp
+          }))
+        }
+      });
+    } catch (error) {
+      console.error('Get crypto signatures error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to retrieve cryptographic signatures',
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * Phase 8.3.3: Get verified signatures for a document
+   * GET /api/documents/:documentId/signatures/verified
+   * @access Private
+   */
+  static async getVerifiedSignatures(req, res) {
+    try {
+      const { documentId } = req.params;
+
+      // Verify document exists
+      const document = await Document.findById(documentId);
+      if (!document) {
+        return res.status(404).json({
+          success: false,
+          error: 'Document not found'
+        });
+      }
+
+      const signatures = await DocumentSignature.findVerifiedSignatures(documentId)
+        .populate('signer_id', 'name email')
+        .populate('verified_by', 'name email')
+        .sort({ 'verification_metadata.verified_timestamp': -1 });
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          total_verified: signatures.length,
+          signatures: signatures.map(sig => ({
+            _id: sig._id,
+            signer: sig.signer_id?.name,
+            algorithm: sig.algorithm,
+            verified_at: sig.verification_metadata?.verified_timestamp,
+            verified_by: sig.verified_by?.name
+          }))
+        }
+      });
+    } catch (error) {
+      console.error('Get verified signatures error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to retrieve verified signatures',
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * Phase 8.3.3: Get signature statistics for a document
+   * GET /api/documents/:documentId/signatures/statistics
+   * @access Private
+   */
+  static async getSignatureStatistics(req, res) {
+    try {
+      const { documentId } = req.params;
+
+      // Verify document exists and authorization
+      const document = await Document.findById(documentId);
+      if (!document) {
+        return res.status(404).json({
+          success: false,
+          error: 'Document not found'
+        });
+      }
+
+      // Get aggregate statistics using model method
+      const stats = await DocumentSignature.getDocumentSignatureStatistics(documentId);
+
+      // Count total signatures by status
+      const allSignatures = await DocumentSignature.find({ document_id: documentId });
+      const totalSignatures = allSignatures.length;
+      const activeSignatures = await DocumentSignature.findActiveSignatures(documentId).countDocuments();
+      const revokedSignatures = allSignatures.filter(s => s.isRevoked()).length;
+
+      return res.status(200).json({
+        success: true,
+        data: {
+          document_id: documentId,
+          total_signatures: totalSignatures,
+          active_signatures: activeSignatures,
+          revoked_signatures: revokedSignatures,
+          by_algorithm: stats.reduce((acc, item) => {
+            acc[item._id] = {
+              total: item.count,
+              verified: item.verified_count,
+              tampered: item.tampered_count,
+              revoked: item.revoked_count
+            };
+            return acc;
+          }, {}),
+          completion_percentage: totalSignatures > 0 
+            ? Math.round((activeSignatures / totalSignatures) * 100) 
+            : 0
+        }
+      });
+    } catch (error) {
+      console.error('Get signature statistics error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to retrieve signature statistics',
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * Phase 8.3.3: Revoke a signature
+   * POST /api/documents/:documentId/signatures/:signatureId/revoke
+   * @access Private (owner or admin only)
+   */
+  static async revokeSignature(req, res) {
+    try {
+      const { documentId, signatureId } = req.params;
+      const { reason } = req.body;
+
+      // Verify document exists
+      const document = await Document.findById(documentId);
+      if (!document) {
+        return res.status(404).json({
+          success: false,
+          error: 'Document not found'
+        });
+      }
+
+      // Check authorization (owner only)
+      if (document.owner_id.toString() !== req.user.id) {
+        return res.status(403).json({
+          success: false,
+          error: 'Only document owner can revoke signatures'
+        });
+      }
+
+      // Find signature
+      const signature = await DocumentSignature.findById(signatureId);
+      if (!signature) {
+        return res.status(404).json({
+          success: false,
+          error: 'Signature not found'
+        });
+      }
+
+      // Revoke signature
+      signature.revokeSignature(req.user.id, reason || 'No reason provided');
+      await signature.save();
+
+      return res.status(200).json({
+        success: true,
+        message: 'Signature revoked successfully',
+        data: {
+          signature_id: signature._id,
+          revoked_at: signature.revocation_info.revoked_at,
+          revocation_reason: signature.revocation_info.revocation_reason
+        }
+      });
+    } catch (error) {
+      console.error('Revoke signature error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to revoke signature',
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * Phase 8.3.3: Get signature verification report
+   * GET /api/documents/:documentId/signatures/:signatureId/report
+   * @access Private
+   */
+  static async getSignatureReport(req, res) {
+    try {
+      const { documentId, signatureId } = req.params;
+
+      // Verify document exists
+      const document = await Document.findById(documentId);
+      if (!document) {
+        return res.status(404).json({
+          success: false,
+          error: 'Document not found'
+        });
+      }
+
+      // Get signature with full details
+      const signature = await DocumentSignature.findById(signatureId)
+        .populate('signer_id', 'name email')
+        .populate('verified_by', 'name email')
+        .populate('certificate_id');
+
+      if (!signature) {
+        return res.status(404).json({
+          success: false,
+          error: 'Signature not found'
+        });
+      }
+
+      // Build comprehensive report
+      return res.status(200).json({
+        success: true,
+        data: {
+          signature_id: signature._id,
+          document: {
+            _id: documentId,
+            title: document.title
+          },
+          signer: {
+            _id: signature.signer_id?._id,
+            name: signature.signer_id?.name,
+            email: signature.signer_id?.email
+          },
+          signature_info: {
+            type: signature.getSignatureType(),
+            is_crypto: signature.isCryptoSignature(),
+            algorithm: signature.algorithm,
+            verification_status: signature.getVerificationStatus(),
+            is_revoked: signature.isRevoked(),
+            age_days: signature.signature_age_days
+          },
+          cryptographic: {
+            verified: signature.verified,
+            tampered: signature.isTampered(),
+            content_hash: signature.content_hash?.substring(0, 32) + '...',
+            verified_at: signature.verification_metadata?.verified_timestamp,
+            verification_duration_ms: signature.verification_metadata?.verification_duration_ms
+          },
+          audit: {
+            signed_at: signature.timestamp,
+            ip_address: signature.signature_metadata?.ip_address,
+            user_agent: signature.signature_metadata?.user_agent,
+            attempts: signature.signature_metadata?.attempts
+          },
+          revocation: signature.isRevoked() ? {
+            revoked_at: signature.revocation_info.revoked_at,
+            revoked_by: signature.revocation_info.revoked_by,
+            reason: signature.revocation_info.revocation_reason
+          } : null
+        }
+      });
+    } catch (error) {
+      console.error('Get signature report error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to retrieve signature report',
+        message: error.message
+      });
+    }
+  }
 }
 
 module.exports = DocumentController;

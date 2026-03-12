@@ -19,7 +19,11 @@ const {
   updateFields,
   publishDocument,
   getDocumentForSigning,
-  submitSignedField
+  submitSignedField,
+  getCryptoSignatures,
+  getVerifiedSignatures,
+  getSignatureStatistics,
+  getSignatureReport
 } = require('../controllers/documentController');
 const {
   validateSignDocument,
@@ -573,6 +577,154 @@ router.get(
 router.post(
   '/:documentId/sign/:signingToken',
   submitSignedField
+);
+
+/**
+ * Phase 8.3.3 Routes: Enhanced Signature Analytics and Management
+ */
+
+/**
+ * GET /api/documents/:documentId/signatures/crypto
+ * Get all cryptographic signatures for a document
+ * 
+ * @params {
+ *   documentId: string (ObjectId)
+ * }
+ * 
+ * @response {
+ *   success: boolean,
+ *   data: {
+ *     total_crypto_signatures: number,
+ *     verified: number,
+ *     tampered: number,
+ *     signatures: array of signature objects
+ *   }
+ * }
+ * 
+ * @access Private (document owner only)
+ */
+router.get(
+  '/:documentId/signatures/crypto',
+  verifyToken,
+  validateDocumentId,
+  getCryptoSignatures
+);
+
+/**
+ * GET /api/documents/:documentId/signatures/verified
+ * Get all verified cryptographic signatures for a document
+ * 
+ * @params {
+ *   documentId: string (ObjectId)
+ * }
+ * 
+ * @response {
+ *   success: boolean,
+ *   data: {
+ *     total_verified: number,
+ *     signatures: array of verified signature objects
+ *   }
+ * }
+ * 
+ * @access Private
+ */
+router.get(
+  '/:documentId/signatures/verified',
+  verifyToken,
+  validateDocumentId,
+  getVerifiedSignatures
+);
+
+/**
+ * GET /api/documents/:documentId/signatures/statistics
+ * Get comprehensive signature statistics for a document
+ * 
+ * @params {
+ *   documentId: string (ObjectId)
+ * }
+ * 
+ * @response {
+ *   success: boolean,
+ *   data: {
+ *     document_id: ObjectId,
+ *     total_signatures: number,
+ *     active_signatures: number,
+ *     revoked_signatures: number,
+ *     by_algorithm: object,
+ *     completion_percentage: number
+ *   }
+ * }
+ * 
+ * @access Private
+ */
+router.get(
+  '/:documentId/signatures/statistics',
+  verifyToken,
+  validateDocumentId,
+  getSignatureStatistics
+);
+
+/**
+ * GET /api/documents/:documentId/signatures/:signatureId/report
+ * Get detailed verification report for a specific signature
+ * 
+ * @params {
+ *   documentId: string (ObjectId),
+ *   signatureId: string (ObjectId)
+ * }
+ * 
+ * @response {
+ *   success: boolean,
+ *   data: {
+ *     signature_id: ObjectId,
+ *     document: object,
+ *     signer: object,
+ *     signature_info: object,
+ *     cryptographic: object,
+ *     audit: object,
+ *     revocation: object
+ *   }
+ * }
+ * 
+ * @access Private
+ */
+router.get(
+  '/:documentId/signatures/:signatureId/report',
+  verifyToken,
+  validateDocumentId,
+  getSignatureReport
+);
+
+/**
+ * POST /api/documents/:documentId/signatures/:signatureId/revoke
+ * Revoke a signature (mark as invalid)
+ * 
+ * @params {
+ *   documentId: string (ObjectId),
+ *   signatureId: string (ObjectId)
+ * }
+ * 
+ * @body {
+ *   reason: string (optional)
+ * }
+ * 
+ * @response {
+ *   success: boolean,
+ *   message: string,
+ *   data: {
+ *     signature_id: ObjectId,
+ *     revoked_at: Date,
+ *     revocation_reason: string
+ *   }
+ * }
+ * 
+ * @access Private (document owner only)
+ */
+router.post(
+  '/:documentId/signatures/:signatureId/revoke',
+  verifyToken,
+  validateDocumentId,
+  revokeSignature
 );
 
 module.exports = router;
