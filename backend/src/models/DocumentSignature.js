@@ -78,6 +78,36 @@ const documentSignatureSchema = new mongoose.Schema(
     notes: {
       type: String,
       default: null
+    },
+    // Phase 8.3.2: Cryptographic signing fields
+    crypto_signature: {
+      type: String,
+      default: null,
+      index: true // For signature lookup
+    },
+    content_hash: {
+      type: String,
+      default: null // SHA-256 of field content
+    },
+    signature_integrity_hash: {
+      type: String,
+      default: null // SHA-256 of the signature itself
+    },
+    algorithm: {
+      type: String,
+      enum: ['RSA-SHA256', 'RSA-SHA512', 'ECDSA', 'visual-only'],
+      default: 'visual-only',
+      index: true
+    },
+    verified: {
+      type: Boolean,
+      default: false // true = cryptographically verified
+    },
+    // Who verified this signature (could be system admin)
+    verified_by: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null
     }
   },
   {

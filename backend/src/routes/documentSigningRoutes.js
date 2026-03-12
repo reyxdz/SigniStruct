@@ -4,6 +4,8 @@ const { verifyToken } = require('../middleware/authMiddleware');
 const { uploadPDF } = require('../middleware/pdfUpload');
 const {
   signDocument,
+  signFieldCryptographic,
+  verifySignatureCryptographic,
   getDocumentSignatures,
   verifyDocument,
   getSignatureDetails,
@@ -242,6 +244,80 @@ router.post(
   validateDocumentId,
   validateSignDocument,
   signDocument
+);
+
+/**
+ * POST /api/documents/:documentId/sign-field
+ * Phase 8.3.2: Sign a document field with RSA cryptographic signature
+ * 
+ * @body {
+ *   fieldContent: string (field value to sign),
+ *   fieldId: string (field identifier),
+ *   password: string (user password for private key decryption)
+ * }
+ * 
+ * @response {
+ *   success: boolean,
+ *   message: string,
+ *   data: {
+ *     signature_id: ObjectId,
+ *     document_id: ObjectId,
+ *     field_id: string,
+ *     signer_id: ObjectId,
+ *     signer_name: string,
+ *     signer_email: string,
+ *     algorithm: string ('RSA-SHA256'),
+ *     verified: boolean,
+ *     content_hash: string (SHA-256),
+ *     signature_hash: string (SHA-256),
+ *     timestamp: Date
+ *   }
+ * }
+ * 
+ * @access Private
+ */
+router.post(
+  '/:documentId/sign-field',
+  verifyToken,
+  validateDocumentId,
+  signFieldCryptographic
+);
+
+/**
+ * POST /api/documents/:documentId/verify-signature
+ * Phase 8.3.2: Verify a cryptographic signature against document content
+ * Detects tampering by comparing hashes
+ * 
+ * @body {
+ *   signatureId: string (signature to verify),
+ *   fieldContent: string (field content to verify against)
+ * }
+ * 
+ * @response {
+ *   success: boolean,
+ *   message: string,
+ *   data: {
+ *     signature_id: ObjectId,
+ *     is_valid: boolean (signature is valid AND content matches),
+ *     signature_valid: boolean (RSA signature is mathematically valid),
+ *     content_matches: boolean (content hash matches),
+ *     tampering_detected: boolean (content was modified),
+ *     reason: string (explanation),
+ *     algorithm: string,
+ *     signer_name: string,
+ *     signer_email: string,
+ *     signed_at: Date,
+ *     verified_at: Date
+ *   }
+ * }
+ * 
+ * @access Private
+ */
+router.post(
+  '/:documentId/verify-signature',
+  verifyToken,
+  validateDocumentId,
+  verifySignatureCryptographic
 );
 
 /**

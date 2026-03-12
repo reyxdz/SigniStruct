@@ -128,6 +128,296 @@ class DocumentController {
   }
 
   /**
+   * Phase 8.3.2: Sign a document field with RSA cryptographic signature
+   * POST /api/documents/:documentId/sign-field
+   * @access Private
+   * @body { fieldContent, fieldId, password }
+   */
+  static async signFieldCryptographic(req, res) {
+    try {
+      const { documentId } = req.params;
+      const { fieldContent, fieldId, password } = req.body;
+      const userId = req.user.id;
+      const encryptionKey = process.env.MASTER_ENCRYPTION_KEY;
+
+      console.log('🔐 Phase 8.3.2: Cryptographic Field Signing');
+      console.log('  Document ID:', documentId);
+      console.log('  Field ID:', fieldId);
+      console.log('  User ID:', userId);
+      console.log('  Content length:', fieldContent?.length || 0);
+
+      // Validate inputs
+      if (!fieldContent || !fieldId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Missing required fields: fieldContent and fieldId'
+        });
+      }
+
+      if (!password) {
+        return res.status(400).json({
+          success: false,
+          error: 'Password required for cryptographic signing'
+        });
+      }
+
+      if (!encryptionKey) {
+        console.error('❌ Server configuration error: MASTER_ENCRYPTION_KEY missing');
+        return res.status(500).json({
+          success: false,
+          error: 'Server configuration error: encryption key missing'
+        });
+      }
+
+      // Verify document exists
+      const document = await Document.findById(documentId);
+      if (!document) {
+        return res.status(404).json({
+          success: false,
+          error: 'Document not found'
+        });
+      }
+
+      // Verify user is authorized to sign
+      const isOwner = document.owner_id.toString() === userId;
+      const isSigner = document.signers && document.signers.some(
+        signer => signer.user_id && signer.user_id.toString() === userId
+      );
+
+      if (!isOwner && !isSigner) {
+        return res.status(403).json({
+          success: false,
+          error: 'You are not authorized to sign this document'
+        });
+      }
+
+      // Check if already signed same field
+      const existingSignature = await DocumentSignature.findOne({
+        document_id: documentId,
+        signer_id: userId,
+        'signature_placement.x': { $exists: true }
+      });
+
+      if (existingSignature && existingSignature.status === 'signed') {
+        return res.status(409).json({
+          success: false,
+          error: 'You have already signed this document'
+        });
+      }
+
+      // Call Phase 8.3.1 cryptographic signing method
+      const cryptoSignature = await SigningService.signField(
+        documentId,
+        fieldContent,
+        userId,
+        encryptionKey
+      );
+
+      console.log('✅ RSA Signature Generated');
+      console.log('  Algorithm:', cryptoSignature.algorithm);
+      console.log('  Content Hash:', cryptoSignature.content_hash.substring(0, 32) + '...');
+      console.log('  Signature Hash:', cryptoSignature.signature_hash.substring(0, 32) + '...');
+
+      // Create/update DocumentSignature with crypto data
+      const signature = await DocumentSignature.findOneAndUpdate(
+        {
+          document_id: documentId,
+          signer_id: userId,
+          fields: fieldId
+        },
+        {
+          status: 'signed',
+          signer_id: userId,
+          certificate_id: cryptoSignature.certificate_id,
+          // Phase 8.3.2: Store cryptographic signature data
+          crypto_signature: cryptoSignature.signature,
+          content_hash: cryptoSignature.content_hash,
+          signature_integrity_hash: cryptoSignature.signature_hash,
+          algorithm: cryptoSignature.algorithm,
+          verified: cryptoSignature.verified,
+          verification_timestamp: new Date(),
+          is_valid: true,
+          fields: [fieldId]
+        },
+        { 
+          new: true,
+          upsert: true
+        }
+      );
+
+      console.log('✅ Signature stored in database');
+      console.log('  Signature ID:', signature._id);
+      console.log('  Status:', signature.status);
+      console.log('  Algorithm:', signature.algorithm);
+      console.log('  Verified:', signature.verified);
+
+      // Phase 8.3.2: Log to audit trail
+      const SignatureAuditLog = require('../models/SignatureAuditLog');
+      await SignatureAuditLog.create({
+        action: 'FIELD_SIGNED_CRYPTOGRAPHIC',
+        user_id: userId,
+        document_id: documentId,
+        signature_id: signature._id,
+        details: {
+          field_id: fieldId,
+          algorithm: cryptoSignature.algorithm,
+          content_hash: cryptoSignature.content_hash,
+          signature_hash: cryptoSignature.signature_hash,
+          certificate_id: cryptoSignature.certificate_id,
+          ip_address: req.ip,
+          user_agent: req.get('user-agent'),
+          timestamp: new Date()
+        }
+      });
+
+      console.log('✅ Audit log created');
+
+      // Get user info for response
+      const user = await User.findById(userId).select('name email');
+
+      return res.status(201).json({
+        success: true,
+        message: 'Field signed cryptographically',
+        data: {
+          signature_id: signature._id,
+          document_id: documentId,
+          field_id: fieldId,
+          signer_id: userId,
+          signer_name: user.name,
+          signer_email: user.email,
+          algorithm: signature.algorithm,
+          verified: signature.verified,
+          content_hash: signature.content_hash,
+          signature_hash: signature.signature_integrity_hash,
+          timestamp: signature.verification_timestamp
+        }
+      });
+
+    } catch (error) {
+      console.error('❌ Cryptographic signing error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to sign field cryptographically',
+        message: error.message
+      });
+    }
+  }
+
+  /**
+   * Verify a cryptographic signature
+   * POST /api/documents/:documentId/verify-signature
+   * @access Private
+   * @body { signatureId, fieldContent }
+   */
+  static async verifySignatureCryptographic(req, res) {
+    try {
+      const { documentId } = req.params;
+      const { signatureId, fieldContent } = req.body;
+      const userId = req.user.id;
+
+      console.log('🔍 Phase 8.3.2: Verifying Cryptographic Signature');
+      console.log('  Document ID:', documentId);
+      console.log('  Signature ID:', signatureId);
+      console.log('  Content length:', fieldContent?.length || 0);
+
+      // Validate inputs
+      if (!signatureId || !fieldContent) {
+        return res.status(400).json({
+          success: false,
+          error: 'Missing signatureId or fieldContent'
+        });
+      }
+
+      // Get signature
+      const signature = await DocumentSignature.findById(signatureId)
+        .populate('signer_id', 'name email')
+        .populate('certificate_id');
+
+      if (!signature) {
+        return res.status(404).json({
+          success: false,
+          error: 'Signature not found'
+        });
+      }
+
+      // Verify document match
+      if (signature.document_id.toString() !== documentId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Signature does not belong to this document'
+        });
+      }
+
+      // Check if signature has crypto data
+      if (!signature.crypto_signature) {
+        return res.status(400).json({
+          success: false,
+          error: 'This signature does not have cryptographic data'
+        });
+      }
+
+      // Verify using Phase 8.3.1 verification method
+      const verification = await SigningService.verifyCryptographicSignature(
+        signature.crypto_signature,
+        signature.content_hash,
+        signature.signer_id._id
+      );
+
+      console.log('✅ Signature Verification Result');
+      console.log('  Is Valid:', verification.is_valid);
+      console.log('  Reason:', verification.reason);
+      console.log('  Algorithm:', verification.algorithm);
+
+      // Check if document content matches
+      const currentHash = SigningService.calculateDocumentHash(fieldContent);
+      const contentMatches = currentHash === signature.content_hash;
+
+      console.log('✅ Content Verification');
+      console.log('  Content Matches:', contentMatches);
+      console.log('  Original Hash:', signature.content_hash.substring(0, 32) + '...');
+      console.log('  Current Hash: ', currentHash.substring(0, 32) + '...');
+
+      // Update verification if needed
+      if (verification.is_valid && contentMatches && !signature.verified) {
+        await DocumentSignature.findByIdAndUpdate(
+          signatureId,
+          {
+            verified: true,
+            verified_by: userId,
+            verification_timestamp: new Date()
+          }
+        );
+      }
+
+      return res.status(200).json({
+        success: true,
+        message: 'Signature verification complete',
+        data: {
+          signature_id: signatureId,
+          is_valid: verification.is_valid && contentMatches,
+          signature_valid: verification.is_valid,
+          content_matches: contentMatches,
+          tampering_detected: !contentMatches,
+          reason: verification.reason,
+          algorithm: signature.algorithm,
+          signer_name: signature.signer_id.name,
+          signer_email: signature.signer_id.email,
+          signed_at: signature.timestamp,
+          verified_at: new Date()
+        }
+      });
+
+    } catch (error) {
+      console.error('❌ Signature verification error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to verify signature',
+        message: error.message
+      });
+    }
+  }
+
+  /**
    * Get a single document by ID with full details and file data
    * GET /api/documents/:documentId
    * @access Private
