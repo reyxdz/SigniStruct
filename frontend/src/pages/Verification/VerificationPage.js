@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
@@ -20,15 +20,10 @@ const VerificationPage = () => {
   const [error, setError] = useState('');
   const [downloading, setDownloading] = useState(false);
 
-  // Fetch verification on mount
-  useEffect(() => {
-    fetchVerification();
-  }, [documentId]);
-
   /**
    * Fetch document verification status
    */
-  const fetchVerification = async () => {
+  const fetchVerification = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -47,7 +42,12 @@ const VerificationPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [documentId]);
+
+  // Fetch verification on mount
+  useEffect(() => {
+    fetchVerification();
+  }, [fetchVerification]);
 
   /**
    * Download verification certificate

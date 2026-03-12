@@ -492,7 +492,9 @@ class SigningService {
    * ═══════════════════════════════════════════════════════════════════
    */
 
-  
+  /**
+   * Verify a stored signature against a document hash (Phase 8.1 method)
+   * 
    * Process:
    * 1. Get certificate and public key
    * 2. Verify signature against document hash using public key (RSA)
