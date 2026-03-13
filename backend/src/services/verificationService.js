@@ -56,6 +56,13 @@ class VerificationService {
 
       for (const signature of signatures) {
         try {
+          console.log(`\n📋 Verifying signature: ${signature._id}`);
+          console.log(`   Signer: ${signature.signer_id?.email || 'Unknown'}`);
+          console.log(`   Status in DB: ${signature.status}`);
+          console.log(`   Has signature_hash: ${!!signature.signature_hash}`);
+          console.log(`   Has certificate_id: ${!!signature.certificate_id}`);
+          console.log(`   is_valid flag: ${signature.is_valid}`);
+          
           const verification = await this.verifySignature(
             signature._id.toString(),
             {
@@ -63,12 +70,18 @@ class VerificationService {
               skipAuditLog: true // Bulk operation, will log once
             }
           );
+          
+          console.log(`   Verification result: ${verification.is_valid ? '✅ VALID' : '❌ INVALID'}`);
+          if (verification.errors && verification.errors.length > 0) {
+            console.log(`   Errors: ${verification.errors.join(', ')}`);
+          }
+          
           signatureVerifications.push(verification);
           if (verification.is_valid) {
             validSignatureCount++;
           }
         } catch (error) {
-          console.error(`Error verifying signature ${signature._id}:`, error);
+          console.error(`❌ Error verifying signature ${signature._id}:`, error);
           signatureVerifications.push({
             signature_id: signature._id.toString(),
             is_valid: false,
@@ -150,11 +163,15 @@ class VerificationService {
         throw new Error('Signature not found');
       }
 
+      console.log(`[VERIFY] Signature ${signatureId}: signer=${signature.signer_id?.email}, status=${signature.status}, is_valid=${signature.is_valid}`);
+
       // Verify signature cryptographically
       const cryptoVerification = await this._verifyCryptographicSignature(signature);
+      console.log(`[VERIFY] Crypto check: ${cryptoVerification.is_valid ? 'PASS' : 'FAIL'} (${cryptoVerification.error || 'OK'})`);
 
       // Check certificate validity
       const certificateStatus = await this._verifyCertificate(signature.certificate_id);
+      console.log(`[VERIFY] Cert check: valid=${certificateStatus.is_valid}, revoked=${certificateStatus.is_revoked}, expired=${!certificateStatus.is_not_expired}`);
 
       // Determine overall signature validity
       const isValid =
@@ -163,6 +180,8 @@ class VerificationService {
         certificateStatus.is_valid &&
         !certificateStatus.is_revoked &&
         certificateStatus.is_not_expired;
+      
+      console.log(`[VERIFY] Final result: ${isValid ? '✅ VALID' : '❌ INVALID'}`);
 
       const verificationResult = {
         signature_id: signatureId,
@@ -349,6 +368,7 @@ class VerificationService {
   async _verifyCertificate(certificate) {
     try {
       if (!certificate) {
+        console.log(`[CERT] Certificate not found`);
         return {
           is_valid: false,
           is_revoked: false,
@@ -367,6 +387,8 @@ class VerificationService {
 
       // Check validity fields - certificate.status should be 'active' for valid
       const isValid = certificate.status === 'active' || (certificate.is_valid !== false && certificate.status !== 'revoked' && certificate.status !== 'expired');
+
+      console.log(`[CERT] ID: ${certificate._id}, status: ${certificate.status}, valid: ${isValid}, revoked: ${isRevoked}, not_expired: ${isNotExpired}`);
 
       // Calculate days until expiry
       const daysUntilExpiry = Math.ceil((expiresAt - now) / (1000 * 60 * 60 * 24));
