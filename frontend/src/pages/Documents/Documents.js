@@ -505,35 +505,92 @@ const Documents = () => {
                       <td style={documentsStyles.td}>
                         <div style={documentsStyles.actions}>
                           {activeTab === 'assigned' ? (
-                            displayStatus === 'signed' ? (
-                              // Show View button for already signed documents
+                            <>
+                              {displayStatus === 'signed' ? (
+                                // Show View button for already signed documents
+                                <a
+                                  href={`/documents/${doc._id || doc.id}/sign/${doc.signing_token}`}
+                                  style={{
+                                    ...documentsStyles.actionButton,
+                                    backgroundColor: colors.gray100,
+                                    color: colors.gray700,
+                                    border: `1px solid ${colors.gray300}`,
+                                  }}
+                                  onMouseOver={(e) => {
+                                    e.target.style.opacity = '0.9';
+                                    e.target.style.backgroundColor = colors.gray200;
+                                  }}
+                                  onMouseOut={(e) => {
+                                    e.target.style.opacity = '1';
+                                    e.target.style.backgroundColor = colors.gray100;
+                                  }}
+                                >
+                                  View
+                                </a>
+                              ) : (
+                                // Show Sign button for pending documents
+                                <a
+                                  href={`/documents/${doc._id || doc.id}/sign/${doc.signing_token}`}
+                                  style={{
+                                    ...documentsStyles.actionButton,
+                                    ...documentsStyles.signButton,
+                                  }}
+                                  onMouseOver={(e) => {
+                                    e.target.style.opacity = '0.9';
+                                  }}
+                                  onMouseOut={(e) => {
+                                    e.target.style.opacity = '1';
+                                  }}
+                                >
+                                  Sign
+                                </a>
+                              )}
+                              {/* Verify button for assigned documents (recipients verify before signing) */}
                               <a
-                                href={`/documents/${doc._id || doc.id}/sign/${doc.signing_token}`}
-                                style={{
-                                  ...documentsStyles.actionButton,
-                                  backgroundColor: colors.gray100,
-                                  color: colors.gray700,
-                                  border: `1px solid ${colors.gray300}`,
-                                }}
+                                href={`/documents/${doc._id || doc.id}/verify`}
+                                style={{...documentsStyles.actionButton, backgroundColor: colors.info, color: colors.white, border: `1px solid ${colors.info}`}}
                                 onMouseOver={(e) => {
                                   e.target.style.opacity = '0.9';
-                                  e.target.style.backgroundColor = colors.gray200;
                                 }}
                                 onMouseOut={(e) => {
                                   e.target.style.opacity = '1';
-                                  e.target.style.backgroundColor = colors.gray100;
+                                }}
+                              >
+                                Verify
+                              </a>
+                            </>
+                          ) : activeTab === 'published' ? (
+                            <>
+                              <a
+                                href={`/documents/${doc._id || doc.id}/editor`}
+                                style={documentsStyles.actionButton}
+                                onMouseOver={(e) => {
+                                  e.target.style.backgroundColor =
+                                    colors.primaryVeryLight;
+                                }}
+                                onMouseOut={(e) => {
+                                  e.target.style.backgroundColor = 'transparent';
                                 }}
                               >
                                 View
                               </a>
-                            ) : (
-                              // Show Sign button for pending documents
                               <a
-                                href={`/documents/${doc._id || doc.id}/sign/${doc.signing_token}`}
-                                style={{
-                                  ...documentsStyles.actionButton,
-                                  ...documentsStyles.signButton,
+                                href={`/documents/${doc._id || doc.id}/share`}
+                                style={documentsStyles.actionButton}
+                                onMouseOver={(e) => {
+                                  e.target.style.backgroundColor =
+                                    colors.primaryVeryLight;
                                 }}
+                                onMouseOut={(e) => {
+                                  e.target.style.backgroundColor = 'transparent';
+                                }}
+                              >
+                                Share
+                              </a>
+                              {/* Verify button for published documents (publishers verify after signing) */}
+                              <a
+                                href={`/documents/${doc._id || doc.id}/verify`}
+                                style={{...documentsStyles.actionButton, backgroundColor: colors.info, color: colors.white, border: `1px solid ${colors.info}`}}
                                 onMouseOver={(e) => {
                                   e.target.style.opacity = '0.9';
                                 }}
@@ -541,9 +598,9 @@ const Documents = () => {
                                   e.target.style.opacity = '1';
                                 }}
                               >
-                                Sign
+                                Verify
                               </a>
-                            )
+                            </>
                           ) : (
                             <>
                               <a
@@ -572,18 +629,7 @@ const Documents = () => {
                               >
                                 Share
                               </a>
-                              <a
-                                href={`/documents/${doc._id || doc.id}/verify`}
-                                style={{...documentsStyles.actionButton, backgroundColor: colors.info, color: colors.white, border: `1px solid ${colors.info}`}}
-                                onMouseOver={(e) => {
-                                  e.target.style.opacity = '0.9';
-                                }}
-                                onMouseOut={(e) => {
-                                  e.target.style.opacity = '1';
-                                }}
-                              >
-                                Verify
-                              </a>
+                              {/* Draft documents: no Verify button */}
                             </>
                           )}
                         </div>

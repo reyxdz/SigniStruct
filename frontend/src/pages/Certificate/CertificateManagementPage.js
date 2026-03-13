@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useContext, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { FiRefreshCw, FiAlertCircle } from 'react-icons/fi';
-import { AuthContext } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import CertificateService from '../../services/certificateService';
-import CertificateCard from '../../components/Dashboard/CertificateCard';
-import ExpiryWarning from '../../components/Dashboard/ExpiryWarning';
-import RenewModal from '../../components/Dashboard/RenewModal';
-import CertificateDetailsModal from '../../components/Dashboard/CertificateDetailsModal';
+import CertificateCard from '../../components/dashboard/CertificateCard';
+import ExpiryWarning from '../../components/dashboard/ExpiryWarning';
+import RenewModal from '../../components/dashboard/RenewModal';
+import CertificateDetailsModal from '../../components/dashboard/CertificateDetailsModal';
 import { colors, spacing, typography, borderRadius } from '../../theme';
 import './CertificateManagementPage.css';
 
@@ -14,7 +14,7 @@ import './CertificateManagementPage.css';
  * Display, renew, download, and manage user certificates
  */
 const CertificateManagementPage = () => {
-  const { user } = useContext(AuthContext);
+  const { user } = useAuth();
 
   // State
   const [certificates, setCertificates] = useState([]);

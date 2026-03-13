@@ -7,12 +7,18 @@ import api from './api';
 const CertificateService = {
   /**
    * Get user's active certificate
+   * Returns null if no active certificate exists
    */
   async getActiveCertificate() {
     try {
       const response = await api.get('/certificates/my-certificate');
       return response.data.certificate;
     } catch (error) {
+      // Handle 404 - no certificate found, return null
+      if (error.response?.status === 404) {
+        console.log('No active certificate found');
+        return null;
+      }
       console.error('Error fetching active certificate:', error);
       throw error;
     }
@@ -20,12 +26,18 @@ const CertificateService = {
 
   /**
    * Get all user's certificates (active, revoked, expired, superseded)
+   * Returns empty array if no certificates exist
    */
   async getAllCertificates(userId) {
     try {
       const response = await api.get(`/certificates/user/${userId}/all`);
       return response.data.certificates;
     } catch (error) {
+      // Handle 404 - no certificates found, return empty array
+      if (error.response?.status === 404) {
+        console.log('No certificates found for user');
+        return [];
+      }
       console.error('Error fetching all certificates:', error);
       throw error;
     }
