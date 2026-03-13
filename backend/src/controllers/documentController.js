@@ -219,25 +219,41 @@ class DocumentController {
       console.log('  Signature Hash:', cryptoSignature.signature_hash.substring(0, 32) + '...');
 
       // Create/update DocumentSignature with crypto data
+      // Find the pending signature by document_id and fields (not by signer_id, which might be null)
       const signature = await DocumentSignature.findOneAndUpdate(
         {
           document_id: documentId,
-          signer_id: userId,
-          fields: fieldId
+          fields: { $in: [fieldId] },
+          status: 'pending'  // Only update pending signatures
         },
         {
-          status: 'signed',
-          signer_id: userId,
-          certificate_id: cryptoSignature.certificate_id,
-          // Phase 8.3.2: Store cryptographic signature data
-          crypto_signature: cryptoSignature.signature,
-          content_hash: cryptoSignature.content_hash,
-          signature_integrity_hash: cryptoSignature.signature_hash,
-          algorithm: cryptoSignature.algorithm,
-          verified: cryptoSignature.verified,
-          verification_timestamp: new Date(),
-          is_valid: true,
-          fields: [fieldId]
+          $set: {
+            status: 'signed',
+            signer_id: userId,  // Set signer_id when actually signing
+            certificate_id: cryptoSignature.certificate_id,
+            // Phase 8.3.2: Store cryptographic signature data
+            crypto_signature: cryptoSignature.signature,
+            content_hash: cryptoSignature.content_hash,
+            signature_integrity_hash: cryptoSignature.signature_hash,
+            signature_hash: cryptoSignature.signature_hash,
+            algorithm: cryptoSignature.algorithm,
+            verified: cryptoSignature.verified,
+            verification_timestamp: new Date(),
+            is_valid: true,
+            fields: [fieldId],
+            created_at: new Date()
+          }
+        },
+        { new: true, runValidators: false }
+      );
+
+      if (!signature) {
+        console.error(`❌ Could not find pending signature for document ${documentId}, field ${fieldId}`);
+        return res.status(400).json({
+          success: false,
+          error: 'Signature record not found. Document may not have recipient field assigned to you.'
+        });
+      }
         },
         { 
           new: true,

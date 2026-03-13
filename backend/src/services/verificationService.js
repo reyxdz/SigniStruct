@@ -186,8 +186,8 @@ class VerificationService {
       const verificationResult = {
         signature_id: signatureId,
         is_valid: isValid,
-        signer_email: signature.signer_id?.email,
-        signer_name: signature.signer_id?.name,
+        signer_email: signature.signer_id?.email || signature.recipient_email || 'Unknown Signer',
+        signer_name: signature.signer_id?.name || signature.recipient_name || 'Unknown',
         signed_at: signature.created_at,
         status: isValid ? 'valid' : 'invalid',
         certificate_valid: certificateStatus.is_valid,
