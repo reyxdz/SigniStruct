@@ -203,6 +203,20 @@ const Header = ({ user, onLogout }) => {
           >
             Documents
           </a>
+          <a
+            href="/certificates"
+            style={headerStyles.navLink}
+            onMouseOver={(e) => {
+              e.target.style.color = colors.primary;
+              e.target.style.backgroundColor = colors.primaryVeryLight;
+            }}
+            onMouseOut={(e) => {
+              e.target.style.color = colors.gray700;
+              e.target.style.backgroundColor = 'transparent';
+            }}
+          >
+            Certificates
+          </a>
         </nav>
 
         {/* User Menu */}
