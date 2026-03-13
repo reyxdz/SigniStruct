@@ -254,12 +254,6 @@ class DocumentController {
           error: 'Signature record not found. Document may not have recipient field assigned to you.'
         });
       }
-        },
-        { 
-          new: true,
-          upsert: true
-        }
-      );
 
       console.log('✅ Signature stored in database');
       console.log('  Signature ID:', signature._id);
