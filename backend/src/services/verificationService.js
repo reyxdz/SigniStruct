@@ -114,9 +114,14 @@ class VerificationService {
         signatures: signatureVerifications.map(v => ({
           signature_id: v.signature_id,
           is_valid: v.is_valid,
-          signer_email: v.signer_email,
+          signer: {
+            email: v.signer_email,
+            name: v.signer_name
+          },
           signed_at: v.signed_at,
           certificate_valid: v.certificate_valid,
+          certificate_expire_date: v.certificate_expire_date,
+          is_revoked: v.is_revoked,
           errors: v.errors
         }))
       };
