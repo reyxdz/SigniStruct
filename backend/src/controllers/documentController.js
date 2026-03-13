@@ -254,11 +254,11 @@ class DocumentController {
       // Phase 8.3.2: Log to audit trail
       const SignatureAuditLog = require('../models/SignatureAuditLog');
       await SignatureAuditLog.create({
-        action: 'FIELD_SIGNED_CRYPTOGRAPHIC',
-        user_id: userId,
+        action: 'field_signed_cryptographic',
+        signer_id: userId,
         document_id: documentId,
-        signature_id: signature._id,
         details: {
+          signature_id: signature._id,
           field_id: fieldId,
           algorithm: cryptoSignature.algorithm,
           content_hash: cryptoSignature.content_hash,
@@ -275,11 +275,18 @@ class DocumentController {
       // Get user info for response
       const user = await User.findById(userId).select('name email');
 
-      return res.status(201).json({
+      // Debug: Log what we're returning
+      console.log('🔐 Response Signature Data Check:');
+      console.log('  crypto_signature:', signature.crypto_signature ? `${signature.crypto_signature.substring(0, 32)}...` : 'MISSING');
+      console.log('  crypto_signature type:', typeof signature.crypto_signature);
+      console.log('  content_hash:', signature.content_hash ? `${signature.content_hash.substring(0, 32)}...` : 'MISSING');
+      console.log('  algorithm:', signature.algorithm);
+
+      return res.status(200).json({
         success: true,
         message: 'Field signed cryptographically',
         data: {
-          signature_id: signature._id,
+          _id: signature._id,
           document_id: documentId,
           field_id: fieldId,
           signer_id: userId,
@@ -288,6 +295,7 @@ class DocumentController {
           algorithm: signature.algorithm,
           verified: signature.verified,
           content_hash: signature.content_hash,
+          crypto_signature: signature.crypto_signature,
           signature_hash: signature.signature_integrity_hash,
           timestamp: signature.verification_timestamp
         }
@@ -345,6 +353,28 @@ class DocumentController {
         return res.status(400).json({
           success: false,
           error: 'Signature does not belong to this document'
+        });
+      }
+
+      // Check if signature has been revoked
+      if (signature.revocation_info?.is_revoked) {
+        console.log('⚠️  Signature is revoked - verification failed');
+        return res.status(200).json({
+          success: true,
+          message: 'Signature verification complete',
+          data: {
+            signature_id: signatureId,
+            is_valid: false,
+            signature_valid: false,
+            content_matches: false,
+            tampering_detected: false,
+            reason: 'Signature has been revoked',
+            algorithm: signature.algorithm,
+            signer_name: signature.signer_id?.name || 'Unknown',
+            signer_email: signature.signer_id?.email || 'Unknown',
+            signed_at: signature.timestamp,
+            verified_at: new Date()
+          }
         });
       }
 
@@ -424,6 +454,11 @@ class DocumentController {
    */
   static async getDocument(req, res) {
     try {
+      console.log('📂 getDocument handler called (catch-all route)');
+      console.log('  req.path:', req.path);
+      console.log('  req.url:', req.url);
+      console.log('  req.params:', JSON.stringify(req.params));
+      
       // CRITICAL: Check if req.user exists
       if (!req.user || !req.user.id) {
         console.error('❌ CRITICAL: req.user is not set!');
@@ -700,6 +735,11 @@ class DocumentController {
    */
   static async getDocumentSignatures(req, res) {
     try {
+      console.log('📋 getDocumentSignatures handler called');
+      console.log('  Full URL:', req.originalUrl);
+      console.log('  Path:', req.path);
+      console.log('  Base URL:', req.baseUrl);
+      console.log('  req.params:', JSON.stringify(req.params));
       const { documentId } = req.params;
 
       // Verify document exists
@@ -824,6 +864,9 @@ class DocumentController {
    */
   static async getSignatureDetails(req, res) {
     try {
+      console.log('📑 getSignatureDetails handler called (/:documentId/signatures/:signatureId)');
+      console.log('  req.path:', req.path);
+      console.log('  req.params:', JSON.stringify(req.params));
       const { documentId, signatureId } = req.params;
 
       // Verify document exists
@@ -1779,7 +1822,13 @@ class DocumentController {
    */
   static async getCryptoSignatures(req, res) {
     try {
+      console.log('🔐 getCryptoSignatures handler called');
+      console.log('  req.path:', req.path);
+      console.log('  req.url:', req.url);
+      console.log('  req.baseUrl:', req.baseUrl);
+      console.log('  req.params:', JSON.stringify(req.params));
       const { documentId } = req.params;
+      console.log('  documentId param:', documentId);
 
       // Verify document exists
       const document = await Document.findById(documentId);
@@ -1893,7 +1942,12 @@ class DocumentController {
    */
   static async getSignatureStatistics(req, res) {
     try {
+      console.log('📊 getSignatureStatistics handler called');
+      console.log('  req.path:', req.path);
+      console.log('  req.url:', req.url);
+      console.log('  req.params:', JSON.stringify(req.params));
       const { documentId } = req.params;
+      console.log('  documentId param:', documentId);
 
       // Verify document exists and authorization
       const document = await Document.findById(documentId);

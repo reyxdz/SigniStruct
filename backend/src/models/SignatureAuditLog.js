@@ -19,6 +19,7 @@ const signatureAuditLogSchema = new mongoose.Schema(
         'certificate_generated',
         'certificate_revoked',
         'signature_created',
+        'field_signed_cryptographic',
         'document_signed',
         'signature_verified',
         'document_verified',

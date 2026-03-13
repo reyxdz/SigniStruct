@@ -908,7 +908,7 @@ Verification Flow:
 
 ### Implementation
 
-#### 8.3.1: Update `signingService.js` with RSA Signing
+#### ✅ 8.3.1: Update `signingService.js` with RSA Signing --- DONE
 
 **File**: `backend/src/services/signingService.js`
 
@@ -1060,7 +1060,7 @@ module.exports = SigningService;
 
 ---
 
-#### 8.3.2: Update Document Signing Endpoint
+#### ✅ 8.3.2: Update Document Signing Endpoint --- DONE
 
 **File**: `backend/src/controllers/documentController.js`
 
@@ -1141,7 +1141,7 @@ exports.submitSignedField = async (req, res) => {
 
 ---
 
-#### 8.3.3: Update DocumentSignature Model
+#### ✅ 8.3.3: Update DocumentSignature Model --- DONE
 
 **File**: `backend/src/models/DocumentSignature.js`
 
@@ -1187,16 +1187,16 @@ const documentSignatureSchema = new mongoose.Schema({
 
 ---
 
-### Tasks for Phase 8.3
+### Tasks for Phase 8.3 --- ✅ COMPLETED
 
-- [ ] Update/create `signingService.js` with RSA signing methods
-- [ ] Update document signing controller endpoint
-- [ ] Update `DocumentSignature` model with crypto fields
-- [ ] Test signing with real RSA keys
-- [ ] Verify signature verification works
-- [ ] Test with multiple signers
-- [ ] Verify integrity hashes are correct
-- [ ] Log all signing actions
+- [✅] Update/create `signingService.js` with RSA signing methods
+- [✅] Update document signing controller endpoint
+- [✅] Update `DocumentSignature` model with crypto fields
+- [✅] Test signing with real RSA keys
+- [✅] Verify signature verification works
+- [✅] Test with multiple signers
+- [✅] Verify integrity hashes are correct
+- [✅] Log all signing actions
 
 ### Estimated Time
 **4-5 days** - Includes extensive testing of cryptographic operations

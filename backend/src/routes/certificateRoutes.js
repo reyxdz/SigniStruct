@@ -40,6 +40,23 @@ router.get(
 );
 
 /**
+ * GET /api/certificates/my-certificate
+ * Retrieve the current user's active certificate
+ * Convenience endpoint for authenticated users
+ * @access Private
+ */
+router.get(
+  '/my-certificate',
+  verifyToken,
+  (req, res, next) => {
+    // Set userId to current user and pass to getUserCertificate
+    req.params.userId = req.user.id;
+    next();
+  },
+  getUserCertificate
+);
+
+/**
  * GET /api/certificates/user/:userId/all
  * Retrieve all certificates (active and revoked) for a user
  * @access Private

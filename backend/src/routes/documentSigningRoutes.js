@@ -208,7 +208,6 @@ router.get('/:documentId/preview', verifyToken, getDocumentPreview);
  * @access Private
  * @security Requires document ownership
  */
-router.get('/:documentId', verifyToken, getDocument);
 
 /**
  * POST /api/documents/:documentId/sign
@@ -357,12 +356,6 @@ router.post(
  * 
  * @access Private
  */
-router.get(
-  '/:documentId/signatures',
-  verifyToken,
-  validateDocumentId,
-  getDocumentSignatures
-);
 
 /**
  * GET /api/documents/:documentId/signatures/:signatureId
@@ -386,12 +379,6 @@ router.get(
  * 
  * @access Private
  */
-router.get(
-  '/:documentId/signatures/:signatureId',
-  verifyToken,
-  validateDocumentId,
-  getSignatureDetails
-);
 
 /**
  * POST /api/documents/:documentId/verify
@@ -606,7 +593,6 @@ router.post(
 router.get(
   '/:documentId/signatures/crypto',
   verifyToken,
-  validateDocumentId,
   getCryptoSignatures
 );
 
@@ -631,7 +617,6 @@ router.get(
 router.get(
   '/:documentId/signatures/verified',
   verifyToken,
-  validateDocumentId,
   getVerifiedSignatures
 );
 
@@ -660,7 +645,6 @@ router.get(
 router.get(
   '/:documentId/signatures/statistics',
   verifyToken,
-  validateDocumentId,
   getSignatureStatistics
 );
 
@@ -691,7 +675,6 @@ router.get(
 router.get(
   '/:documentId/signatures/:signatureId/report',
   verifyToken,
-  validateDocumentId,
   getSignatureReport
 );
 
@@ -726,6 +709,97 @@ router.post(
   validateDocumentId,
   revokeSignature
 );
+
+/**
+ * GET /api/documents/:documentId/signatures
+ * Get all signatures on a document
+ * 
+ * @response {
+ *   success: boolean,
+ *   signatures: [{
+ *     _id: ObjectId,
+ *     document_id: ObjectId,
+ *     signer: { _id, name, email },
+ *     certificate_id: ObjectId,
+ *     certificate_valid_from: Date,
+ *     certificate_valid_to: Date,
+ *     is_valid: boolean,
+ *     verification_timestamp: Date,
+ *     placement: object,
+ *     created_at: Date
+ *   }]
+ * }
+ * 
+ * @access Private
+ */
+router.get(
+  '/:documentId/signatures',
+  verifyToken,
+  validateDocumentId,
+  getDocumentSignatures
+);
+
+/**
+ * GET /api/documents/:documentId/signatures/:signatureId
+ * Get detailed information about a specific signature
+ * 
+ * @response {
+ *   success: boolean,
+ *   signature: {
+ *     _id: ObjectId,
+ *     document_id: ObjectId,
+ *     signer: { _id, name, email },
+ *     certificate_id: ObjectId,
+ *     certificate_valid_from: Date,
+ *     certificate_valid_to: Date,
+ *     is_valid: boolean,
+ *     verification_timestamp: Date,
+ *     placement: object,
+ *     created_at: Date
+ *   }
+ * }
+ * 
+ * @access Private
+ */
+router.get(
+  '/:documentId/signatures/:signatureId',
+  verifyToken,
+  validateDocumentId,
+  getSignatureDetails
+);
+
+/**
+ * GET /api/documents/:documentId
+ * Retrieve a single document by ID with full details
+ * Checks ownership and returns document metadata and file URL
+ * 
+ * @params {
+ *   documentId: string (ObjectId)
+ * }
+ * 
+ * @response {
+ *   success: boolean,
+ *   document: {
+ *     _id: ObjectId,
+ *     title: string,
+ *     description: string,
+ *     owner_id: ObjectId,
+ *     file_url: string,
+ *     original_filename: string,
+ *     file_type: string,
+ *     file_size: number,
+ *     status: string,
+ *     fields: array,
+ *     signers: array,
+ *     created_at: Date,
+ *     updated_at: Date
+ *   }
+ * }
+ * 
+ * @access Private
+ * @security Requires document ownership
+ */
+router.get('/:documentId', verifyToken, getDocument);
 
 module.exports = router;
 
