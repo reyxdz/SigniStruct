@@ -46,16 +46,26 @@ exports.getDocumentVerificationStatus = async (req, res) => {
     if (document.fields && Array.isArray(document.fields)) {
       isRecipient = document.fields.some(field => {
         if (field.assignedRecipients && Array.isArray(field.assignedRecipients)) {
-          return field.assignedRecipients.some(recipient => 
-            recipient._id?.toString() === userId || recipient.id?.toString() === userId || recipient.email === req.user.email
-          );
+          console.log(`[${requestId}] Checking ${field.assignedRecipients.length} recipients for field: ${field.label}`);
+          return field.assignedRecipients.some(recipient => {
+            // Check by recipientId (ObjectId) or recipientEmail
+            const matches = 
+              (recipient.recipientId && recipient.recipientId.toString() === userId) || 
+              (recipient.recipientEmail && recipient.recipientEmail === req.user.email);
+            if (matches) {
+              console.log(`[${requestId}] ✓ Found matching recipient: ${recipient.recipientEmail || recipient.recipientId}`);
+            }
+            return matches;
+          });
         }
         return false;
       });
     }
+    
+    console.log(`[${requestId}] Authorization check: isOwner=${isOwner}, isAdmin=${isAdmin}, isRecipient=${isRecipient}`);
 
     if (!isOwner && !isAdmin && !isRecipient) {
-      console.warn(`[${requestId}] Unauthorized verification attempt - User ${userId} tried to verify document ${documentId}`);
+      console.warn(`[${requestId}] Unauthorized verification attempt - User ${userId} (${req.user.email}) tried to verify document ${documentId}`);
       return res.status(403).json({
         success: false,
         message: 'Unauthorized to verify this document',
@@ -172,7 +182,8 @@ exports.verifyAllSignatures = async (req, res) => {
       isRecipient = document.fields.some(field => {
         if (field.assignedRecipients && Array.isArray(field.assignedRecipients)) {
           return field.assignedRecipients.some(recipient => 
-            recipient._id?.toString() === userId || recipient.id?.toString() === userId || recipient.email === req.user.email
+            (recipient.recipientId && recipient.recipientId.toString() === userId) || 
+            (recipient.recipientEmail && recipient.recipientEmail === req.user.email)
           );
         }
         return false;
@@ -338,7 +349,8 @@ exports.getDocumentVerificationCertificate = async (req, res) => {
       isRecipient = document.fields.some(field => {
         if (field.assignedRecipients && Array.isArray(field.assignedRecipients)) {
           return field.assignedRecipients.some(recipient => 
-            recipient._id?.toString() === userId || recipient.id?.toString() === userId || recipient.email === req.user.email
+            (recipient.recipientId && recipient.recipientId.toString() === userId) || 
+            (recipient.recipientEmail && recipient.recipientEmail === req.user.email)
           );
         }
         return false;
