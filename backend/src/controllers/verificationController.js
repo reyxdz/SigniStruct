@@ -37,11 +37,24 @@ exports.getDocumentVerificationStatus = async (req, res) => {
     }
 
     // Step 2: Verify user has permission to verify this document
-    // Only owner or admin can verify documents
+    // Owner, admin, or assigned recipients can verify documents
     const isOwner = document.owner_id.toString() === userId;
     const isAdmin = req.user.isAdmin || false;
+    
+    // Check if user is a recipient assigned to any field in this document
+    let isRecipient = false;
+    if (document.fields && Array.isArray(document.fields)) {
+      isRecipient = document.fields.some(field => {
+        if (field.assignedRecipients && Array.isArray(field.assignedRecipients)) {
+          return field.assignedRecipients.some(recipient => 
+            recipient._id?.toString() === userId || recipient.id?.toString() === userId || recipient.email === req.user.email
+          );
+        }
+        return false;
+      });
+    }
 
-    if (!isOwner && !isAdmin) {
+    if (!isOwner && !isAdmin && !isRecipient) {
       console.warn(`[${requestId}] Unauthorized verification attempt - User ${userId} tried to verify document ${documentId}`);
       return res.status(403).json({
         success: false,
@@ -152,8 +165,21 @@ exports.verifyAllSignatures = async (req, res) => {
 
     const isOwner = document.owner_id.toString() === userId;
     const isAdmin = req.user.isAdmin || false;
+    
+    // Check if user is a recipient assigned to any field in this document
+    let isRecipient = false;
+    if (document.fields && Array.isArray(document.fields)) {
+      isRecipient = document.fields.some(field => {
+        if (field.assignedRecipients && Array.isArray(field.assignedRecipients)) {
+          return field.assignedRecipients.some(recipient => 
+            recipient._id?.toString() === userId || recipient.id?.toString() === userId || recipient.email === req.user.email
+          );
+        }
+        return false;
+      });
+    }
 
-    if (!isOwner && !isAdmin) {
+    if (!isOwner && !isAdmin && !isRecipient) {
       console.warn(`[${requestId}] Unauthorized - User ${userId} tried to verify document ${documentId}`);
       return res.status(403).json({
         success: false,
@@ -303,10 +329,23 @@ exports.getDocumentVerificationCertificate = async (req, res) => {
       });
     }
 
-    const isOwner = document.owner_id._id.toString() === userId;
+    const isOwner = document.owner_id._id.toString() === userId || document.owner_id.toString() === userId;
     const isAdmin = req.user.isAdmin || false;
+    
+    // Check if user is a recipient assigned to any field in this document
+    let isRecipient = false;
+    if (document.fields && Array.isArray(document.fields)) {
+      isRecipient = document.fields.some(field => {
+        if (field.assignedRecipients && Array.isArray(field.assignedRecipients)) {
+          return field.assignedRecipients.some(recipient => 
+            recipient._id?.toString() === userId || recipient.id?.toString() === userId || recipient.email === req.user.email
+          );
+        }
+        return false;
+      });
+    }
 
-    if (!isOwner && !isAdmin) {
+    if (!isOwner && !isAdmin && !isRecipient) {
       console.warn(`[${requestId}] Unauthorized - User ${userId} tried to download certificate for ${documentId}`);
       return res.status(403).json({
         success: false,
