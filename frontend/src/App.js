@@ -11,6 +11,7 @@ import FormBuilder from './pages/FormBuilder/FormBuilder';
 import DocumentSign from './pages/DocumentSign/DocumentSign';
 import CreateSignaturePage from './pages/Signature/CreateSignaturePage';
 import VerificationPage from './pages/Verification/VerificationPage';
+import CertificateManagementPage from './pages/Certificate/CertificateManagementPage';
 import LandingPage from './pages/LandingPage/LandingPage';
 import SignIn from './pages/Auth/SignIn';
 import SignUp from './pages/Auth/SignUp';
@@ -19,7 +20,7 @@ import './App.css';
 
 function App() {
   // Routes that require the header (authenticated routes)
-  const authenticatedRoutes = ['/dashboard', '/forms', '/documents', '/documents/:documentId/editor', '/documents/:documentId/verify', '/form-builder', '/document-sign', '/create-signature'];
+  const authenticatedRoutes = ['/dashboard', '/forms', '/documents', '/documents/:documentId/editor', '/documents/:documentId/verify', '/form-builder', '/document-sign', '/create-signature', '/certificates'];
   
   return (
     <AuthProvider>
@@ -67,6 +68,7 @@ function AppContent({ authenticatedRoutes }) {
           <Route path="/form-builder/:formId" element={<FormBuilder />} />
           <Route path="/document-sign/:documentId" element={<DocumentSign />} />
           <Route path="/create-signature" element={<CreateSignaturePage />} />
+          <Route path="/certificates" element={<CertificateManagementPage />} />
           
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" />} />
