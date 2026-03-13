@@ -14,23 +14,22 @@ const CertificateDetailsModal = ({ certificate, onClose }) => {
 
   useEffect(() => {
     if (certificate && activeTab === 'history') {
+      const loadAuditHistory = async () => {
+        try {
+          setIsLoading(true);
+          const data = await CertificateService.getCertificateAuditHistory(
+            certificate.certificate_id
+          );
+          setAuditHistory(data.history || []);
+        } catch (error) {
+          console.error('Failed to load audit history:', error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
       loadAuditHistory();
     }
   }, [activeTab, certificate]);
-
-  const loadAuditHistory = async () => {
-    try {
-      setIsLoading(true);
-      const data = await CertificateService.getCertificateAuditHistory(
-        certificate.certificate_id
-      );
-      setAuditHistory(data.history || []);
-    } catch (error) {
-      console.error('Failed to load audit history:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   return (
     <div style={styles.overlay}>
@@ -363,7 +362,7 @@ const styles = {
     marginRight: spacing.sm,
     minWidth: '80px'
   },
-  detailValue: {
+  timelineDetailValue: {
     color: colors.gray600,
     flex: 1
   },

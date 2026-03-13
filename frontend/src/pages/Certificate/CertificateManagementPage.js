@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FiPlus, FiRefreshCw, FiDownload, FiAlertCircle } from 'react-icons/fi';
+import React, { useState, useEffect, useContext, useCallback } from 'react';
+import { FiRefreshCw, FiAlertCircle } from 'react-icons/fi';
 import { AuthContext } from '../../contexts/AuthContext';
 import CertificateService from '../../services/certificateService';
 import CertificateCard from '../../components/Dashboard/CertificateCard';
@@ -16,7 +15,6 @@ import './CertificateManagementPage.css';
  */
 const CertificateManagementPage = () => {
   const { user } = useContext(AuthContext);
-  const navigate = useNavigate();
 
   // State
   const [certificates, setCertificates] = useState([]);
@@ -30,12 +28,7 @@ const CertificateManagementPage = () => {
   const [isRenewing, setIsRenewing] = useState(false);
   const [isRevoking, setIsRevoking] = useState(false);
 
-  // Load certificates on mount
-  useEffect(() => {
-    loadCertificates();
-  }, [user]);
-
-  const loadCertificates = async () => {
+  const loadCertificates = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -55,7 +48,12 @@ const CertificateManagementPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
+
+  // Load certificates on mount
+  useEffect(() => {
+    loadCertificates();
+  }, [loadCertificates]);
 
   const handleRenew = (certificate) => {
     setSelectedCertificate(certificate);
