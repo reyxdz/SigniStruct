@@ -5,7 +5,11 @@ const {
   getUserCertificate,
   verifyCertificate,
   revokeCertificate,
-  getAllUserCertificates
+  getAllUserCertificates,
+  downloadCertificate,
+  getCertificateExpiryStatus,
+  renewCertificate,
+  getCertificateAuditHistory
 } = require('../controllers/certificateController');
 const { verifyToken } = require('../middleware/authMiddleware');
 const {
@@ -91,4 +95,49 @@ router.post(
   revokeCertificate
 );
 
+/**
+ * GET /api/certificates/:certificateId/download
+ * Download certificate in PEM format
+ * @access Private
+ */
+router.get(
+  '/:certificateId/download',
+  verifyToken,
+  downloadCertificate
+);
+
+/**
+ * GET /api/certificates/:certificateId/expiry-status
+ * Get certificate expiry status and days remaining
+ * @access Private
+ */
+router.get(
+  '/:certificateId/expiry-status',
+  verifyToken,
+  getCertificateExpiryStatus
+);
+
+/**
+ * POST /api/certificates/:certificateId/renew
+ * Renew a certificate with new keys or same keys
+ * @access Private
+ */
+router.post(
+  '/:certificateId/renew',
+  verifyToken,
+  renewCertificate
+);
+
+/**
+ * GET /api/certificates/:certificateId/audit-history
+ * Get audit history of certificate operations
+ * @access Private
+ */
+router.get(
+  '/:certificateId/audit-history',
+  verifyToken,
+  getCertificateAuditHistory
+);
+
 module.exports = router;
+

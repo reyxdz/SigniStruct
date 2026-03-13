@@ -18,6 +18,9 @@ const signatureAuditLogSchema = new mongoose.Schema(
       enum: [
         'certificate_generated',
         'certificate_revoked',
+        'certificate_renewed',
+        'certificate_expired',
+        'certificate_expiry_notification',
         'signature_created',
         'field_signed_cryptographic',
         'document_signed',

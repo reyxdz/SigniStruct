@@ -54,7 +54,7 @@ const userCertificateSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['active', 'revoked', 'expired'],
+      enum: ['active', 'revoked', 'expired', 'superseded'],
       default: 'active',
       index: true
     },
@@ -65,6 +65,44 @@ const userCertificateSchema = new mongoose.Schema(
     revocation_reason: {
       type: String,
       default: null
+    },
+    superseded_by: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'UserCertificate',
+      default: null
+    },
+    superseded_at: {
+      type: Date,
+      default: null
+    },
+    renewal_info: {
+      renewed_from: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'UserCertificate',
+        default: null
+      },
+      renewal_date: {
+        type: Date,
+        default: null
+      },
+      renewal_reason: {
+        type: String,
+        default: null
+      }
+    },
+    expiry_notifications: {
+      notify_30_days: {
+        notified: { type: Boolean, default: false },
+        sent_at: { type: Date, default: null }
+      },
+      notify_7_days: {
+        notified: { type: Boolean, default: false },
+        sent_at: { type: Date, default: null }
+      },
+      notify_1_day: {
+        notified: { type: Boolean, default: false },
+        sent_at: { type: Date, default: null }
+      }
     },
     last_used: {
       type: Date,

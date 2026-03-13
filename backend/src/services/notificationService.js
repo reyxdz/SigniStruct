@@ -241,6 +241,43 @@ class NotificationService {
   }
 
   /**
+   * Send certificate expiry warning email
+   * @param {string} userEmail - User email address
+   * @param {string} userName - User name
+   * @param {string} certificateId - Certificate ID
+   * @param {Date} expiryDate - Certificate expiry date
+   * @param {string} timeframe - Time until expiry (e.g., "30 days", "7 days", "1 day")
+   */
+  async sendCertificateExpiryNotification(userEmail, userName, certificateId, expiryDate, timeframe) {
+    try {
+      const appUrl = process.env.APP_URL || 'https://signistruct.com';
+      const certificateUrl = `${appUrl}/settings/certificates/${certificateId}`;
+
+      const { html, text } = emailTemplates.certificateExpiryNotification({
+        userName,
+        certificateId,
+        expiryDate,
+        timeframe,
+        certificateUrl,
+        companyName: process.env.COMPANY_NAME || 'SigniStruct'
+      });
+
+      await emailService.sendHtmlEmail(
+        userEmail,
+        `⚠️ Your certificate will expire in ${timeframe}`,
+        html,
+        text
+      );
+
+      console.log(`Certificate expiry notification sent to ${userEmail} for certificate ${certificateId}`);
+      return { success: true, message: 'Certificate expiry notification sent' };
+    } catch (error) {
+      console.error('Failed to send certificate expiry notification:', error.message);
+      throw error;
+    }
+  }
+
+  /**
    * Send all pending reminders (batch job)
    * @returns {Promise} Results of reminder sending
    */
