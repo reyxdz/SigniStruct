@@ -36,6 +36,14 @@ class VerificationService {
         : [];
 
       console.log(`📄 Document ${documentId} has ${signatureFields.length} signature fields`);
+      signatureFields.forEach((f, i) => {
+        console.log(`   Field ${i + 1}: ${f.label} (fieldType: ${f.fieldType})`);
+        if (f.assignedRecipients && f.assignedRecipients.length > 0) {
+          f.assignedRecipients.forEach(r => {
+            console.log(`       Assigned to: ${r.recipientEmail || r.recipientId}`);
+          });
+        }
+      });
 
       // Step 2: Get all existing signatures for this document
       const existingSignatures = await DocumentSignature.find({ document_id: documentId })
@@ -43,6 +51,9 @@ class VerificationService {
         .populate('certificate_id');
 
       console.log(`✍️ Found ${existingSignatures.length} existing signatures`);
+      existingSignatures.forEach((sig, i) => {
+        console.log(`   Sig ${i + 1}: ${sig.signer_id?.email || sig.recipient_email} (status: ${sig.status}, is_valid: ${sig.is_valid})`);
+      });
 
       // Step 3: Separate into actually signed (status='signed') vs all others (pending/unsigned)
       // Only signatures with status === 'signed' are actually signed and ready for verification
@@ -75,6 +86,28 @@ class VerificationService {
       });
 
       console.log(`✅ Actually Signed: ${actuallySignedSignatures.length}, ⏳ Not Yet Signed: ${unsignedOrFailedSignatures.length}, 📝 Fields without records: ${fieldsWithoutSignatures.length}`);
+      
+      // Debug logging
+      if (actuallySignedSignatures.length > 0) {
+        console.log(`\nActually Signed Signatures (status='signed'):`);
+        actuallySignedSignatures.forEach(sig => {
+          console.log(`  - ${sig.signer_id?.email || sig.recipient_email} (id: ${sig._id})`);
+        });
+      }
+      
+      if (unsignedOrFailedSignatures.length > 0) {
+        console.log(`\nUnsigned/Other Signatures (status!='signed'):`);
+        unsignedOrFailedSignatures.forEach(sig => {
+          console.log(`  - ${sig.signer_id?.email || sig.recipient_email} (status: ${sig.status}, id: ${sig._id})`);
+        });
+      }
+      
+      if (fieldsWithoutSignatures.length > 0) {
+        console.log(`\nFields Without Any Signature Record:`);
+        fieldsWithoutSignatures.forEach(field => {
+          console.log(`  - ${field.label} (id: ${field.id})`);
+        });
+      }
 
       // Step 4: Verify only actually signed signatures
       const signatureVerifications = [];

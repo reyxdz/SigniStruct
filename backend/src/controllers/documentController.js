@@ -220,7 +220,7 @@ class DocumentController {
 
       // Create/update DocumentSignature with crypto data
       // Find the pending signature by document_id and fields (not by signer_id, which might be null)
-      const signature = await DocumentSignature.findOneAndUpdate(
+      let signature = await DocumentSignature.findOneAndUpdate(
         {
           document_id: documentId,
           fields: { $in: [fieldId] },
@@ -247,12 +247,32 @@ class DocumentController {
         { new: true, runValidators: false }
       );
 
+      // If no pending signature found (e.g., publisher signing their own field)
+      // Create a new DocumentSignature record for them
       if (!signature) {
-        console.error(`❌ Could not find pending signature for document ${documentId}, field ${fieldId}`);
-        return res.status(400).json({
-          success: false,
-          error: 'Signature record not found. Document may not have recipient field assigned to you.'
+        console.log(`📝 No pending signature found. Creating new record for document owner...`);
+        const user = await User.findById(userId);
+        signature = new DocumentSignature({
+          document_id: documentId,
+          signer_id: userId,
+          recipient_email: user?.email || 'Publisher',
+          recipient_name: user?.name || 'Document Publisher',
+          status: 'signed',
+          certificate_id: cryptoSignature.certificate_id,
+          crypto_signature: cryptoSignature.signature,
+          content_hash: cryptoSignature.content_hash,
+          signature_integrity_hash: cryptoSignature.signature_hash,
+          signature_hash: cryptoSignature.signature_hash,
+          algorithm: cryptoSignature.algorithm,
+          verified: cryptoSignature.verified,
+          verification_timestamp: new Date(),
+          is_valid: true,
+          fields: [fieldId],
+          created_at: new Date()
         });
+        
+        await signature.save();
+        console.log(`✅ Created new DocumentSignature record for publisher: ${signature._id}`);
       }
 
       console.log('✅ Signature stored in database');
