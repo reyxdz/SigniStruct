@@ -76,8 +76,6 @@ class VerificationService {
 
       console.log(`✅ Actually Signed: ${actuallySignedSignatures.length}, ⏳ Not Yet Signed: ${unsignedOrFailedSignatures.length}, 📝 Fields without records: ${fieldsWithoutSignatures.length}`);
 
-      console.log(`✅ Signed: ${signedSignatures.length}, ⏳ Unsigned: ${unsignedFields.length}`);
-
       // Step 4: Verify only actually signed signatures
       const signatureVerifications = [];
       let validSignatureCount = 0;
@@ -173,20 +171,22 @@ class VerificationService {
                           pendingSignatures.length === 0;
 
       // Log the verification action
-      await this.generateAuditLog(
-        'DOCUMENT_VERIFIED',
-        metadata.userId || 'system',
-        {
-          documentId,
-          totalSignatureFields: signatureFields.length,
-          actuallySignedSignatures: actuallySignedSignatures.length,
-          validSignatures: validSignatureCount,
-          pendingSignatures: pendingSignatures.length,
-          result: documentValid ? 'FULLY_SIGNED' : 'PARTIALLY_SIGNED',
-          verificationTime: new Date()
-        },
-        metadata
-      );
+      if (metadata.userId) {
+        await this.generateAuditLog(
+          'document_verified',
+          metadata.userId,
+          {
+            documentId,
+            totalSignatureFields: signatureFields.length,
+            actuallySignedSignatures: actuallySignedSignatures.length,
+            validSignatures: validSignatureCount,
+            pendingSignatures: pendingSignatures.length,
+            result: documentValid ? 'FULLY_SIGNED' : 'PARTIALLY_SIGNED',
+            verificationTime: new Date()
+          },
+          metadata
+        );
+      }
 
       return {
         is_valid: documentValid,
@@ -307,10 +307,10 @@ class VerificationService {
       }
 
       // Log the verification unless explicitly skipped
-      if (!metadata.skipAuditLog) {
+      if (!metadata.skipAuditLog && (metadata.userId || signature.signer_id)) {
         await this.generateAuditLog(
-          'SIGNATURE_VERIFIED',
-          metadata.userId || signature.signer_id?._id,
+          'signature_verified',
+          metadata.userId || signature.signer_id?._id.toString(),
           {
             signatureId,
             documentId: signature.document_id?._id,
@@ -342,15 +342,17 @@ class VerificationService {
     try {
       // Validate action type
       const validActions = [
-        'SIGNATURE_CREATED',
-        'SIGNATURE_VERIFIED',
-        'SIGNATURE_REVOKED',
-        'CERTIFICATE_GENERATED',
-        'CERTIFICATE_VERIFIED',
-        'CERTIFICATE_REVOKED',
-        'DOCUMENT_VERIFIED',
-        'DOCUMENT_UPLOADED',
-        'DOCUMENT_DELETED'
+        'certificate_generated',
+        'certificate_revoked',
+        'certificate_renewed',
+        'certificate_expired',
+        'certificate_expiry_notification',
+        'signature_created',
+        'field_signed_cryptographic',
+        'document_signed',
+        'signature_verified',
+        'document_verified',
+        'signature_revoked'
       ];
 
       if (!validActions.includes(action)) {
@@ -522,7 +524,7 @@ class VerificationService {
       // Get audit logs for this document
       const logs = await SignatureAuditLog.find({
         'details.documentId': documentId,
-        action: { $in: ['SIGNATURE_VERIFIED', 'DOCUMENT_VERIFIED'] }
+        action: { $in: ['signature_verified', 'document_verified'] }
       })
         .sort({ timestamp: -1 })
         .limit(limit)
@@ -531,7 +533,7 @@ class VerificationService {
 
       const total = await SignatureAuditLog.countDocuments({
         'details.documentId': documentId,
-        action: { $in: ['SIGNATURE_VERIFIED', 'DOCUMENT_VERIFIED'] }
+        action: { $in: ['signature_verified', 'document_verified'] }
       });
 
       return {
