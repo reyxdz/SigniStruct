@@ -1506,6 +1506,53 @@ class DocumentController {
         }
       }
 
+      // Step 2: Create DocumentSignature records for publisher's own signed fields
+      // Fields with isRecipient: false that have values should have a signed record created
+      const publisherSignedFields = document.fields.filter(f =>
+        f.fieldType === 'signature' &&
+        !f.isRecipient &&
+        f.value &&
+        f.value.length > 0
+      );
+
+      if (publisherSignedFields.length > 0) {
+        console.log(`📝 Creating records for ${publisherSignedFields.length} publisher-signed fields`);
+
+        for (const field of publisherSignedFields) {
+          try {
+            // Check if record already exists
+            const existingRecord = await DocumentSignature.findOne({
+              document_id: documentId,
+              fields: { $in: [field.id] },
+              signer_id: userId
+            });
+
+            if (!existingRecord) {
+              const publisherRecord = new DocumentSignature({
+                document_id: documentId,
+                signer_id: userId,
+                recipient_email: document.owner_id?.email || 'Publisher',
+                recipient_name: document.owner_id?.name || 'Document Publisher',
+                status: 'signed',  // Publisher's own field is already signed
+                fields: [field.id],
+                is_valid: true,
+                verification_timestamp: new Date(),
+                created_at: new Date()
+              });
+
+              await publisherRecord.save();
+              console.log(`  ✅ Created DocumentSignature for field: ${field.label} (${publisherRecord._id})`);
+            } else {
+              console.log(`  ⏭️ Record already exists for field: ${field.label}`);
+            }
+          } catch (error) {
+            console.error(`  ❌ Failed to create DocumentSignature for ${field.label}:`, error.message);
+          }
+        }
+      } else {
+        console.log('ℹ️ No publisher-signed fields found');
+      }
+
       // Update document status to pending_signature
       document.status = 'pending_signature';
       document.publishedAt = new Date();

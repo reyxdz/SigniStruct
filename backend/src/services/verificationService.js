@@ -392,19 +392,17 @@ class VerificationService {
         console.warn(`Unknown audit action: ${action}`);
       }
 
-      // Create audit log entry
+      // Create audit log entry with correct field names (signer_id, not user_id)
       const auditLog = new SignatureAuditLog({
         action,
-        user_id: userId,
+        signer_id: userId,  // Model requires signer_id, not user_id
+        document_id: details.document_id || details.documentId,
         details: {
           ...details,
           timestamp: new Date().toISOString()
         },
-        metadata: {
-          ip_address: metadata.ipAddress || 'unknown',
-          user_agent: metadata.userAgent || 'unknown',
-          request_id: metadata.requestId || this._generateRequestId()
-        },
+        ip_address: metadata.ipAddress || 'unknown',
+        user_agent: metadata.userAgent || 'unknown',
         timestamp: new Date()
       });
 
