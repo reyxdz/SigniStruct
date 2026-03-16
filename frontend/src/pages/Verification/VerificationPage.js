@@ -149,12 +149,10 @@ const VerificationPage = () => {
               {statusIcon}
             </div>
             <div style={styles.statusInfo}>
-              <h2 style={styles.statusTitle}>
-              Verification Process Done
-            </h2>
-            <p style={styles.statusSubtitle}>
-              {verification.document_title || 'Document'}
-            </p>
+              <h2 style={styles.statusTitle}>Verification Process Done</h2>
+              <p style={styles.statusSubtitle}>
+                {verification.document_title || 'Document'}
+              </p>
             </div>
           </div>
 
@@ -218,88 +216,179 @@ const VerificationPage = () => {
 
         {/* Signatures Breakdown */}
         <div style={styles.signaturesCard}>
-          <h3 style={styles.cardTitle}>Signatures Breakdown ({verification.signature_count})</h3>
+          <h3 style={styles.cardTitle}>
+            Signatures Breakdown ({verification.signature_count} total)
+          </h3>
           <p style={styles.cardDescription}>
-            Shows all signatures on this document with their verification status
+            {verification.signed_count !== undefined 
+              ? `${verification.signed_count} signed, ${verification.unsigned_count} pending`
+              : 'Shows all signatures on this document with their verification status'}
           </p>
           
           {verification.signatures && verification.signatures.length > 0 ? (
-            <div style={styles.signaturesList}>
-              {verification.signatures.map((sig, index) => {
-                const isSignedAndValid = sig.is_valid && sig.status === 'valid';
-                const isPending = !sig.is_valid && (!sig.status || sig.status === 'pending');
-                
-                return (
-                  <div key={index} style={styles.signatureItem}>
-                    <div style={styles.signatureHeader}>
-                      <div style={{...styles.signatureBadge, 
-                        backgroundColor: isSignedAndValid ? colors.successLight : isPending ? colors.warningLight : colors.errorLight
-                      }}>
-                        {isSignedAndValid ? (
-                          <FiCheck style={{ color: colors.success, fontSize: '20px' }} />
-                        ) : isPending ? (
-                          <FiAlertCircle style={{ color: colors.warning, fontSize: '20px' }} />
-                        ) : (
-                          <FiX style={{ color: colors.error, fontSize: '20px' }} />
-                        )}
-                      </div>
-                      <div style={styles.signatureInfo}>
-                        <p style={styles.signerName}>
-                          {sig.signer?.email || sig.signer_email || 'Pending Signature'}
-                        </p>
-                        <p style={styles.signatureFieldLabel}>
-                          {sig.field_label || 'Document Signature'}
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div style={styles.signatureDetails}>
-                      <div style={styles.detailRow}>
-                        <span style={styles.detailLabel}>Status:</span>
-                        <span style={{...styles.detailValue, 
-                          color: isSignedAndValid ? colors.success : isPending ? colors.warning : colors.error
-                        }}>
-                          {isSignedAndValid ? '✓ Verified' : isPending ? '⏳ Pending' : '✗ Invalid'}
-                        </span>
-                      </div>
-                      {sig.signed_at && (
-                        <div style={styles.detailRow}>
-                          <span style={styles.detailLabel}>Signed:</span>
-                          <span style={styles.detailValue}>
-                            {new Date(sig.signed_at).toLocaleString()}
-                          </span>
+            <div>
+              {/* Signed Signatures Section */}
+              {verification.signatures.filter(sig => sig.is_valid || (sig.status !== 'pending')).length > 0 && (
+                <div style={styles.signatureSection}>
+                  <h4 style={styles.sectionTitle}>✅ Signed & Verified</h4>
+                  <div style={styles.signaturesList}>
+                    {verification.signatures
+                      .filter(sig => sig.is_valid && sig.status !== 'pending')
+                      .map((sig, index) => (
+                        <div key={`signed-${index}`} style={styles.signatureItem}>
+                          <div style={styles.signatureHeader}>
+                            <div style={{
+                              ...styles.signatureBadge,
+                              backgroundColor: colors.successLight
+                            }}>
+                              <FiCheck style={{ color: colors.success, fontSize: '20px' }} />
+                            </div>
+                            <div style={styles.signatureInfo}>
+                              <p style={styles.signerName}>
+                                {sig.signer?.email || sig.signer_email || 'Signer'}
+                              </p>
+                              <p style={styles.signatureFieldLabel}>
+                                {sig.field_label || 'Document Signature'}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div style={styles.signatureDetails}>
+                            <div style={styles.detailRow}>
+                              <span style={styles.detailLabel}>Status:</span>
+                              <span style={{...styles.detailValue, color: colors.success}}>
+                                ✓ Verified
+                              </span>
+                            </div>
+                            {sig.signed_at && (
+                              <div style={styles.detailRow}>
+                                <span style={styles.detailLabel}>Signed:</span>
+                                <span style={styles.detailValue}>
+                                  {new Date(sig.signed_at).toLocaleString()}
+                                </span>
+                              </div>
+                            )}
+                            {sig.certificate_valid !== undefined && (
+                              <div style={styles.detailRow}>
+                                <span style={styles.detailLabel}>Certificate:</span>
+                                <span style={{...styles.detailValue, color: sig.certificate_valid ? colors.success : colors.error}}>
+                                  {sig.certificate_valid ? '✓ Active' : '✗ Invalid'}
+                                </span>
+                              </div>
+                            )}
+                            {sig.certificate_expire_date && (
+                              <div style={styles.detailRow}>
+                                <span style={styles.detailLabel}>Expires:</span>
+                                <span style={styles.detailValue}>
+                                  {new Date(sig.certificate_expire_date).toLocaleDateString()}
+                                </span>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      )}
-                      {sig.certificate_valid !== undefined && (
-                        <div style={styles.detailRow}>
-                          <span style={styles.detailLabel}>Certificate:</span>
-                          <span style={{...styles.detailValue,
-                            color: sig.certificate_valid ? colors.success : colors.error
-                          }}>
-                            {sig.certificate_valid ? '✓ Active' : '✗ Invalid'}
-                          </span>
-                        </div>
-                      )}
-                      {sig.certificate_expire_date && (
-                        <div style={styles.detailRow}>
-                          <span style={styles.detailLabel}>Expires:</span>
-                          <span style={styles.detailValue}>
-                            {new Date(sig.certificate_expire_date).toLocaleDateString()}
-                          </span>
-                        </div>
-                      )}
-                      {sig.errors && sig.errors.length > 0 && (
-                        <div style={styles.detailRow}>
-                          <span style={styles.detailLabel}>Issues:</span>
-                          <span style={{...styles.detailValue, color: colors.error}}>
-                            {sig.errors.join(' | ')}
-                          </span>
-                        </div>
-                      )}
-                    </div>
+                      ))
+                    }
                   </div>
-                );
-              })}
+                </div>
+              )}
+
+              {/* Pending/Unsigned Signatures Section */}
+              {verification.signatures.filter(sig => sig.status === 'pending' || (!sig.is_valid && sig.errors?.some(e => e.includes('not yet')))).length > 0 && (
+                <div style={styles.signatureSection}>
+                  <h4 style={styles.sectionTitle}>⏳ Pending Signatures</h4>
+                  <div style={styles.signaturesList}>
+                    {verification.signatures
+                      .filter(sig => sig.status === 'pending' || (!sig.is_valid && sig.errors?.some(e => e.includes('not yet'))))
+                      .map((sig, index) => (
+                        <div key={`pending-${index}`} style={styles.signatureItem}>
+                          <div style={styles.signatureHeader}>
+                            <div style={{
+                              ...styles.signatureBadge,
+                              backgroundColor: colors.warningLight
+                            }}>
+                              <FiAlertCircle style={{ color: colors.warning, fontSize: '20px' }} />
+                            </div>
+                            <div style={styles.signatureInfo}>
+                              <p style={styles.signerName}>
+                                {sig.signer?.email || sig.signer_email || 'Pending Signature'}
+                              </p>
+                              <p style={styles.signatureFieldLabel}>
+                                {sig.field_label || 'Awaiting Signature'}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div style={styles.signatureDetails}>
+                            <div style={styles.detailRow}>
+                              <span style={styles.detailLabel}>Status:</span>
+                              <span style={{...styles.detailValue, color: colors.warning}}>
+                                ⏳ Awaiting Signature
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    }
+                  </div>
+                </div>
+              )}
+
+              {/* Invalid Signatures Section */}
+              {verification.signatures.filter(sig => !sig.is_valid && sig.status !== 'pending' && !sig.errors?.some(e => e.includes('not yet'))).length > 0 && (
+                <div style={styles.signatureSection}>
+                  <h4 style={styles.sectionTitle}>✗ Invalid Signatures</h4>
+                  <div style={styles.signaturesList}>
+                    {verification.signatures
+                      .filter(sig => !sig.is_valid && sig.status !== 'pending' && !sig.errors?.some(e => e.includes('not yet')))
+                      .map((sig, index) => (
+                        <div key={`invalid-${index}`} style={styles.signatureItem}>
+                          <div style={styles.signatureHeader}>
+                            <div style={{
+                              ...styles.signatureBadge,
+                              backgroundColor: colors.errorLight
+                            }}>
+                              <FiX style={{ color: colors.error, fontSize: '20px' }} />
+                            </div>
+                            <div style={styles.signatureInfo}>
+                              <p style={styles.signerName}>
+                                {sig.signer?.email || sig.signer_email || 'Unknown Signer'}
+                              </p>
+                              <p style={styles.signatureFieldLabel}>
+                                {sig.field_label || 'Document Signature'}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          <div style={styles.signatureDetails}>
+                            <div style={styles.detailRow}>
+                              <span style={styles.detailLabel}>Status:</span>
+                              <span style={{...styles.detailValue, color: colors.error}}>
+                                ✗ Invalid
+                              </span>
+                            </div>
+                            {sig.signed_at && (
+                              <div style={styles.detailRow}>
+                                <span style={styles.detailLabel}>Signed:</span>
+                                <span style={styles.detailValue}>
+                                  {new Date(sig.signed_at).toLocaleString()}
+                                </span>
+                              </div>
+                            )}
+                            {sig.errors && sig.errors.length > 0 && (
+                              <div style={styles.detailRow}>
+                                <span style={styles.detailLabel}>Issues:</span>
+                                <span style={{...styles.detailValue, color: colors.error}}>
+                                  {sig.errors.join(' | ')}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    }
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <p style={styles.noSignatures}>No signatures on this document</p>
@@ -528,6 +617,19 @@ const styles = {
     display: 'flex',
     flexDirection: 'column',
     gap: spacing.lg,
+  },
+
+  signatureSection: {
+    marginBottom: spacing.xl,
+  },
+
+  sectionTitle: {
+    fontSize: typography.sizes.base,
+    fontWeight: typography.weights.semibold,
+    color: colors.gray700,
+    margin: `0 0 ${spacing.md} 0`,
+    paddingBottom: spacing.md,
+    borderBottom: `2px solid ${colors.gray300}`,
   },
 
   signatureItem: {

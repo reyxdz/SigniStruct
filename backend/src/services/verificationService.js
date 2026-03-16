@@ -16,10 +16,11 @@ const SigningService = require('./signingService');
 class VerificationService {
   /**
    * Verify all signatures on a document and generate verification report
+   * Now includes both signed and unsigned signature fields
    * 
    * @param {string} documentId - MongoDB ObjectId of document
    * @param {object} metadata - Additional metadata (userId, ipAddress, userAgent)
-   * @returns {Promise<object>} Comprehensive verification result
+   * @returns {Promise<object>} Comprehensive verification result with all fields
    */
   async verifyDocument(documentId, metadata = {}) {
     try {
@@ -29,39 +30,45 @@ class VerificationService {
         throw new Error('Document not found');
       }
 
-      // Get all signatures for document
-      const signatures = await DocumentSignature.find({ document_id: documentId })
+      // Step 1: Get all signature fields from the document
+      const signatureFields = document.fields
+        ? document.fields.filter(f => f.fieldType === 'signature' || f.label?.toLowerCase().includes('signature'))
+        : [];
+
+      console.log(`📄 Document ${documentId} has ${signatureFields.length} signature fields`);
+
+      // Step 2: Get all existing signatures for this document
+      const existingSignatures = await DocumentSignature.find({ document_id: documentId })
         .populate('signer_id', 'email name')
         .populate('certificate_id');
 
-      if (signatures.length === 0) {
-        // Document is unsigned
-        return {
-          is_valid: false,
-          document_id: documentId,
-          status: 'unsigned',
-          signature_count: 0,
-          verified_count: 0,
-          details: {
-            message: 'No signatures found on document'
-          },
-          timestamp: new Date(),
-          signatures: []
-        };
-      }
+      console.log(`✍️ Found ${existingSignatures.length} existing signatures`);
 
-      // Verify each signature
+      // Step 3: Separate into signed and unsigned fields
+      const signedSignatures = existingSignatures.filter(sig => sig.status === 'signed' || sig.status === 'pending');
+      const unsignedFields = signatureFields.filter(field => {
+        // Check if this field has any signatures associated with it
+        const hasSignature = existingSignatures.some(sig => 
+          sig.fields?.includes(field.id) || 
+          (field.assignedRecipients && field.assignedRecipients.some(recipient => 
+            sig.recipient_email === recipient.recipientEmail || 
+            (sig.signer_id && sig.signer_id._id.toString() === recipient.recipientId?.toString())
+          ))
+        );
+        return !hasSignature;
+      });
+
+      console.log(`✅ Signed: ${signedSignatures.length}, ⏳ Unsigned: ${unsignedFields.length}`);
+
+      // Step 4: Verify each signed signature
       const signatureVerifications = [];
       let validSignatureCount = 0;
 
-      for (const signature of signatures) {
+      for (const signature of signedSignatures) {
         try {
           console.log(`\n📋 Verifying signature: ${signature._id}`);
-          console.log(`   Signer: ${signature.signer_id?.email || 'Unknown'}`);
+          console.log(`   Signer: ${signature.signer_id?.email || signature.recipient_email || 'Unknown'}`);
           console.log(`   Status in DB: ${signature.status}`);
-          console.log(`   Has signature_hash: ${!!signature.signature_hash}`);
-          console.log(`   Has certificate_id: ${!!signature.certificate_id}`);
-          console.log(`   is_valid flag: ${signature.is_valid}`);
           
           const verification = await this.verifySignature(
             signature._id.toString(),
@@ -90,9 +97,33 @@ class VerificationService {
         }
       }
 
-      // Generate overall verification status
-      const allValid = signatureVerifications.every(v => v.is_valid);
-      const documentValid = validSignatureCount > 0 && validSignatureCount === signatures.length;
+      // Step 5: Build list of unsigned fields (showing as pending)
+      const unsignedSignatures = unsignedFields.map(field => {
+        // Get recipient info from the field
+        const assignedRecipients = field.assignedRecipients || [];
+        
+        return {
+          field_id: field.id,
+          field_label: field.label,
+          status: 'pending',
+          is_valid: false,
+          signer: {
+            email: assignedRecipients.length > 0 ? assignedRecipients[0].recipientEmail : 'Unassigned',
+            name: assignedRecipients.length > 0 ? assignedRecipients[0].recipientName : 'Unassigned'
+          },
+          signed_at: null,
+          certificate_valid: null,
+          certificate_expire_date: null,
+          is_revoked: false,
+          errors: ['Signature not yet submitted']
+        };
+      });
+
+      // Step 6: Combine all signatures (signed + unsigned)
+      const allSignatures = [...signatureVerifications, ...unsignedSignatures];
+
+      // Step 7: Generate overall verification status
+      const documentValid = validSignatureCount > 0 && signedSignatures.length === validSignatureCount && unsignedFields.length === 0;
 
       // Log the verification action
       await this.generateAuditLog(
@@ -100,9 +131,11 @@ class VerificationService {
         metadata.userId || 'system',
         {
           documentId,
-          totalSignatures: signatures.length,
+          totalSignatureFields: signatureFields.length,
+          signedSignatures: signedSignatures.length,
           validSignatures: validSignatureCount,
-          result: documentValid ? 'VALID' : 'INVALID',
+          unsignedFields: unsignedFields.length,
+          result: documentValid ? 'FULLY_SIGNED' : 'PARTIALLY_SIGNED',
           verificationTime: new Date()
         },
         metadata
@@ -112,24 +145,27 @@ class VerificationService {
         is_valid: documentValid,
         document_id: documentId,
         document_title: document.title,
-        status: documentValid ? 'verified' : 'verification_failed',
-        signature_count: signatures.length,
+        status: documentValid ? 'fully_signed' : unsignedFields.length === 0 ? 'verified' : 'partially_signed',
+        signature_count: signatureFields.length,
+        signed_count: signedSignatures.length,
+        unsigned_count: unsignedFields.length,
         verified_count: validSignatureCount,
         verification_timestamp: new Date(),
         details: {
-          allSignaturesValid: allValid,
+          allSignaturesValid: signedSignatures.length === validSignatureCount && unsignedFields.length === 0,
           certificatesValid: signatureVerifications.every(s => !s.certificate_issues),
           noRevokedCertificates: signatureVerifications.every(s => !s.is_revoked),
           message: documentValid
-            ? `Document verified: ${validSignatureCount}/${signatures.length} valid signatures`
-            : `Verification failed: ${validSignatureCount}/${signatures.length} valid signatures`
+            ? `✅ Document fully signed and verified: ${validSignatureCount}/${signatureFields.length} signatures`
+            : `⏳ Document partially signed: ${signedSignatures.length}/${signatureFields.length} signed (${validSignatureCount} verified)`
         },
-        signatures: signatureVerifications.map(v => ({
-          signature_id: v.signature_id,
+        signatures: allSignatures.map(v => ({
+          signature_id: v.signature_id || v.field_id,
           is_valid: v.is_valid,
+          status: v.status,
           signer: {
-            email: v.signer_email,
-            name: v.signer_name
+            email: v.signer?.email || v.signer_email,
+            name: v.signer?.name || v.signer_name
           },
           signed_at: v.signed_at,
           certificate_valid: v.certificate_valid,
