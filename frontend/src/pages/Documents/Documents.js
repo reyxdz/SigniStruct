@@ -21,6 +21,7 @@ const Documents = () => {
   const [verifyLoading, setVerifyLoading] = useState(false);
   const [verifyResult, setVerifyResult] = useState(null);
   const [downloadingId, setDownloadingId] = useState(null);
+  const [assignedFilter, setAssignedFilter] = useState('all');
   const verifyFileRef = useRef(null);
 
   // Fetch documents on component mount
@@ -95,6 +96,13 @@ const Documents = () => {
     if (activeTab === 'assigned') {
       // Show documents assigned to user for signing
       filtered = assignedDocuments;
+
+      // Apply status filter
+      if (assignedFilter === 'signed') {
+        filtered = filtered.filter(doc => doc.signingStatus === 'signed');
+      } else if (assignedFilter === 'unsigned') {
+        filtered = filtered.filter(doc => doc.signingStatus !== 'signed');
+      }
     } else if (activeTab === 'published') {
       // Show documents published by user
       filtered = allDocuments.filter(doc => 
@@ -537,7 +545,7 @@ const Documents = () => {
         ) : (
         <>
         {/* Search */}
-        <div style={documentsStyles.searchContainer}>
+        <div style={{ ...documentsStyles.searchContainer, display: 'flex', alignItems: 'center', gap: spacing.md }}>
           <input
             type="text"
             placeholder="🔍 Search documents..."
@@ -553,6 +561,29 @@ const Documents = () => {
               e.target.style.boxShadow = 'none';
             }}
           />
+          {activeTab === 'assigned' && (
+            <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+              {[{ key: 'all', label: 'All' }, { key: 'signed', label: 'Signed' }, { key: 'unsigned', label: 'Unsigned' }].map(f => (
+                <button
+                  key={f.key}
+                  onClick={() => setAssignedFilter(f.key)}
+                  style={{
+                    padding: `${spacing.xs} ${spacing.sm}`,
+                    fontSize: typography.sizes.xs,
+                    fontWeight: assignedFilter === f.key ? typography.weights.semibold : typography.weights.medium,
+                    border: `1px solid ${assignedFilter === f.key ? colors.secondary : colors.gray300}`,
+                    borderRadius: borderRadius.md,
+                    backgroundColor: assignedFilter === f.key ? colors.secondary : 'transparent',
+                    color: assignedFilter === f.key ? colors.white : colors.gray600,
+                    cursor: 'pointer',
+                    transition: transitions.fast,
+                  }}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Documents Table */}
