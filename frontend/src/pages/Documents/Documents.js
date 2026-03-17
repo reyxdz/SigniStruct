@@ -3,7 +3,7 @@ import api from '../../services/api';
 import DocumentUploader from '../../components/Documents/DocumentUploader';
 import CertificateManagementPage from '../Certificate/CertificateManagementPage';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
-import { FiFileText, FiCheck, FiClock, FiUpload, FiShield, FiDownload, FiSearch, FiCheckCircle, FiAlertCircle, FiX } from 'react-icons/fi';
+import { FiFileText, FiCheck, FiClock, FiUpload, FiShield, FiDownload, FiSearch, FiCheckCircle, FiAlertCircle, FiX, FiTrash2, FiEdit } from 'react-icons/fi';
 
 /**
  * Documents Page
@@ -253,6 +253,22 @@ const Documents = () => {
       setVerifyLoading(false);
       // Reset file input
       if (verifyFileRef.current) verifyFileRef.current.value = '';
+    }
+  };
+
+  /**
+   * Delete a draft document
+   */
+  const handleDelete = async (docId, docTitle) => {
+    if (!window.confirm(`Are you sure you want to delete "${docTitle}"? This action cannot be undone.`)) {
+      return;
+    }
+    try {
+      await api.delete(`/documents/${docId}`);
+      fetchAllData(); // Refresh list
+    } catch (err) {
+      console.error('Delete error:', err);
+      alert(err.response?.data?.error || 'Failed to delete document.');
     }
   };
 
@@ -760,37 +776,42 @@ const Documents = () => {
                             <>
                               <a
                                 href={`/documents/${doc._id || doc.id}/editor`}
-                                style={documentsStyles.actionButton}
-                                onMouseOver={(e) => {
-                                  e.target.style.backgroundColor =
-                                    colors.primaryVeryLight;
-                                }}
-                                onMouseOut={(e) => {
-                                  e.target.style.backgroundColor = 'transparent';
-                                }}
-                              >
-                                View
-                              </a>
-                              <button
-                                onClick={() => handleDownload(doc._id || doc.id, doc.title)}
-                                disabled={downloadingId === (doc._id || doc.id)}
                                 style={{
                                   ...documentsStyles.actionButton,
-                                  opacity: downloadingId === (doc._id || doc.id) ? 0.6 : 1,
                                   display: 'inline-flex',
                                   alignItems: 'center',
                                   gap: '4px',
                                 }}
                                 onMouseOver={(e) => {
-                                  if (downloadingId !== (doc._id || doc.id))
-                                    e.currentTarget.style.backgroundColor = colors.primaryVeryLight;
+                                  e.currentTarget.style.backgroundColor =
+                                    colors.primaryVeryLight;
                                 }}
                                 onMouseOut={(e) => {
                                   e.currentTarget.style.backgroundColor = 'transparent';
                                 }}
                               >
-                                <FiDownload size={12} />
-                                {downloadingId === (doc._id || doc.id) ? 'Downloading...' : 'Download'}
+                                <FiEdit size={12} />
+                                Edit
+                              </a>
+                              <button
+                                onClick={() => handleDelete(doc._id || doc.id, doc.title)}
+                                style={{
+                                  ...documentsStyles.actionButton,
+                                  color: colors.error,
+                                  border: `1px solid ${colors.error}`,
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                }}
+                                onMouseOver={(e) => {
+                                  e.currentTarget.style.backgroundColor = '#FEF2F2';
+                                }}
+                                onMouseOut={(e) => {
+                                  e.currentTarget.style.backgroundColor = 'transparent';
+                                }}
+                              >
+                                <FiTrash2 size={12} />
+                                Delete
                               </button>
                               {/* Draft documents: no Verify button */}
                             </>

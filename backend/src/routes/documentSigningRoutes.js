@@ -24,7 +24,8 @@ const {
   getVerifiedSignatures,
   getSignatureStatistics,
   getSignatureReport,
-  downloadSignedDocument
+  downloadSignedDocument,
+  deleteDraftDocument
 } = require('../controllers/documentController');
 const {
   validateSignDocument,
@@ -807,6 +808,13 @@ router.get(
  * @access Private
  */
 router.get('/:documentId/download-signed', verifyToken, downloadSignedDocument);
+
+/**
+ * DELETE /api/documents/:documentId
+ * Delete a draft document
+ * @access Private (owner only, draft status only)
+ */
+router.delete('/:documentId', verifyToken, deleteDraftDocument);
 
 router.get('/:documentId', verifyToken, getDocument);
 

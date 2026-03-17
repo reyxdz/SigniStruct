@@ -2599,6 +2599,63 @@ class DocumentController {
       });
     }
   }
+
+  /**
+   * Delete a draft document
+   * DELETE /api/documents/:documentId
+   * Only draft documents can be deleted. Removes file from disk and DB record.
+   * @access Private (document owner only)
+   */
+  static async deleteDraftDocument(req, res) {
+    try {
+      const { documentId } = req.params;
+      const userId = req.user.id;
+
+      const document = await Document.findById(documentId);
+      if (!document) {
+        return res.status(404).json({ success: false, error: 'Document not found' });
+      }
+
+      if (document.owner_id.toString() !== userId) {
+        return res.status(403).json({ success: false, error: 'Not authorized to delete this document' });
+      }
+
+      if (document.status !== 'draft') {
+        return res.status(400).json({ success: false, error: 'Only draft documents can be deleted' });
+      }
+
+      // Delete file from disk
+      const fs = require('fs');
+      const path = require('path');
+      const fileName = document.file_url?.split('/').pop();
+      if (fileName) {
+        const filePath = path.join(__dirname, '../../uploads/documents', fileName);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
+      }
+
+      // Delete related signatures
+      await DocumentSignature.deleteMany({ document_id: documentId });
+
+      // Delete document
+      await Document.findByIdAndDelete(documentId);
+
+      console.log(`🗑️ Deleted draft document: ${document.title} (${documentId})`);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Document deleted successfully'
+      });
+    } catch (error) {
+      console.error('Delete document error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to delete document',
+        message: error.message
+      });
+    }
+  }
 }
 
 module.exports = DocumentController;
