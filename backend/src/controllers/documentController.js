@@ -1518,32 +1518,82 @@ class DocumentController {
       if (publisherSignedFields.length > 0) {
         console.log(`📝 Creating records for ${publisherSignedFields.length} publisher-signed fields`);
 
+        const encryptionKey = process.env.MASTER_ENCRYPTION_KEY;
+
         for (const field of publisherSignedFields) {
           try {
-            // Check if record already exists
+            // Check if a crypto-signed record already exists for this field
             const existingRecord = await DocumentSignature.findOne({
               document_id: documentId,
               fields: { $in: [field.id] },
               signer_id: userId
             });
 
-            if (!existingRecord) {
+            if (existingRecord && existingRecord.crypto_signature) {
+              console.log(`  ⏭️ Crypto-signed record already exists for field: ${field.label}`);
+              continue;
+            }
+
+            // Perform RSA cryptographic signing on the field value
+            // so the publisher's signature is verifiable by recipients
+            let cryptoData = null;
+            if (encryptionKey) {
+              try {
+                cryptoData = await SigningService.signField(
+                  documentId,
+                  field.value,  // The visual signature data stored on the field
+                  userId,
+                  encryptionKey
+                );
+                console.log(`  🔐 RSA signature generated for field: ${field.label}`);
+              } catch (cryptoError) {
+                console.warn(`  ⚠️ Crypto signing failed for field ${field.label}: ${cryptoError.message}`);
+                console.warn(`     The signature record will still be created but without cryptographic data.`);
+              }
+            } else {
+              console.warn(`  ⚠️ MASTER_ENCRYPTION_KEY not set — skipping cryptographic signing`);
+            }
+
+            if (existingRecord) {
+              // Update existing record with crypto data
+              existingRecord.status = 'signed';
+              existingRecord.is_valid = true;
+              existingRecord.verification_timestamp = new Date();
+              if (cryptoData) {
+                existingRecord.certificate_id = cryptoData.certificate_id;
+                existingRecord.crypto_signature = cryptoData.signature;
+                existingRecord.content_hash = cryptoData.content_hash;
+                existingRecord.signature_integrity_hash = cryptoData.signature_hash;
+                existingRecord.signature_hash = cryptoData.signature_hash;
+                existingRecord.algorithm = cryptoData.algorithm;
+                existingRecord.verified = cryptoData.verified;
+              }
+              await existingRecord.save();
+              console.log(`  ✅ Updated existing DocumentSignature with crypto data: ${field.label} (${existingRecord._id})`);
+            } else {
+              // Create new record with crypto data
               const publisherRecord = new DocumentSignature({
                 document_id: documentId,
                 signer_id: userId,
                 recipient_email: document.owner_id?.email || 'Publisher',
                 recipient_name: document.owner_id?.name || 'Document Publisher',
-                status: 'signed',  // Publisher's own field is already signed
+                status: 'signed',
                 fields: [field.id],
                 is_valid: true,
                 verification_timestamp: new Date(),
-                created_at: new Date()
+                created_at: new Date(),
+                // Cryptographic signature data
+                certificate_id: cryptoData?.certificate_id || null,
+                crypto_signature: cryptoData?.signature || null,
+                content_hash: cryptoData?.content_hash || null,
+                signature_integrity_hash: cryptoData?.signature_hash || null,
+                signature_hash: cryptoData?.signature_hash || null,
+                algorithm: cryptoData ? cryptoData.algorithm : 'visual-only',
+                verified: cryptoData?.verified || false
               });
 
               await publisherRecord.save();
               console.log(`  ✅ Created DocumentSignature for field: ${field.label} (${publisherRecord._id})`);
-            } else {
-              console.log(`  ⏭️ Record already exists for field: ${field.label}`);
             }
           } catch (error) {
             console.error(`  ❌ Failed to create DocumentSignature for ${field.label}:`, error.message);

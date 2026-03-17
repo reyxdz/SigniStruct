@@ -425,21 +425,50 @@ class VerificationService {
    */
   async _verifyCryptographicSignature(signature) {
     try {
-      // Get document hash
-      const document = signature.document_id;
-      if (!document || !document.file_hash_sha256) {
+      // Use the actual RSA signature (crypto_signature) and the content hash
+      // that was hashed at signing time (content_hash).
+      // NOTE: signature_hash only stores a SHA-256 checksum OF the RSA signature
+      //       (for integrity), NOT the RSA signature itself.
+      const rsaSignatureHex = signature.crypto_signature;
+      const contentHash = signature.content_hash;
+
+      if (!rsaSignatureHex || !contentHash) {
+        // Fall back: legacy signatures that only have signature_hash + document hash
+        const document = signature.document_id;
+        if (!document || !document.file_hash_sha256) {
+          return {
+            is_valid: false,
+            signature_valid: false,
+            hash_match: false,
+            error: 'No cryptographic data available on signature'
+          };
+        }
+
+        const certificate = signature.certificate_id;
+        if (!certificate || !certificate.public_key) {
+          return {
+            is_valid: false,
+            signature_valid: false,
+            hash_match: false,
+            error: 'Certificate public key not found'
+          };
+        }
+
+        const isValid = await SigningService.verifySignature(
+          signature.signature_hash,
+          document.file_hash_sha256,
+          certificate._id.toString(),
+          { skipAuditLog: true }
+        );
+
         return {
-          is_valid: false,
-          signature_valid: false,
-          hash_match: false,
-          error: 'Document hash not found'
+          is_valid: isValid,
+          signature_valid: isValid,
+          hash_match: isValid
         };
       }
 
-      const documentHash = document.file_hash_sha256;
-      const signatureHash = signature.signature_hash;
-
-      // Get certificate public key
+      // Modern path: verify crypto_signature against content_hash using the public key
       const certificate = signature.certificate_id;
       if (!certificate || !certificate.public_key) {
         return {
@@ -450,10 +479,9 @@ class VerificationService {
         };
       }
 
-      // Verify using SigningService
       const isValid = await SigningService.verifySignature(
-        signatureHash,
-        documentHash,
+        rsaSignatureHex,
+        contentHash,
         certificate._id.toString(),
         { skipAuditLog: true }
       );
@@ -461,7 +489,7 @@ class VerificationService {
       return {
         is_valid: isValid,
         signature_valid: isValid,
-        hash_match: true // If signature verifies, hash matches
+        hash_match: isValid
       };
     } catch (error) {
       console.error('Cryptographic signature verification error:', error);
@@ -495,7 +523,7 @@ class VerificationService {
       }
 
       const now = new Date();
-      const expiresAt = new Date(certificate.not_after || certificate.expires_at);
+      const expiresAt = new Date(certificate.not_after);
       const isNotExpired = now < expiresAt;
 
       // Check revocation status
