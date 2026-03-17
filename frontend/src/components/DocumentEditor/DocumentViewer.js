@@ -427,15 +427,15 @@ const DocumentViewer = ({
                     value: fieldValues[field.id] || field.value
                   };
                   
-                  // Determine if we're in view-only mode (no field selection callback)
-                  const isViewOnly = !onFieldSelect;
+                  // Determine if we're in view-only mode (no field selection callback or field is readOnly)
+                  const isViewOnly = !onFieldSelect || field.readOnly;
                   
                   return shouldRender && (
                     <FieldOverlay
                       key={field.id}
                       field={fieldWithValue}
-                      isSelected={selectedFieldId === field.id}
-                      onSelect={onFieldSelect || (() => {})}
+                      isSelected={!field.readOnly && selectedFieldId === field.id}
+                      onSelect={field.readOnly ? (() => {}) : (onFieldSelect || (() => {}))}
                       onRemove={handleRemoveField}
                       onMove={handleFieldMove}
                       onResize={handleFieldResize}

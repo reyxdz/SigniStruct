@@ -110,8 +110,9 @@ const DocumentSigningPage = () => {
     try {
       setIsSigning(true);
       
-      // Get all fields assigned to this recipient
+      // Get all interactive (non-readOnly) fields assigned to this recipient
       const fieldsToSubmit = document.fields.filter(field => 
+        !field.readOnly &&
         field.assignedRecipients && 
         field.assignedRecipients.some(r => signedFields.has(field.id) || fieldValues[field.id])
       );
@@ -146,7 +147,9 @@ const DocumentSigningPage = () => {
 
   const checkAllFieldsSigned = () => {
     if (!document?.fields) return false;
-    return document.fields.every(field => signedFields.has(field.id) || fieldValues[field.id]);
+    // Only check non-readOnly (recipient) fields
+    const recipientFields = document.fields.filter(f => !f.readOnly);
+    return recipientFields.length > 0 && recipientFields.every(field => signedFields.has(field.id) || fieldValues[field.id]);
   };
 
   if (loading) {
@@ -234,9 +237,9 @@ const DocumentSigningPage = () => {
 
           <div className="fields-list">
             {(() => {
-              // Group fields by label
+              // Group only interactive (non-readOnly) fields by label for the sidebar
               const groupedFields = {};
-              document?.fields?.forEach(field => {
+              document?.fields?.filter(f => !f.readOnly)?.forEach(field => {
                 const label = field.label || field.fieldType || 'Field';
                 if (!groupedFields[label]) {
                   groupedFields[label] = [];
@@ -279,7 +282,7 @@ const DocumentSigningPage = () => {
 
           <div className="sidebar-footer">
             <div className="summary-stat">
-              <span>Total: {document?.fields?.length || 0}</span>
+              <span>Total: {document?.fields?.filter(f => !f.readOnly)?.length || 0}</span>
             </div>
             <div className="summary-stat">
               <span>Signed: {signedFields.size}</span>

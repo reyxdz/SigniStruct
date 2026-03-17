@@ -1704,7 +1704,22 @@ class DocumentController {
         return field.assignedRecipients.some(r => r.recipientEmail === tokenData.recipientEmail);
       });
 
+      // Also include the publisher's own signed fields (read-only) so they display on the document
+      const publisherSignedFields = document.fields.filter(field =>
+        field.fieldType === 'signature' &&
+        !field.isRecipient &&
+        field.value &&
+        field.value.length > 0
+      ).map(field => ({
+        ...field.toObject ? field.toObject() : field,
+        readOnly: true  // Mark as read-only so the frontend knows not to make it interactive
+      }));
+
       console.log(`✅ Found ${recipientFields.length} fields for recipient ${tokenData.recipientEmail}`);
+      console.log(`📝 Found ${publisherSignedFields.length} publisher-signed fields to display`);
+
+      // Combine: recipient fields + publisher signed fields (for display)
+      const allFieldsForDisplay = [...recipientFields, ...publisherSignedFields];
 
       // Fetch DocumentSignature record to check signing status
       const DocumentSignature = require('../models/DocumentSignature');
@@ -1713,7 +1728,7 @@ class DocumentController {
         recipient_email: tokenData.recipientEmail
       });
 
-      // Return document with filtered fields
+      // Return document with combined fields
       return res.status(200).json({
         success: true,
         data: {
@@ -1725,7 +1740,7 @@ class DocumentController {
             num_pages: document.num_pages,
             file_size: document.file_size,
             status: document.status,
-            fields: recipientFields,
+            fields: allFieldsForDisplay,
             created_at: document.created_at
           },
           recipient: {
