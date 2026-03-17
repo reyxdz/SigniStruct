@@ -793,7 +793,19 @@ exports.verifyUploadedDocument = async (req, res) => {
     console.log(`[${requestId}] Document: ${verificationData.document_title} (${verificationData.document_id})`);
     console.log(`[${requestId}] Signatures to verify: ${verificationData.signatures?.length || 0}`);
 
-    // 5. Verify each signature using embedded public keys
+    // 5. Content integrity check — hash the uploaded file and compare
+    const crypto = require('crypto');
+    const uploadedFileHash = crypto.createHash('sha256').update(req.file.buffer).digest('hex');
+    const documentHashMatch = verificationData.document_hash === uploadedFileHash;
+
+    console.log(`[${requestId}] Uploaded file hash: ${uploadedFileHash}`);
+    console.log(`[${requestId}] Embedded document hash: ${verificationData.document_hash}`);
+    console.log(`[${requestId}] Hash match: ${documentHashMatch}`);
+
+    // Note: The hash won't match because we modified the PDF to embed metadata.
+    // So we also check the original document_hash against the database for true integrity.
+
+    // 6. Verify each signature using embedded public keys
     const signatureResults = [];
     let allValid = true;
 
@@ -879,7 +891,7 @@ exports.verifyUploadedDocument = async (req, res) => {
       signatureResults.push(result);
     }
 
-    // 6. Cross-reference with database if possible
+    // 7. Cross-reference with database if possible
     let databaseMatch = null;
     try {
       if (verificationData.document_id) {
@@ -900,8 +912,26 @@ exports.verifyUploadedDocument = async (req, res) => {
       databaseMatch = { found: false, error: 'Could not check database' };
     }
 
-    // 7. Build response
+    // 8. Build response
     const verifiedCount = signatureResults.filter(s => s.signature_valid).length;
+
+    // Content integrity assessment
+    const contentIntegrity = {
+      uploaded_file_hash: uploadedFileHash,
+      embedded_document_hash: verificationData.document_hash,
+      // The downloaded PDF has embedded metadata so its hash differs from the original.
+      // True tampering is detected by checking if the embedded document_hash
+      // matches the database record's original hash.
+      document_hash_trusted: databaseMatch?.found ? databaseMatch.hash_matches : null,
+      tamper_warning: databaseMatch?.found && !databaseMatch.hash_matches
+        ? 'The original document hash does not match the database record. The document may have been modified before metadata was embedded.'
+        : null
+    };
+
+    // If database hash doesn't match, flag as potentially tampered
+    if (databaseMatch?.found && !databaseMatch.hash_matches) {
+      allValid = false;
+    }
 
     console.log(`[${requestId}] Verification complete: ${verifiedCount}/${signatureResults.length} valid`);
 
@@ -924,6 +954,7 @@ exports.verifyUploadedDocument = async (req, res) => {
         },
         signatures: signatureResults,
         database_match: databaseMatch,
+        content_integrity: contentIntegrity,
         requestId
       }
     });

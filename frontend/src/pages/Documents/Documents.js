@@ -993,6 +993,30 @@ const Documents = () => {
                   </div>
                 )}
 
+                {/* Tamper Warning */}
+                {verifyResult.content_integrity?.tamper_warning && (
+                  <div style={{
+                    padding: spacing.md,
+                    borderRadius: borderRadius.md,
+                    marginBottom: spacing.lg,
+                    border: '1px solid #FECACA',
+                    backgroundColor: '#FEF2F2',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: spacing.sm,
+                  }}>
+                    <FiAlertCircle size={18} style={{ color: colors.error, flexShrink: 0, marginTop: '2px' }} />
+                    <div>
+                      <p style={{ margin: 0, fontWeight: typography.weights.semibold, fontSize: typography.sizes.sm, color: colors.error }}>
+                        ⚠️ Possible Tampering Detected
+                      </p>
+                      <p style={{ margin: '4px 0 0 0', fontSize: typography.sizes.xs, color: '#991B1B' }}>
+                        {verifyResult.content_integrity.tamper_warning}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
                 {/* Signatures List */}
                 {verifyResult.signatures && verifyResult.signatures.length > 0 && (
                   <div>
