@@ -1831,7 +1831,7 @@ class DocumentController {
         });
       }
 
-      // Update DocumentSignature record
+      // Update DocumentSignature record with cryptographic signing
       const DocumentSignature = require('../models/DocumentSignature');
       const ObjectId = require('mongoose').Types.ObjectId;
       
@@ -1839,6 +1839,52 @@ class DocumentController {
       console.log(`     Document ID (string): "${documentId}", ObjectId: "${new ObjectId(documentId)}"`);
       console.log(`     Recipient Email: ${tokenData.recipientEmail}`);
       console.log(`     Setting status to: ${allFieldsSigned ? 'signed' : 'pending'}`);
+
+      // Perform RSA cryptographic signing for the recipient
+      const recipientUser = await User.findOne({ email: tokenData.recipientEmail });
+      let cryptoSignature = null;
+      const encryptionKey = process.env.MASTER_ENCRYPTION_KEY;
+
+      if (recipientUser && encryptionKey && fieldValue) {
+        try {
+          console.log(`  🔐 Performing RSA cryptographic signing for recipient: ${tokenData.recipientEmail}`);
+          cryptoSignature = await SigningService.signField(
+            documentId,
+            fieldValue,
+            recipientUser._id.toString(),
+            encryptionKey
+          );
+          console.log(`  ✅ RSA signature generated for recipient`);
+          console.log(`     Algorithm: ${cryptoSignature.algorithm}`);
+          console.log(`     Certificate ID: ${cryptoSignature.certificate_id}`);
+          console.log(`     Content Hash: ${cryptoSignature.content_hash?.substring(0, 32)}...`);
+        } catch (cryptoError) {
+          console.warn(`  ⚠️ Crypto signing failed for recipient: ${cryptoError.message}`);
+        }
+      } else {
+        if (!recipientUser) console.warn(`  ⚠️ Recipient user not found: ${tokenData.recipientEmail}`);
+        if (!encryptionKey) console.warn(`  ⚠️ MASTER_ENCRYPTION_KEY not set`);
+        if (!fieldValue) console.warn(`  ⚠️ No field value provided for signing`);
+      }
+
+      // Build update object with crypto data if available
+      const updateData = {
+        status: allFieldsSigned ? 'signed' : 'pending',
+        updated_at: new Date()
+      };
+
+      if (cryptoSignature) {
+        updateData.signer_id = recipientUser._id;
+        updateData.certificate_id = cryptoSignature.certificate_id;
+        updateData.crypto_signature = cryptoSignature.signature;
+        updateData.content_hash = cryptoSignature.content_hash;
+        updateData.signature_integrity_hash = cryptoSignature.signature_hash;
+        updateData.signature_hash = cryptoSignature.signature_hash;
+        updateData.algorithm = cryptoSignature.algorithm;
+        updateData.verified = cryptoSignature.verified;
+        updateData.is_valid = true;
+        updateData.verification_timestamp = new Date();
+      }
 
       // First check if record exists
       const existingRecord = await DocumentSignature.findOne({
@@ -1854,7 +1900,6 @@ class DocumentController {
         console.log(`  ✗ No existing DocumentSignature record found`);
         const totalRecords = await DocumentSignature.countDocuments();
         console.log(`     Total DocumentSignature records in collection: ${totalRecords}`);
-        // List all records for this document
         const allForDoc = await DocumentSignature.find({ document_id: new ObjectId(documentId) });
         console.log(`     Records for this document: ${allForDoc.length}`);
         allForDoc.forEach(rec => console.log(`       - ${rec.recipient_email}: ${rec.status}`));
@@ -1865,16 +1910,18 @@ class DocumentController {
           document_id: new ObjectId(documentId),
           recipient_email: tokenData.recipientEmail
         },
-        {
-          status: allFieldsSigned ? 'signed' : 'pending',
-          updated_at: new Date()
-        },
+        updateData,
         { new: true }
       );
 
       if (signatureRecord) {
         console.log(`  ✅ DocumentSignature updated: ${signatureRecord._id}, status: ${signatureRecord.status}`);
         console.log(`     New status confirmed: ${signatureRecord.status}`);
+        if (cryptoSignature) {
+          console.log(`     Crypto signature stored: ${signatureRecord.crypto_signature ? 'YES' : 'NO'}`);
+          console.log(`     Certificate ID: ${signatureRecord.certificate_id}`);
+          console.log(`     Algorithm: ${signatureRecord.algorithm}`);
+        }
       } else {
         console.log(`  ⚠️ DocumentSignature not found or not updated`);
         console.log(`  🔧 Attempting to create new DocumentSignature record...`);
@@ -1883,9 +1930,23 @@ class DocumentController {
           const newSignatureRecord = await DocumentSignature.create({
             document_id: new ObjectId(documentId),
             recipient_email: tokenData.recipientEmail,
+            recipient_name: tokenData.recipientName || 'Recipient',
             status: allFieldsSigned ? 'signed' : 'pending',
             created_at: new Date(),
-            updated_at: new Date()
+            updated_at: new Date(),
+            // Include crypto data if available
+            ...(cryptoSignature && {
+              signer_id: recipientUser._id,
+              certificate_id: cryptoSignature.certificate_id,
+              crypto_signature: cryptoSignature.signature,
+              content_hash: cryptoSignature.content_hash,
+              signature_integrity_hash: cryptoSignature.signature_hash,
+              signature_hash: cryptoSignature.signature_hash,
+              algorithm: cryptoSignature.algorithm,
+              verified: cryptoSignature.verified,
+              is_valid: true,
+              verification_timestamp: new Date()
+            })
           });
           console.log(`  ✅ Created new DocumentSignature: ${newSignatureRecord._id}, status: ${newSignatureRecord.status}`);
         } catch (createError) {

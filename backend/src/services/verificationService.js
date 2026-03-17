@@ -236,8 +236,8 @@ class VerificationService {
           certificatesValid: signatureVerifications.every(s => !s.certificate_issues),
           noRevokedCertificates: signatureVerifications.every(s => !s.is_revoked),
           message: documentValid
-            ? `✅ Document fully signed and verified: ${validSignatureCount}/${signatureFields.length} signatures`
-            : `⏳ Document partially signed: ${actuallySignedSignatures.length}/${signatureFields.length} signed (${validSignatureCount} verified), ${pendingSignatures.length} pending`
+            ? `Document fully signed and verified: ${validSignatureCount}/${signatureFields.length} signatures`
+            : `Document partially signed: ${actuallySignedSignatures.length}/${signatureFields.length} signed (${validSignatureCount} verified), ${pendingSignatures.length} pending`
         },
         signatures: allSignatures.map(v => ({
           signature_id: v.signature_id || v.field_id,
