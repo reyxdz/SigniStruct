@@ -23,7 +23,8 @@ const {
   getCryptoSignatures,
   getVerifiedSignatures,
   getSignatureStatistics,
-  getSignatureReport
+  getSignatureReport,
+  downloadSignedDocument
 } = require('../controllers/documentController');
 const {
   validateSignDocument,
@@ -799,6 +800,14 @@ router.get(
  * @access Private
  * @security Requires document ownership
  */
+/**
+ * GET /api/documents/:documentId/download-signed
+ * Download signed PDF with embedded certificate/signature metadata
+ * 
+ * @access Private
+ */
+router.get('/:documentId/download-signed', verifyToken, downloadSignedDocument);
+
 router.get('/:documentId', verifyToken, getDocument);
 
 module.exports = router;

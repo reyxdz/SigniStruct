@@ -721,4 +721,223 @@ exports.revokeSignatureCertificate = async (req, res) => {
   }
 };
 
+// POST /api/verification/verify-uploaded
+// Upload a PDF file and verify its embedded SigniStruct signatures
+// Accepts multipart/form-data with a PDF file
+exports.verifyUploadedDocument = async (req, res) => {
+  const requestId = req.requestId || `REQ-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  
+  try {
+    console.log(`[${requestId}] Starting uploaded document verification`);
+
+    // 1. Check that a file was uploaded
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No PDF file uploaded',
+        code: 'NO_FILE',
+        requestId
+      });
+    }
+
+    const { PDFDocument } = require('pdf-lib');
+    const NodeRSA = require('node-rsa');
+
+    // 2. Load the PDF from the uploaded buffer
+    let pdfDoc;
+    try {
+      pdfDoc = await PDFDocument.load(req.file.buffer);
+    } catch (parseErr) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid PDF file. Could not parse the uploaded document.',
+        code: 'INVALID_PDF',
+        requestId
+      });
+    }
+
+    // 3. Extract SigniStruct verification metadata from PDF Subject field
+    const subject = pdfDoc.getSubject() || '';
+    const prefix = 'SigniStruct-Verification:';
+
+    if (!subject.startsWith(prefix)) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          verified: false,
+          is_signistruct_document: false,
+          message: 'This PDF does not contain SigniStruct verification data. It may not have been signed through SigniStruct, or it was not downloaded using the SigniStruct Download feature.',
+          requestId
+        }
+      });
+    }
+
+    // 4. Parse the embedded verification JSON
+    let verificationData;
+    try {
+      const jsonStr = subject.substring(prefix.length);
+      verificationData = JSON.parse(jsonStr);
+    } catch (jsonErr) {
+      return res.status(200).json({
+        success: true,
+        data: {
+          verified: false,
+          is_signistruct_document: true,
+          message: 'SigniStruct metadata found but could not be parsed. The PDF may have been corrupted.',
+          requestId
+        }
+      });
+    }
+
+    console.log(`[${requestId}] Found SigniStruct metadata v${verificationData.signistruct_version}`);
+    console.log(`[${requestId}] Document: ${verificationData.document_title} (${verificationData.document_id})`);
+    console.log(`[${requestId}] Signatures to verify: ${verificationData.signatures?.length || 0}`);
+
+    // 5. Verify each signature using embedded public keys
+    const signatureResults = [];
+    let allValid = true;
+
+    for (const sig of (verificationData.signatures || [])) {
+      const result = {
+        signer_email: sig.signer_email,
+        signer_name: sig.signer_name,
+        algorithm: sig.algorithm,
+        signed_at: sig.signed_at,
+        signature_valid: false,
+        certificate_valid: false,
+        certificate_info: null,
+        errors: []
+      };
+
+      // Check if we have the crypto data needed for verification
+      if (!sig.crypto_signature || !sig.content_hash) {
+        result.errors.push('Missing cryptographic signature data (visual-only signature)');
+        result.signature_valid = false;
+        allValid = false;
+        signatureResults.push(result);
+        continue;
+      }
+
+      // Check certificate
+      if (sig.certificate) {
+        const cert = sig.certificate;
+        result.certificate_info = {
+          certificate_id: cert.certificate_id,
+          issuer: cert.issuer,
+          subject: cert.subject,
+          serial_number: cert.serial_number,
+          fingerprint_sha256: cert.fingerprint_sha256,
+          status: cert.status
+        };
+
+        // Check certificate validity dates
+        const now = new Date();
+        const notBefore = new Date(cert.not_before);
+        const notAfter = new Date(cert.not_after);
+
+        if (now < notBefore) {
+          result.errors.push('Certificate is not yet valid');
+          result.certificate_valid = false;
+        } else if (now > notAfter) {
+          result.errors.push('Certificate has expired');
+          result.certificate_valid = false;
+        } else if (cert.status !== 'active') {
+          result.errors.push(`Certificate status: ${cert.status}`);
+          result.certificate_valid = false;
+        } else {
+          result.certificate_valid = true;
+        }
+
+        // Verify RSA signature using the embedded public key
+        if (cert.public_key) {
+          try {
+            const key = new NodeRSA(cert.public_key);
+            const hashBuffer = Buffer.from(sig.content_hash, 'hex');
+            const signatureBuffer = Buffer.from(sig.crypto_signature, 'hex');
+            const isValid = key.verify(hashBuffer, signatureBuffer, 'hex', 'hex');
+            result.signature_valid = isValid;
+
+            if (!isValid) {
+              result.errors.push('RSA signature verification failed — content may have been tampered with');
+              allValid = false;
+            }
+          } catch (verifyErr) {
+            result.signature_valid = false;
+            result.errors.push(`Signature verification error: ${verifyErr.message}`);
+            allValid = false;
+          }
+        } else {
+          result.errors.push('No public key available for verification');
+          result.signature_valid = false;
+          allValid = false;
+        }
+      } else {
+        result.errors.push('No certificate data embedded for this signature');
+        allValid = false;
+      }
+
+      signatureResults.push(result);
+    }
+
+    // 6. Cross-reference with database if possible
+    let databaseMatch = null;
+    try {
+      if (verificationData.document_id) {
+        const dbDocument = await Document.findById(verificationData.document_id);
+        if (dbDocument) {
+          databaseMatch = {
+            found: true,
+            title: dbDocument.title,
+            status: dbDocument.status,
+            hash_matches: dbDocument.file_hash_sha256 === verificationData.document_hash
+          };
+        } else {
+          databaseMatch = { found: false };
+        }
+      }
+    } catch (dbErr) {
+      console.warn(`[${requestId}] Database cross-reference failed:`, dbErr.message);
+      databaseMatch = { found: false, error: 'Could not check database' };
+    }
+
+    // 7. Build response
+    const verifiedCount = signatureResults.filter(s => s.signature_valid).length;
+
+    console.log(`[${requestId}] Verification complete: ${verifiedCount}/${signatureResults.length} valid`);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        verified: allValid && signatureResults.length > 0,
+        is_signistruct_document: true,
+        document_info: {
+          document_id: verificationData.document_id,
+          title: verificationData.document_title,
+          document_hash: verificationData.document_hash,
+          signed_at: verificationData.signed_at
+        },
+        summary: {
+          total_signatures: signatureResults.length,
+          verified_signatures: verifiedCount,
+          invalid_signatures: signatureResults.length - verifiedCount,
+          all_valid: allValid && signatureResults.length > 0
+        },
+        signatures: signatureResults,
+        database_match: databaseMatch,
+        requestId
+      }
+    });
+
+  } catch (error) {
+    console.error(`[${requestId}] Upload verification error:`, error);
+    res.status(500).json({
+      success: false,
+      message: 'Error verifying uploaded document',
+      code: 'VERIFICATION_ERROR',
+      requestId,
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
 module.exports = exports;

@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import api from '../../services/api';
 import DocumentUploader from '../../components/Documents/DocumentUploader';
 import CertificateManagementPage from '../Certificate/CertificateManagementPage';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
-import { FiFileText, FiCheck, FiClock, FiUpload, FiShield } from 'react-icons/fi';
+import { FiFileText, FiCheck, FiClock, FiUpload, FiShield, FiDownload, FiSearch, FiCheckCircle, FiAlertCircle, FiX } from 'react-icons/fi';
 
 /**
  * Documents Page
@@ -17,6 +17,11 @@ const Documents = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showUploadModal, setShowUploadModal] = useState(false);
+  const [showVerifyModal, setShowVerifyModal] = useState(false);
+  const [verifyLoading, setVerifyLoading] = useState(false);
+  const [verifyResult, setVerifyResult] = useState(null);
+  const [downloadingId, setDownloadingId] = useState(null);
+  const verifyFileRef = useRef(null);
 
   // Fetch documents on component mount
   useEffect(() => {
@@ -174,6 +179,73 @@ const Documents = () => {
   const handleUploadSuccess = () => {
     setShowUploadModal(false);
     fetchAllData(); // Refresh all documents
+  };
+
+  /**
+   * Download signed PDF with embedded certificates
+   */
+  const handleDownload = async (docId, docTitle) => {
+    try {
+      setDownloadingId(docId);
+      const response = await api.get(`/documents/${docId}/download-signed`, {
+        responseType: 'blob'
+      });
+
+      // Create blob and trigger download
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `${docTitle}_signed.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Download error:', err);
+      alert('Failed to download document. Please try again.');
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
+  /**
+   * Handle Upload & Verify file selection
+   */
+  const handleVerifyUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      alert('Please upload a PDF file.');
+      return;
+    }
+
+    try {
+      setVerifyLoading(true);
+      setVerifyResult(null);
+      setShowVerifyModal(true);
+
+      const formData = new FormData();
+      formData.append('document', file);
+
+      const response = await api.post('/verification/verify-uploaded', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
+      if (response.data.success) {
+        setVerifyResult(response.data.data);
+      } else {
+        setVerifyResult({ error: response.data.message || 'Verification failed' });
+      }
+    } catch (err) {
+      console.error('Verify upload error:', err);
+      setVerifyResult({ error: err.response?.data?.message || 'Failed to verify document' });
+    } finally {
+      setVerifyLoading(false);
+      // Reset file input
+      if (verifyFileRef.current) verifyFileRef.current.value = '';
+    }
   };
 
   const documentsStyles = {
@@ -376,18 +448,44 @@ const Documents = () => {
         {/* Header */}
         <div style={documentsStyles.header}>
           <h1 style={documentsStyles.title}><FiFileText style={{ display: 'inline', marginRight: '12px' }} /> Documents</h1>
-          <button
-            style={documentsStyles.uploadButton}
-            onClick={() => setShowUploadModal(true)}
-            onMouseOver={(e) => {
-              e.target.style.opacity = '0.9';
-            }}
-            onMouseOut={(e) => {
-              e.target.style.opacity = '1';
-            }}
-          >
-            <FiUpload style={{ display: 'inline', marginRight: '6px' }} /> Upload Document
-          </button>
+          <div style={{ display: 'flex', gap: spacing.sm }}>
+            <button
+              style={{
+                ...documentsStyles.uploadButton,
+                backgroundColor: 'transparent',
+                color: colors.secondary,
+                border: `1px solid ${colors.secondary}`,
+              }}
+              onClick={() => verifyFileRef.current?.click()}
+              onMouseOver={(e) => {
+                e.currentTarget.style.backgroundColor = colors.primaryVeryLight;
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+            >
+              <FiSearch style={{ display: 'inline', marginRight: '6px' }} /> Upload & Verify
+            </button>
+            <input
+              type="file"
+              ref={verifyFileRef}
+              accept=".pdf"
+              onChange={handleVerifyUpload}
+              style={{ display: 'none' }}
+            />
+            <button
+              style={documentsStyles.uploadButton}
+              onClick={() => setShowUploadModal(true)}
+              onMouseOver={(e) => {
+                e.currentTarget.style.opacity = '0.9';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.opacity = '1';
+              }}
+            >
+              <FiUpload style={{ display: 'inline', marginRight: '6px' }} /> Upload Document
+            </button>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -592,19 +690,27 @@ const Documents = () => {
                               >
                                 View
                               </a>
-                              <a
-                                href={`/documents/${doc._id || doc.id}/share`}
-                                style={documentsStyles.actionButton}
+                              <button
+                                onClick={() => handleDownload(doc._id || doc.id, doc.title)}
+                                disabled={downloadingId === (doc._id || doc.id)}
+                                style={{
+                                  ...documentsStyles.actionButton,
+                                  opacity: downloadingId === (doc._id || doc.id) ? 0.6 : 1,
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                }}
                                 onMouseOver={(e) => {
-                                  e.target.style.backgroundColor =
-                                    colors.primaryVeryLight;
+                                  if (downloadingId !== (doc._id || doc.id))
+                                    e.currentTarget.style.backgroundColor = colors.primaryVeryLight;
                                 }}
                                 onMouseOut={(e) => {
-                                  e.target.style.backgroundColor = 'transparent';
+                                  e.currentTarget.style.backgroundColor = 'transparent';
                                 }}
                               >
-                                Share
-                              </a>
+                                <FiDownload size={12} />
+                                {downloadingId === (doc._id || doc.id) ? 'Downloading...' : 'Download'}
+                              </button>
                               {/* Verify button for published documents (publishers verify after signing) */}
                               <a
                                 href={`/documents/${doc._id || doc.id}/verify`}
@@ -634,19 +740,27 @@ const Documents = () => {
                               >
                                 View
                               </a>
-                              <a
-                                href={`/documents/${doc._id || doc.id}/share`}
-                                style={documentsStyles.actionButton}
+                              <button
+                                onClick={() => handleDownload(doc._id || doc.id, doc.title)}
+                                disabled={downloadingId === (doc._id || doc.id)}
+                                style={{
+                                  ...documentsStyles.actionButton,
+                                  opacity: downloadingId === (doc._id || doc.id) ? 0.6 : 1,
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                }}
                                 onMouseOver={(e) => {
-                                  e.target.style.backgroundColor =
-                                    colors.primaryVeryLight;
+                                  if (downloadingId !== (doc._id || doc.id))
+                                    e.currentTarget.style.backgroundColor = colors.primaryVeryLight;
                                 }}
                                 onMouseOut={(e) => {
-                                  e.target.style.backgroundColor = 'transparent';
+                                  e.currentTarget.style.backgroundColor = 'transparent';
                                 }}
                               >
-                                Share
-                              </a>
+                                <FiDownload size={12} />
+                                {downloadingId === (doc._id || doc.id) ? 'Downloading...' : 'Download'}
+                              </button>
                               {/* Draft documents: no Verify button */}
                             </>
                           )}
@@ -695,6 +809,204 @@ const Documents = () => {
               </button>
             </div>
             <DocumentUploader onUploadSuccess={handleUploadSuccess} />
+          </div>
+        </div>
+      )}
+
+      {/* Upload & Verify Modal */}
+      {showVerifyModal && (
+        <div style={documentsStyles.modalOverlay} onClick={() => { setShowVerifyModal(false); setVerifyResult(null); }}>
+          <div
+            style={{ ...documentsStyles.modalContent, maxWidth: '700px' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={documentsStyles.modalHeader}>
+              <h2 style={documentsStyles.modalTitle}>
+                <FiShield style={{ display: 'inline', marginRight: '8px', color: colors.secondary }} />
+                Document Verification
+              </h2>
+              <button
+                style={documentsStyles.closeButton}
+                onClick={() => { setShowVerifyModal(false); setVerifyResult(null); }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {verifyLoading ? (
+              <div style={{ textAlign: 'center', padding: spacing['3xl'] }}>
+                <div style={{ fontSize: '48px', marginBottom: spacing.md }}>🔍</div>
+                <p style={{ color: colors.gray600, fontSize: typography.sizes.md }}>Verifying document signatures...</p>
+                <p style={{ color: colors.gray400, fontSize: typography.sizes.sm, marginTop: spacing.xs }}>This may take a moment</p>
+              </div>
+            ) : verifyResult?.error ? (
+              <div style={{ textAlign: 'center', padding: spacing['2xl'] }}>
+                <FiAlertCircle size={48} style={{ color: colors.error, marginBottom: spacing.md }} />
+                <p style={{ color: colors.error, fontWeight: typography.weights.semibold, fontSize: typography.sizes.lg }}>
+                  Verification Error
+                </p>
+                <p style={{ color: colors.gray600, marginTop: spacing.sm }}>{verifyResult.error}</p>
+              </div>
+            ) : verifyResult ? (
+              <div>
+                {/* Status Banner */}
+                <div style={{
+                  padding: spacing.lg,
+                  borderRadius: borderRadius.lg,
+                  marginBottom: spacing.lg,
+                  background: verifyResult.verified
+                    ? 'linear-gradient(135deg, #059669 0%, #10B981 100%)'
+                    : !verifyResult.is_signistruct_document
+                    ? 'linear-gradient(135deg, #6B7280 0%, #9CA3AF 100%)'
+                    : 'linear-gradient(135deg, #D97706 0%, #F59E0B 100%)',
+                  color: colors.white,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: spacing.md,
+                }}>
+                  {verifyResult.verified ? (
+                    <FiCheckCircle size={32} />
+                  ) : (
+                    <FiAlertCircle size={32} />
+                  )}
+                  <div>
+                    <p style={{ fontWeight: typography.weights.bold, fontSize: typography.sizes.lg, margin: 0 }}>
+                      {verifyResult.verified
+                        ? 'All Signatures Verified'
+                        : !verifyResult.is_signistruct_document
+                        ? 'Not a SigniStruct Document'
+                        : 'Verification Incomplete'}
+                    </p>
+                    <p style={{ margin: '4px 0 0 0', opacity: 0.9, fontSize: typography.sizes.sm }}>
+                      {verifyResult.message || (
+                        verifyResult.summary
+                          ? `${verifyResult.summary.verified_signatures} of ${verifyResult.summary.total_signatures} signature(s) verified`
+                          : ''
+                      )}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Document Info */}
+                {verifyResult.document_info && (
+                  <div style={{
+                    backgroundColor: colors.gray50,
+                    borderRadius: borderRadius.md,
+                    padding: spacing.md,
+                    marginBottom: spacing.lg,
+                  }}>
+                    <p style={{ margin: 0, fontWeight: typography.weights.semibold, color: colors.gray900 }}>
+                      {verifyResult.document_info.title}
+                    </p>
+                    <p style={{ margin: '4px 0 0 0', fontSize: typography.sizes.xs, color: colors.gray500 }}>
+                      Document ID: {verifyResult.document_info.document_id}
+                    </p>
+                    {verifyResult.document_info.signed_at && (
+                      <p style={{ margin: '2px 0 0 0', fontSize: typography.sizes.xs, color: colors.gray500 }}>
+                        Downloaded: {new Date(verifyResult.document_info.signed_at).toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Database Match */}
+                {verifyResult.database_match && (
+                  <div style={{
+                    padding: spacing.sm + ' ' + spacing.md,
+                    borderRadius: borderRadius.md,
+                    marginBottom: spacing.lg,
+                    border: `1px solid ${verifyResult.database_match.found ? '#A7F3D0' : colors.gray200}`,
+                    backgroundColor: verifyResult.database_match.found ? '#ECFDF5' : colors.gray50,
+                    fontSize: typography.sizes.sm,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: spacing.sm,
+                  }}>
+                    {verifyResult.database_match.found ? (
+                      <>
+                        <FiCheckCircle size={16} style={{ color: '#059669', flexShrink: 0 }} />
+                        <span style={{ color: '#065F46' }}>
+                          Document found in SigniStruct database
+                          {verifyResult.database_match.hash_matches
+                            ? ' — file hash matches ✓'
+                            : ' — file hash does not match ⚠️'}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <FiAlertCircle size={16} style={{ color: colors.gray500, flexShrink: 0 }} />
+                        <span style={{ color: colors.gray600 }}>Document not found in this SigniStruct instance</span>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {/* Signatures List */}
+                {verifyResult.signatures && verifyResult.signatures.length > 0 && (
+                  <div>
+                    <h3 style={{ fontSize: typography.sizes.md, fontWeight: typography.weights.bold, color: colors.gray900, marginBottom: spacing.sm }}>
+                      Signatures ({verifyResult.signatures.length})
+                    </h3>
+                    {verifyResult.signatures.map((sig, idx) => (
+                      <div key={idx} style={{
+                        padding: spacing.md,
+                        borderRadius: borderRadius.md,
+                        border: `1px solid ${colors.gray200}`,
+                        borderLeft: `4px solid ${sig.signature_valid ? '#10B981' : colors.error}`,
+                        marginBottom: spacing.sm,
+                        backgroundColor: '#FAFBFC',
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div>
+                            <p style={{ margin: 0, fontWeight: typography.weights.semibold, color: colors.gray900, fontSize: typography.sizes.sm }}>
+                              {sig.signer_name}
+                            </p>
+                            <p style={{ margin: '2px 0 0 0', fontSize: typography.sizes.xs, color: colors.gray500 }}>
+                              {sig.signer_email}
+                            </p>
+                          </div>
+                          <span style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: `${spacing.xs} ${spacing.sm}`,
+                            borderRadius: borderRadius.full,
+                            fontSize: typography.sizes.xs,
+                            fontWeight: typography.weights.semibold,
+                            backgroundColor: sig.signature_valid ? '#ECFDF5' : '#FEF2F2',
+                            color: sig.signature_valid ? '#059669' : colors.error,
+                          }}>
+                            {sig.signature_valid ? <><FiCheck size={12} /> Verified</> : <><FiX size={12} /> Invalid</>}
+                          </span>
+                        </div>
+                        {sig.errors && sig.errors.length > 0 && (
+                          <div style={{ marginTop: spacing.sm }}>
+                            {sig.errors.map((err, errIdx) => (
+                              <p key={errIdx} style={{ margin: '2px 0', fontSize: typography.sizes.xs, color: colors.error }}>
+                                ⚠ {err}
+                              </p>
+                            ))}
+                          </div>
+                        )}
+                        {sig.certificate_info && (
+                          <div style={{ marginTop: spacing.sm, fontSize: typography.sizes.xs, color: colors.gray500 }}>
+                            <span>Certificate: {sig.certificate_valid ? '✓ Valid' : '✗ Invalid'}</span>
+                            <span style={{ margin: '0 8px' }}>•</span>
+                            <span>Algorithm: {sig.algorithm}</span>
+                            {sig.signed_at && (
+                              <>
+                                <span style={{ margin: '0 8px' }}>•</span>
+                                <span>Signed: {new Date(sig.signed_at).toLocaleString()}</span>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : null}
           </div>
         </div>
       )}

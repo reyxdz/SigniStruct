@@ -2342,6 +2342,263 @@ class DocumentController {
       });
     }
   }
+
+  /**
+   * Download signed PDF with embedded signature & certificate metadata
+   * GET /api/documents/:documentId/download-signed
+   * 
+   * Renders visual signatures onto the PDF pages and embeds a JSON
+   * verification block into PDF metadata for later Upload & Verify.
+   * Only public keys and certificate PEM are included — never private keys.
+   * 
+   * @access Private
+   */
+  static async downloadSignedDocument(req, res) {
+    try {
+      const { documentId } = req.params;
+      const userId = req.user.id;
+      const fs = require('fs');
+      const path = require('path');
+      const { PDFDocument, rgb } = require('pdf-lib');
+
+      console.log('📥 Download signed document:', documentId);
+
+      // 1. Verify document exists
+      const document = await Document.findById(documentId);
+      if (!document) {
+        return res.status(404).json({ success: false, error: 'Document not found' });
+      }
+
+      // 2. Verify user owns the document
+      if (document.owner_id.toString() !== userId) {
+        return res.status(403).json({ success: false, error: 'You do not have permission to download this document' });
+      }
+
+      // 3. Read the PDF file from disk
+      const fileName = document.file_url.split('/').pop();
+      const filePath = path.join(__dirname, '../../uploads/documents', fileName);
+
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ success: false, error: 'Document file not found on server' });
+      }
+
+      const pdfBytes = fs.readFileSync(filePath);
+
+      // 4. Get all signatures with certificates
+      const signatures = await DocumentSignature.find({ document_id: documentId, status: 'signed' })
+        .populate('signer_id', 'name email')
+        .populate('certificate_id');
+
+      console.log(`  Found ${signatures.length} signed signatures`);
+
+      // 5. Load PDF with pdf-lib and render visual signatures
+      const pdfDoc = await PDFDocument.load(pdfBytes);
+      const pages = pdfDoc.getPages();
+
+      // Helper: detect image type from buffer
+      const detectImageType = (buffer) => {
+        if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4E && buffer[3] === 0x47) return 'png';
+        if (buffer[0] === 0xFF && buffer[1] === 0xD8 && buffer[2] === 0xFF) return 'jpg';
+        return 'unknown';
+      };
+
+      // Helper: embed a signature image onto a page
+      const embedSignatureImage = async (page, base64Data, xPercent, yPercent, fieldWidth, fieldHeight, signerName) => {
+        const { width: pageWidth, height: pageHeight } = page.getSize();
+
+        // Convert percentage position to PDF coordinates
+        // x,y are percentages (0-100) from top-left in the viewer
+        // PDF coordinates are from bottom-left
+        const pdfX = (xPercent / 100) * pageWidth;
+        const pdfY = pageHeight - ((yPercent / 100) * pageHeight) - fieldHeight;
+
+        // Ensure dimensions are reasonable
+        const drawWidth = Math.min(fieldWidth || 150, pageWidth * 0.5);
+        const drawHeight = Math.min(fieldHeight || 50, pageHeight * 0.2);
+
+        try {
+          // Strip data URL prefix if present
+          let rawBase64 = base64Data;
+          if (rawBase64.includes(',')) {
+            rawBase64 = rawBase64.split(',')[1];
+          }
+
+          const imageBuffer = Buffer.from(rawBase64, 'base64');
+          const imageType = detectImageType(imageBuffer);
+
+          let embeddedImage;
+          if (imageType === 'png') {
+            embeddedImage = await pdfDoc.embedPng(imageBuffer);
+          } else if (imageType === 'jpg') {
+            embeddedImage = await pdfDoc.embedJpg(imageBuffer);
+          }
+
+          if (embeddedImage) {
+            // Scale image proportionally to fit within field dimensions
+            const imgDims = embeddedImage.scale(1);
+            const scaleX = drawWidth / imgDims.width;
+            const scaleY = drawHeight / imgDims.height;
+            const scale = Math.min(scaleX, scaleY, 1); // Don't scale up
+
+            page.drawImage(embeddedImage, {
+              x: pdfX,
+              y: pdfY,
+              width: imgDims.width * scale,
+              height: imgDims.height * scale,
+            });
+
+            console.log(`    ✓ Embedded signature image at (${pdfX.toFixed(0)}, ${pdfY.toFixed(0)})`);
+          } else {
+            // Fallback: draw text if image type is unknown
+            page.drawText(`Signed by: ${signerName}`, {
+              x: pdfX,
+              y: pdfY + 10,
+              size: 10,
+              color: rgb(0.2, 0.2, 0.2),
+            });
+          }
+        } catch (imgErr) {
+          console.warn(`    ⚠ Failed to embed signature image: ${imgErr.message}`);
+          // Fallback: draw text
+          page.drawText(`Signed by: ${signerName}`, {
+            x: pdfX,
+            y: pdfY + 10,
+            size: 10,
+            color: rgb(0.2, 0.2, 0.2),
+          });
+        }
+      };
+
+      // 6. Render signature fields from document.fields
+      const fields = document.fields || [];
+      console.log(`  Processing ${fields.length} fields for visual rendering`);
+
+      for (const field of fields) {
+        const pageIndex = (field.pageNumber || 1) - 1; // Convert 1-based to 0-based
+        if (pageIndex < 0 || pageIndex >= pages.length) {
+          console.warn(`    Skipping field ${field.id}: page ${field.pageNumber} out of range`);
+          continue;
+        }
+
+        const page = pages[pageIndex];
+
+        // Check if this field has a signature value (publisher's own signature)
+        if (field.value && field.fieldType === 'signature') {
+          console.log(`    Processing publisher signature field: ${field.id}`);
+          await embedSignatureImage(
+            page,
+            field.value,
+            field.x || 0,
+            field.y || 0,
+            field.width || 150,
+            field.height || 50,
+            'Publisher'
+          );
+        }
+
+        // Check assigned recipients for signature data
+        if (field.assignedRecipients && field.assignedRecipients.length > 0) {
+          for (const recipient of field.assignedRecipients) {
+            if (recipient.signatureData && recipient.status === 'signed') {
+              console.log(`    Processing recipient signature: ${recipient.recipientName || recipient.recipientEmail}`);
+              await embedSignatureImage(
+                page,
+                recipient.signatureData,
+                field.x || 0,
+                field.y || 0,
+                field.width || 150,
+                field.height || 50,
+                recipient.recipientName || recipient.recipientEmail || 'Recipient'
+              );
+            }
+          }
+        }
+
+        // Render text field values
+        if (field.value && field.fieldType === 'text') {
+          const { width: pageWidth, height: pageHeight } = page.getSize();
+          const pdfX = (field.x / 100) * pageWidth;
+          const pdfY = pageHeight - ((field.y / 100) * pageHeight) - (field.height || 20);
+
+          page.drawText(field.value, {
+            x: pdfX,
+            y: pdfY,
+            size: field.fontSize || 12,
+            color: rgb(0, 0, 0),
+          });
+        }
+
+        // Render date field values
+        if (field.value && field.fieldType === 'date') {
+          const { width: pageWidth, height: pageHeight } = page.getSize();
+          const pdfX = (field.x / 100) * pageWidth;
+          const pdfY = pageHeight - ((field.y / 100) * pageHeight) - (field.height || 20);
+
+          page.drawText(field.value, {
+            x: pdfX,
+            y: pdfY,
+            size: field.fontSize || 12,
+            color: rgb(0, 0, 0),
+          });
+        }
+      }
+
+      // 7. Build verification metadata
+      const verificationData = {
+        signistruct_version: '1.0',
+        document_id: documentId,
+        document_title: document.title,
+        document_hash: document.file_hash_sha256,
+        signed_at: new Date().toISOString(),
+        signatures: signatures.map(sig => ({
+          signer_email: sig.signer_id?.email || sig.recipient_email || 'Unknown',
+          signer_name: sig.signer_id?.name || sig.recipient_name || 'Unknown',
+          algorithm: sig.algorithm || 'RSA-SHA256',
+          crypto_signature: sig.crypto_signature || null,
+          content_hash: sig.content_hash || null,
+          signature_hash: sig.signature_hash || null,
+          signed_at: sig.timestamp || sig.createdAt,
+          certificate: sig.certificate_id ? {
+            certificate_id: sig.certificate_id.certificate_id,
+            public_key: sig.certificate_id.public_key,
+            certificate_pem: sig.certificate_id.certificate_pem,
+            issuer: sig.certificate_id.issuer,
+            subject: sig.certificate_id.subject,
+            serial_number: sig.certificate_id.serial_number,
+            not_before: sig.certificate_id.not_before,
+            not_after: sig.certificate_id.not_after,
+            fingerprint_sha256: sig.certificate_id.fingerprint_sha256,
+            status: sig.certificate_id.status
+          } : null
+        }))
+      };
+
+      // 8. Embed metadata into PDF
+      const metadataJson = JSON.stringify(verificationData);
+      pdfDoc.setKeywords(['SigniStruct-Verified']);
+      pdfDoc.setSubject('SigniStruct-Verification:' + metadataJson);
+      pdfDoc.setProducer('SigniStruct Digital Signing Platform');
+
+      const modifiedPdfBytes = await pdfDoc.save();
+
+      console.log(`  ✅ PDF prepared with signatures and metadata (${modifiedPdfBytes.length} bytes)`);
+
+      // 9. Send as downloadable file
+      const downloadName = `${document.title.replace(/[^a-zA-Z0-9\-_ ]/g, '')}_signed.pdf`;
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${downloadName}"`);
+      res.setHeader('Content-Length', modifiedPdfBytes.length);
+      res.send(Buffer.from(modifiedPdfBytes));
+
+    } catch (error) {
+      console.error('❌ Download signed document error:', error);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to download signed document',
+        message: error.message
+      });
+    }
+  }
 }
 
 module.exports = DocumentController;

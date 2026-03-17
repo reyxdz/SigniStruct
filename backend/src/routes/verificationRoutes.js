@@ -1,7 +1,20 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
 const { verifyToken } = require('../middleware/authMiddleware');
 const verificationController = require('../controllers/verificationController');
+
+// Memory storage for verification uploads (no need to persist)
+const verifyUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 52428800 }, // 50MB
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype !== 'application/pdf') {
+      return cb(new Error('Only PDF files are allowed'), false);
+    }
+    cb(null, true);
+  }
+});
 
 /**
  * Verification Routes
@@ -13,6 +26,7 @@ const verificationController = require('../controllers/verificationController');
  * GET  /api/verification/signatures/:signatureId
  * GET  /api/verification/signatures/:signatureId/audit-trail
  * POST /api/verification/signatures/:signatureId/revoke
+ * POST /api/verification/verify-uploaded
  */
 
 // Require authentication for all verification routes
@@ -65,6 +79,14 @@ router.get(
 router.post(
   '/signatures/:signatureId/revoke',
   verificationController.revokeSignatureCertificate
+);
+
+// POST /api/verification/verify-uploaded
+// Upload a PDF and verify its embedded SigniStruct signatures
+router.post(
+  '/verify-uploaded',
+  verifyUpload.single('document'),
+  verificationController.verifyUploadedDocument
 );
 
 module.exports = router;
