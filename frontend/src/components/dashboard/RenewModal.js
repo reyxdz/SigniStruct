@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { FiX } from 'react-icons/fi';
-import { colors, spacing, typography, borderRadius } from '../../theme';
+import { FiX, FiRotateCcw, FiShield, FiKey, FiCalendar, FiInfo } from 'react-icons/fi';
+import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
 
 /**
  * RenewModal Component
@@ -19,38 +19,43 @@ const RenewModal = ({ certificate, onRenew, onCancel, isLoading = false }) => {
   };
 
   return (
-    <div style={styles.overlay}>
+    <div style={styles.overlay} onClick={(e) => e.target === e.currentTarget && !isLoading && onCancel()}>
       <div style={styles.modal}>
+        {/* Header */}
         <div style={styles.header}>
-          <h2 style={styles.title}>Renew Certificate</h2>
-          <button
-            style={styles.closeBtn}
-            onClick={onCancel}
-            disabled={isLoading}
-          >
-            <FiX size={24} />
+          <div style={styles.headerLeft}>
+            <div style={styles.headerIcon}>
+              <FiRotateCcw size={18} />
+            </div>
+            <div>
+              <h2 style={styles.title}>Renew Certificate</h2>
+              <p style={styles.subtitle}>Generate a new certificate with extended validity</p>
+            </div>
+          </div>
+          <button style={styles.closeBtn} onClick={onCancel} disabled={isLoading}>
+            <FiX size={20} />
           </button>
         </div>
 
+        {/* Content */}
         <div style={styles.content}>
-          <p style={styles.description}>
-            Renewing your certificate will generate a new certificate with extended validity. 
-            Your signing history will be maintained.
-          </p>
-
-          <div style={styles.detailBox}>
-            <div style={styles.detailRow}>
-              <span>Current Certificate ID:</span>
-              <span>{certificate.certificate_id}</span>
+          {/* Current Certificate Info */}
+          <div style={styles.currentCert}>
+            <div style={styles.currentCertRow}>
+              <FiShield size={14} style={{ color: colors.gray500 }} />
+              <span style={styles.currentCertLabel}>Current Certificate</span>
+              <span style={styles.currentCertValue}>{certificate.certificate_id}</span>
             </div>
-            <div style={styles.detailRow}>
-              <span>Expires:</span>
-              <span>{new Date(certificate.not_after).toLocaleDateString()}</span>
+            <div style={styles.currentCertRow}>
+              <FiCalendar size={14} style={{ color: colors.gray500 }} />
+              <span style={styles.currentCertLabel}>Expires</span>
+              <span style={styles.currentCertValue}>{new Date(certificate.not_after).toLocaleDateString()}</span>
             </div>
           </div>
 
+          {/* Form */}
           <div style={styles.formGroup}>
-            <label style={styles.label}>Validity Period (Years)</label>
+            <label style={styles.label}>Validity Period</label>
             <select
               style={styles.select}
               value={validityYears}
@@ -64,8 +69,7 @@ const RenewModal = ({ certificate, onRenew, onCancel, isLoading = false }) => {
               <option value={10}>10 Years</option>
             </select>
             <p style={styles.hint}>
-              The new certificate will be valid for {validityYears} year{validityYears !== 1 ? 's' : ''} 
-              from the date of renewal.
+              The new certificate will be valid for {validityYears} year{validityYears !== 1 ? 's' : ''} from the date of renewal.
             </p>
           </div>
 
@@ -77,35 +81,33 @@ const RenewModal = ({ certificate, onRenew, onCancel, isLoading = false }) => {
               onChange={(e) => setReason(e.target.value)}
               placeholder="e.g., Scheduled renewal, Certificate expiring, etc."
               disabled={isLoading}
-              rows={4}
+              rows={3}
             />
           </div>
 
+          {/* Info Box */}
           <div style={styles.infoBox}>
-            <strong>What happens during renewal:</strong>
-            <ul style={styles.list}>
-              <li>A new RSA key pair will be generated</li>
-              <li>The old certificate will be marked as superseded</li>
-              <li>Your new certificate will be immediately active</li>
-              <li>All audit trail and history will be preserved</li>
-            </ul>
+            <FiInfo size={16} style={{ color: colors.primary, flexShrink: 0, marginTop: '1px' }} />
+            <div>
+              <p style={styles.infoTitle}>What happens during renewal</p>
+              <ul style={styles.infoList}>
+                <li>A new RSA key pair will be generated</li>
+                <li>The old certificate will be marked as superseded</li>
+                <li>Your new certificate will be immediately active</li>
+                <li>All audit trail and history will be preserved</li>
+              </ul>
+            </div>
           </div>
         </div>
 
+        {/* Footer */}
         <div style={styles.footer}>
-          <button
-            style={{ ...styles.btn, ...styles.cancelBtn }}
-            onClick={onCancel}
-            disabled={isLoading}
-          >
+          <button style={styles.cancelBtn} onClick={onCancel} disabled={isLoading}>
             Cancel
           </button>
-          <button
-            style={{ ...styles.btn, ...styles.renewBtn }}
-            onClick={handleRenew}
-            disabled={isLoading}
-          >
-            {isLoading ? 'Renewing...' : 'Renew Certificate'}
+          <button style={styles.renewBtn} onClick={handleRenew} disabled={isLoading}>
+            <FiRotateCcw size={14} />
+            <span>{isLoading ? 'Renewing...' : 'Renew Certificate'}</span>
           </button>
         </div>
       </div>
@@ -120,145 +122,225 @@ const styles = {
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 1000
+    zIndex: 1000,
+    backdropFilter: 'blur(2px)',
   },
+
   modal: {
     backgroundColor: colors.white,
-    borderRadius: borderRadius.lg,
+    borderRadius: '14px',
     width: '90%',
-    maxWidth: '500px',
+    maxWidth: '480px',
     maxHeight: '90vh',
-    overflow: 'auto',
-    boxShadow: '0 20px 25px rgba(0, 0, 0, 0.15)'
+    overflow: 'hidden',
+    display: 'flex',
+    flexDirection: 'column',
+    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)',
   },
+
   header: {
     display: 'flex',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: spacing.lg,
-    borderBottom: `1px solid ${colors.border}`
+    alignItems: 'flex-start',
+    padding: '20px 24px',
+    borderBottom: `1px solid ${colors.gray200}`,
   },
+
+  headerLeft: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '12px',
+  },
+
+  headerIcon: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '36px',
+    height: '36px',
+    borderRadius: '10px',
+    backgroundColor: colors.primaryVeryLight,
+    color: colors.primary,
+    flexShrink: 0,
+  },
+
   title: {
     margin: 0,
-    fontSize: typography.sizes.xl,
-    fontWeight: typography.weights.semibold,
-    color: colors.gray900
+    fontSize: '17px',
+    fontWeight: 700,
+    color: colors.gray900,
+    lineHeight: 1.2,
   },
+
+  subtitle: {
+    margin: '3px 0 0 0',
+    fontSize: '13px',
+    color: colors.gray500,
+  },
+
   closeBtn: {
     background: 'none',
     border: 'none',
     cursor: 'pointer',
-    padding: spacing.xs,
-    color: colors.gray600,
+    padding: '4px',
+    color: colors.gray400,
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    ':hover': {
-      color: colors.gray900
-    }
+    borderRadius: '6px',
+    transition: transitions.fast,
   },
+
   content: {
-    padding: spacing.lg
+    padding: '20px 24px',
+    overflowY: 'auto',
+    flex: 1,
   },
-  description: {
-    fontSize: typography.sizes.sm,
-    color: colors.gray700,
-    marginBottom: spacing.lg,
-    lineHeight: 1.6
-  },
-  detailBox: {
-    backgroundColor: colors.lightGray,
-    padding: spacing.md,
-    borderRadius: borderRadius.md,
-    marginBottom: spacing.lg
-  },
-  detailRow: {
+
+  currentCert: {
+    padding: '12px 16px',
+    borderRadius: '10px',
+    backgroundColor: '#F8FAFC',
+    border: `1px solid ${colors.gray200}`,
+    marginBottom: '20px',
     display: 'flex',
-    justifyContent: 'space-between',
-    fontSize: typography.sizes.sm,
-    marginBottom: spacing.sm,
-    color: colors.gray700
+    flexDirection: 'column',
+    gap: '8px',
   },
+
+  currentCertRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    fontSize: '13px',
+  },
+
+  currentCertLabel: {
+    color: colors.gray500,
+    fontWeight: 500,
+    minWidth: '100px',
+  },
+
+  currentCertValue: {
+    color: colors.gray800,
+    fontWeight: 600,
+    fontFamily: typography.monoFamily,
+    fontSize: '12px',
+  },
+
   formGroup: {
-    marginBottom: spacing.lg
+    marginBottom: '20px',
   },
+
   label: {
     display: 'block',
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
-    color: colors.gray900,
-    marginBottom: spacing.xs
+    fontSize: '13px',
+    fontWeight: 600,
+    color: colors.gray800,
+    marginBottom: '6px',
   },
+
   select: {
     width: '100%',
-    padding: spacing.md,
-    border: `1px solid ${colors.border}`,
-    borderRadius: borderRadius.md,
-    fontSize: typography.sizes.sm,
-    fontFamily: 'inherit',
-    boxSizing: 'border-box'
-  },
-  textarea: {
-    width: '100%',
-    padding: spacing.md,
-    border: `1px solid ${colors.border}`,
-    borderRadius: borderRadius.md,
-    fontSize: typography.sizes.sm,
+    padding: '10px 14px',
+    border: `1px solid ${colors.gray300}`,
+    borderRadius: '8px',
+    fontSize: '14px',
     fontFamily: 'inherit',
     boxSizing: 'border-box',
-    resize: 'vertical'
+    backgroundColor: colors.white,
+    color: colors.gray800,
+    outline: 'none',
+    transition: transitions.fast,
   },
+
+  textarea: {
+    width: '100%',
+    padding: '10px 14px',
+    border: `1px solid ${colors.gray300}`,
+    borderRadius: '8px',
+    fontSize: '14px',
+    fontFamily: 'inherit',
+    boxSizing: 'border-box',
+    resize: 'vertical',
+    color: colors.gray800,
+    outline: 'none',
+    transition: transitions.fast,
+  },
+
   hint: {
-    fontSize: typography.sizes.xs,
-    color: colors.gray600,
-    marginTop: spacing.xs
-  },
-  infoBox: {
-    backgroundColor: '#dbeafe',
-    padding: spacing.md,
-    borderRadius: borderRadius.md,
-    marginBottom: spacing.lg,
-    fontSize: typography.sizes.sm,
-    color: colors.gray800
-  },
-  list: {
-    marginTop: spacing.sm,
+    fontSize: '12px',
+    color: colors.gray500,
+    marginTop: '6px',
     marginBottom: 0,
-    paddingLeft: spacing.lg,
-    color: colors.gray700
+    lineHeight: 1.4,
   },
+
+  infoBox: {
+    display: 'flex',
+    gap: '10px',
+    backgroundColor: colors.primaryVeryLight,
+    padding: '14px 16px',
+    borderRadius: '10px',
+    border: '1px solid #BFDBFE',
+  },
+
+  infoTitle: {
+    fontSize: '13px',
+    fontWeight: 600,
+    color: colors.gray800,
+    margin: '0 0 6px 0',
+  },
+
+  infoList: {
+    margin: 0,
+    paddingLeft: '18px',
+    fontSize: '13px',
+    color: colors.gray600,
+    lineHeight: 1.7,
+  },
+
   footer: {
     display: 'flex',
-    gap: spacing.md,
-    padding: spacing.lg,
-    borderTop: `1px solid ${colors.border}`
+    gap: '10px',
+    padding: '16px 24px',
+    borderTop: `1px solid ${colors.gray200}`,
+    backgroundColor: '#FAFBFC',
   },
-  btn: {
-    flex: 1,
-    padding: spacing.md,
-    borderRadius: borderRadius.md,
-    border: 'none',
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
-    cursor: 'pointer',
-    transition: 'all 0.2s'
-  },
+
   cancelBtn: {
-    backgroundColor: colors.lightGray,
-    color: colors.gray900,
-    border: `1px solid ${colors.border}`
+    flex: 1,
+    padding: '10px 16px',
+    borderRadius: '8px',
+    border: `1px solid ${colors.gray300}`,
+    backgroundColor: colors.white,
+    fontSize: '14px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    color: colors.gray700,
+    transition: transitions.fast,
   },
+
   renewBtn: {
+    flex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '6px',
+    padding: '10px 16px',
+    borderRadius: '8px',
+    border: 'none',
     backgroundColor: colors.primary,
     color: colors.white,
-    ':hover': {
-      opacity: 0.9
-    }
-  }
+    fontSize: '14px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: transitions.fast,
+  },
 };
 
 export default RenewModal;

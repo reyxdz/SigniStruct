@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import api from '../../services/api';
 import DocumentUploader from '../../components/Documents/DocumentUploader';
+import CertificateManagementPage from '../Certificate/CertificateManagementPage';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
-import { FiFileText, FiCheck, FiClock, FiUpload } from 'react-icons/fi';
+import { FiFileText, FiCheck, FiClock, FiUpload, FiShield } from 'react-icons/fi';
 
 /**
  * Documents Page
@@ -418,8 +419,25 @@ const Documents = () => {
           >
             Draft Documents ({getDocumentCount('draft')})
           </button>
+          <button
+            style={{
+              ...documentsStyles.tab,
+              ...(activeTab === 'certificates' && documentsStyles.tabActive),
+              display: 'flex',
+              alignItems: 'center',
+              gap: spacing.xs,
+            }}
+            onClick={() => setActiveTab('certificates')}
+          >
+            <FiShield size={14} /> Certificates
+          </button>
         </div>
 
+        {/* Certificates Tab */}
+        {activeTab === 'certificates' ? (
+          <CertificateManagementPage />
+        ) : (
+        <>
         {/* Search */}
         <div style={documentsStyles.searchContainer}>
           <input
@@ -659,6 +677,8 @@ const Documents = () => {
             </tbody>
           </table>
         </div>
+        </>
+        )}
       </div>
 
       {/* Upload Modal */}

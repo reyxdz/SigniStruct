@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { FiRefreshCw, FiAlertCircle } from 'react-icons/fi';
+import { FiRefreshCw, FiAlertCircle, FiShield, FiKey, FiCalendar, FiClock } from 'react-icons/fi';
 import { useAuth } from '../../contexts/AuthContext';
 import CertificateService from '../../services/certificateService';
 import CertificateCard from '../../components/dashboard/CertificateCard';
 import ExpiryWarning from '../../components/dashboard/ExpiryWarning';
 import RenewModal from '../../components/dashboard/RenewModal';
 import CertificateDetailsModal from '../../components/dashboard/CertificateDetailsModal';
-import { colors, spacing, typography, borderRadius } from '../../theme';
+import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
 import './CertificateManagementPage.css';
 
 /**
@@ -33,11 +33,9 @@ const CertificateManagementPage = () => {
       setLoading(true);
       setError(null);
 
-      // Get active certificate
       const activeCert = await CertificateService.getActiveCertificate();
       setActiveCertificate(activeCert);
 
-      // Get all certificates
       if (user?.id) {
         const allCerts = await CertificateService.getAllCertificates(user.id);
         setCertificates(allCerts);
@@ -50,10 +48,17 @@ const CertificateManagementPage = () => {
     }
   }, [user]);
 
-  // Load certificates on mount
   useEffect(() => {
     loadCertificates();
   }, [loadCertificates]);
+
+  // Auto-dismiss success after 4 seconds
+  useEffect(() => {
+    if (success) {
+      const timer = setTimeout(() => setSuccess(null), 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [success]);
 
   const handleRenew = (certificate) => {
     setSelectedCertificate(certificate);
@@ -71,13 +76,10 @@ const CertificateManagementPage = () => {
         renewData.reason
       );
 
-      setSuccess(`Certificate renewed successfully! New certificate ID: ${result.new_certificate.certificate_id}`);
+      setSuccess(`Certificate renewed successfully. New ID: ${result.new_certificate.certificate_id}`);
       setShowRenewModal(false);
 
-      // Reload certificates
-      setTimeout(() => {
-        loadCertificates();
-      }, 1500);
+      setTimeout(() => { loadCertificates(); }, 1500);
     } catch (err) {
       console.error('Renewal failed:', err);
       setError(err.response?.data?.error || 'Failed to renew certificate');
@@ -87,7 +89,7 @@ const CertificateManagementPage = () => {
   };
 
   const handleRevoke = async (certificate) => {
-    if (window.confirm(`Are you sure you want to revoke this certificate? This action cannot be undone.`)) {
+    if (window.confirm('Are you sure you want to revoke this certificate? This action cannot be undone.')) {
       try {
         setIsRevoking(true);
         setError(null);
@@ -126,21 +128,29 @@ const CertificateManagementPage = () => {
 
   if (!user) {
     return (
-      <div style={styles.container}>
-        <div style={styles.errorBox}>
-          <p>Please log in to view your certificates</p>
+      <div style={styles.centeredContainer}>
+        <div style={styles.emptyCard}>
+          <FiAlertCircle size={32} style={{ color: colors.gray400 }} />
+          <p style={styles.emptyText}>Please log in to view your certificates</p>
         </div>
       </div>
     );
   }
 
+  const daysRemaining = activeCertificate
+    ? CertificateService.getDaysRemaining(activeCertificate.not_after)
+    : 0;
+
   return (
-    <div style={styles.container}>
-      {/* Header */}
-      <div style={styles.header}>
-        <div>
-          <h1 style={styles.title}>Certificate Management</h1>
-          <p style={styles.subtitle}>Manage your digital certificates and signing credentials</p>
+    <div style={styles.page}>
+      {/* Top Bar */}
+      <div style={styles.topBar}>
+        <div style={styles.topBarLeft}>
+          <FiShield size={22} style={{ color: colors.primary }} />
+          <div>
+            <h1 style={styles.pageTitle}>Certificate Management</h1>
+            <p style={styles.pageSubtitle}>Manage your digital certificates and signing credentials</p>
+          </div>
         </div>
         <button
           style={styles.refreshBtn}
@@ -148,135 +158,164 @@ const CertificateManagementPage = () => {
           disabled={loading}
           title="Refresh certificates"
         >
-          <FiRefreshCw style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
-          Refresh
+          <FiRefreshCw size={15} style={{ animation: loading ? 'spin 1s linear infinite' : 'none' }} />
+          <span>Refresh</span>
         </button>
       </div>
 
-      {/* Messages */}
-      {error && (
-        <div style={styles.alertBox('error')}>
-          <FiAlertCircle style={styles.alertIcon} />
-          <div>
-            <strong>Error:</strong> {error}
+      {/* Main Content */}
+      <div style={styles.mainContent}>
+        {/* Alert Messages */}
+        {error && (
+          <div style={styles.alertError}>
+            <FiAlertCircle size={18} style={{ flexShrink: 0 }} />
+            <span><strong>Error:</strong> {error}</span>
+            <button style={styles.alertDismiss} onClick={() => setError(null)}>&times;</button>
           </div>
-        </div>
-      )}
+        )}
 
-      {success && (
-        <div style={styles.alertBox('success')}>
-          <div>
-            <strong>Success:</strong> {success}
+        {success && (
+          <div style={styles.alertSuccess}>
+            <FiShield size={18} style={{ flexShrink: 0 }} />
+            <span>{success}</span>
+            <button style={styles.alertDismiss} onClick={() => setSuccess(null)}>&times;</button>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Active Certificate Section */}
-      {loading ? (
-        <div style={styles.loadingBox}>
-          <p>Loading your certificates...</p>
-        </div>
-      ) : activeCertificate ? (
-        <>
-          <div style={styles.section}>
-            <h2 style={styles.sectionTitle}>Your Active Certificate</h2>
+        {loading ? (
+          <div style={styles.loadingCard}>
+            <div style={styles.spinner} />
+            <p style={styles.loadingText}>Loading your certificates...</p>
+          </div>
+        ) : activeCertificate ? (
+          <>
+            {/* Expiry Warning */}
             <ExpiryWarning
-              daysRemaining={CertificateService.getDaysRemaining(activeCertificate.not_after)}
+              daysRemaining={daysRemaining}
               expiryDate={activeCertificate.not_after}
               status={activeCertificate.status}
             />
-            <CertificateCard
-              certificate={activeCertificate}
-              onDownload={handleDownload}
-              onRenew={handleRenew}
-              onRevoke={handleRevoke}
-              onViewDetails={handleViewDetails}
-              isLoading={isRenewing || isRevoking}
-            />
-          </div>
 
-          {/* Certificate Information */}
-          <div style={styles.infoGrid}>
-            <div style={styles.infoCard}>
-              <div style={styles.infoValue}>
-                {CertificateService.getDaysRemaining(activeCertificate.not_after)}
+            {/* Stats Grid */}
+            <div style={styles.statsGrid}>
+              <div style={styles.statCard}>
+                <div style={{...styles.statIcon, background: colors.primaryVeryLight, color: colors.primary}}>
+                  <FiClock size={20} />
+                </div>
+                <div>
+                  <p style={styles.statValue}>{daysRemaining}</p>
+                  <p style={styles.statLabel}>Days Remaining</p>
+                </div>
               </div>
-              <div style={styles.infoLabel}>Days Remaining</div>
-            </div>
-            <div style={styles.infoCard}>
-              <div style={styles.infoValue}>
-                {activeCertificate.certificate_id.substring(0, 15)}...
+              <div style={styles.statCard}>
+                <div style={{...styles.statIcon, background: colors.successLight, color: colors.success}}>
+                  <FiShield size={20} />
+                </div>
+                <div>
+                  <p style={{...styles.statValue, color: colors.success}}>
+                    {activeCertificate.status.charAt(0).toUpperCase() + activeCertificate.status.slice(1)}
+                  </p>
+                  <p style={styles.statLabel}>Status</p>
+                </div>
               </div>
-              <div style={styles.infoLabel}>Certificate ID</div>
-            </div>
-            <div style={styles.infoCard}>
-              <div style={styles.infoValue}>
-                {new Date(activeCertificate.created_at).toLocaleDateString()}
+              <div style={styles.statCard}>
+                <div style={{...styles.statIcon, background: '#EDE9FE', color: '#7C3AED'}}>
+                  <FiKey size={20} />
+                </div>
+                <div>
+                  <p style={styles.statValue}>RSA-2048</p>
+                  <p style={styles.statLabel}>Key Type</p>
+                </div>
               </div>
-              <div style={styles.infoLabel}>Created</div>
-            </div>
-            <div style={styles.infoCard}>
-              <div style={styles.infoValue}>
-                {activeCertificate.status.charAt(0).toUpperCase() + activeCertificate.status.slice(1)}
+              <div style={styles.statCard}>
+                <div style={{...styles.statIcon, background: colors.warningLight, color: colors.warning}}>
+                  <FiCalendar size={20} />
+                </div>
+                <div>
+                  <p style={styles.statValue}>{new Date(activeCertificate.created_at).toLocaleDateString()}</p>
+                  <p style={styles.statLabel}>Created</p>
+                </div>
               </div>
-              <div style={styles.infoLabel}>Status</div>
             </div>
-          </div>
-        </>
-      ) : (
-        <div style={styles.noCertBox}>
-          <FiAlertCircle style={styles.noCertIcon} />
-          <h3>No Active Certificate</h3>
-          <p>You don't have an active certificate yet. A certificate will be automatically created during registration.</p>
-        </div>
-      )}
 
-      {/* Other Certificates */}
-      {certificates.length > 1 && (
-        <div style={styles.section}>
-          <h2 style={styles.sectionTitle}>Other Certificates</h2>
-          <div style={styles.certificateList}>
-            {certificates
-              .filter(cert => cert.certificate_id !== activeCertificate?.certificate_id)
-              .map(cert => (
-                <CertificateCard
-                  key={cert.certificate_id}
-                  certificate={cert}
-                  onDownload={handleDownload}
-                  onRenew={handleRenew}
-                  onRevoke={handleRevoke}
-                  onViewDetails={handleViewDetails}
-                  isLoading={isRenewing || isRevoking}
-                />
-              ))}
-          </div>
-        </div>
-      )}
+            {/* Active Certificate */}
+            <div style={styles.sectionCard}>
+              <h3 style={styles.cardHeading}>Active Certificate</h3>
+              <CertificateCard
+                certificate={activeCertificate}
+                onDownload={handleDownload}
+                onRenew={handleRenew}
+                onRevoke={handleRevoke}
+                onViewDetails={handleViewDetails}
+                isLoading={isRenewing || isRevoking}
+              />
+            </div>
 
-      {/* Help Section */}
-      <div style={styles.helpSection}>
-        <h3 style={styles.helpTitle}>Need Help?</h3>
-        <div style={styles.helpGrid}>
-          <div style={styles.helpCard}>
-            <div style={styles.helpCardTitle}>About Certificates</div>
-            <p style={styles.helpCardText}>
-              Your digital certificate contains your public key and is used to verify your signatures. 
-              It's automatically created when you register and expires after 5 years.
+            {/* Other Certificates */}
+            {certificates.length > 1 && (
+              <div style={styles.sectionCard}>
+                <h3 style={styles.cardHeading}>
+                  Previous Certificates ({certificates.length - 1})
+                </h3>
+                <div style={styles.certList}>
+                  {certificates
+                    .filter(cert => cert.certificate_id !== activeCertificate?.certificate_id)
+                    .map(cert => (
+                      <CertificateCard
+                        key={cert.certificate_id}
+                        certificate={cert}
+                        onDownload={handleDownload}
+                        onRenew={handleRenew}
+                        onRevoke={handleRevoke}
+                        onViewDetails={handleViewDetails}
+                        isLoading={isRenewing || isRevoking}
+                      />
+                    ))}
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <div style={styles.emptyCard}>
+            <FiShield size={40} style={{ color: colors.gray400 }} />
+            <h3 style={styles.emptyTitle}>No Active Certificate</h3>
+            <p style={styles.emptyText}>
+              You don't have an active certificate yet. A certificate will be automatically created during registration.
             </p>
           </div>
-          <div style={styles.helpCard}>
-            <div style={styles.helpCardTitle}>Certificate Renewal</div>
-            <p style={styles.helpCardText}>
-              Renew your certificate before it expires to maintain signing capabilities. 
-              Your signing history is preserved when you renew.
-            </p>
-          </div>
-          <div style={styles.helpCard}>
-            <div style={styles.helpCardTitle}>Certificate Download</div>
-            <p style={styles.helpCardText}>
-              Download your certificate in PEM format for backup or use in other applications. 
-              Never share your private key with anyone.
-            </p>
+        )}
+
+        {/* Help Section */}
+        <div style={styles.sectionCard}>
+          <h3 style={styles.cardHeading}>Quick Reference</h3>
+          <div style={styles.helpGrid}>
+            <div style={styles.helpCard}>
+              <FiShield size={18} style={{ color: colors.primary, flexShrink: 0 }} />
+              <div>
+                <p style={styles.helpTitle}>About Certificates</p>
+                <p style={styles.helpText}>
+                  Your digital certificate contains your public key and is used to verify your signatures. It's automatically created when you register and expires after 5 years.
+                </p>
+              </div>
+            </div>
+            <div style={styles.helpCard}>
+              <FiRefreshCw size={18} style={{ color: colors.primary, flexShrink: 0 }} />
+              <div>
+                <p style={styles.helpTitle}>Certificate Renewal</p>
+                <p style={styles.helpText}>
+                  Renew your certificate before it expires to maintain signing capabilities. Your signing history is preserved when you renew.
+                </p>
+              </div>
+            </div>
+            <div style={styles.helpCard}>
+              <FiKey size={18} style={{ color: colors.primary, flexShrink: 0 }} />
+              <div>
+                <p style={styles.helpTitle}>Security</p>
+                <p style={styles.helpText}>
+                  Download your certificate in PEM format for backup. Never share your private key with anyone. Revoke a compromised certificate immediately.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -302,164 +341,263 @@ const CertificateManagementPage = () => {
 };
 
 const styles = {
-  container: {
-    maxWidth: '1200px',
-    margin: '0 auto',
-    padding: spacing.lg,
-    backgroundColor: colors.lightGray,
-    minHeight: '100vh'
+  page: {
+    minHeight: '100vh',
+    backgroundColor: '#F1F5F9',
+    fontFamily: typography.fontFamily,
   },
-  header: {
+
+  centeredContainer: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: '100vh',
+    backgroundColor: '#F1F5F9',
+    padding: spacing.xl,
+  },
+
+  topBar: {
     display: 'flex',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: spacing['2xl'],
+    alignItems: 'center',
+    padding: '16px 32px',
     backgroundColor: colors.white,
-    padding: spacing.lg,
-    borderRadius: borderRadius.lg,
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+    borderBottom: `1px solid ${colors.gray200}`,
+    position: 'sticky',
+    top: 0,
+    zIndex: 10,
   },
-  title: {
-    margin: 0,
-    fontSize: typography.sizes['2xl'],
-    fontWeight: typography.weights.bold,
-    color: colors.gray900
-  },
-  subtitle: {
-    margin: `${spacing.sm} 0 0 0`,
-    fontSize: typography.sizes.sm,
-    color: colors.gray600
-  },
-  refreshBtn: {
-    padding: `${spacing.md} ${spacing.lg}`,
-    borderRadius: borderRadius.md,
-    border: `1px solid ${colors.border}`,
-    backgroundColor: colors.white,
-    cursor: 'pointer',
+
+  topBarLeft: {
     display: 'flex',
     alignItems: 'center',
-    gap: spacing.sm,
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
-    color: colors.primary,
-    transition: 'all 0.2s'
+    gap: '12px',
   },
-  alertBox: (type) => ({
-    display: 'flex',
-    alignItems: 'center',
-    gap: spacing.md,
-    padding: spacing.lg,
-    marginBottom: spacing.lg,
-    borderRadius: borderRadius.lg,
-    ...(type === 'error' && {
-      backgroundColor: '#fee2e2',
-      borderLeft: `4px solid ${colors.error}`,
-      color: colors.error
-    }),
-    ...(type === 'success' && {
-      backgroundColor: '#dcfce7',
-      borderLeft: `4px solid ${colors.success}`,
-      color: colors.success
-    })
-  }),
-  alertIcon: {
+
+  pageTitle: {
     fontSize: '20px',
-    flexShrink: 0
-  },
-  loadingBox: {
-    backgroundColor: colors.white,
-    padding: spacing.lg,
-    borderRadius: borderRadius.lg,
-    textAlign: 'center',
-    color: colors.gray600
-  },
-  section: {
-    marginBottom: spacing['2xl']
-  },
-  sectionTitle: {
-    margin: 0,
-    fontSize: typography.sizes.lg,
-    fontWeight: typography.weights.semibold,
+    fontWeight: 700,
     color: colors.gray900,
-    marginBottom: spacing.lg
+    margin: 0,
+    lineHeight: 1.2,
   },
-  certificateList: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
-    gap: spacing.lg
+
+  pageSubtitle: {
+    fontSize: '13px',
+    color: colors.gray500,
+    margin: '2px 0 0 0',
   },
-  infoGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: spacing.lg,
-    marginTop: spacing.lg,
-    marginBottom: spacing['2xl']
-  },
-  infoCard: {
-    backgroundColor: colors.white,
-    padding: spacing.lg,
-    borderRadius: borderRadius.lg,
-    textAlign: 'center',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
-  },
-  infoValue: {
-    fontSize: typography.sizes.xl,
-    fontWeight: typography.weights.bold,
+
+  refreshBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    background: 'none',
+    border: `1px solid ${colors.gray300}`,
+    borderRadius: borderRadius.base,
+    padding: '8px 16px',
+    fontSize: '14px',
     color: colors.primary,
-    marginBottom: spacing.sm
+    cursor: 'pointer',
+    transition: transitions.fast,
+    fontWeight: 600,
   },
-  infoLabel: {
-    fontSize: typography.sizes.sm,
-    color: colors.gray600
+
+  mainContent: {
+    maxWidth: '900px',
+    margin: '0 auto',
+    padding: '28px 24px 64px',
   },
-  noCertBox: {
-    backgroundColor: colors.white,
-    padding: spacing.xl,
-    borderRadius: borderRadius.lg,
-    textAlign: 'center',
-    color: colors.gray600
-  },
-  noCertIcon: {
-    fontSize: '48px',
-    color: colors.warning,
-    marginBottom: spacing.md
-  },
-  helpSection: {
-    backgroundColor: colors.white,
-    padding: spacing.lg,
-    borderRadius: borderRadius.lg,
-    marginTop: spacing['2xl']
-  },
-  helpTitle: {
-    margin: 0,
-    fontSize: typography.sizes.lg,
-    fontWeight: typography.weights.semibold,
-    color: colors.gray900,
-    marginBottom: spacing.lg
-  },
-  helpGrid: {
+
+  // Stats
+  statsGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-    gap: spacing.lg
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gap: '12px',
+    marginBottom: '20px',
   },
-  helpCard: {
-    padding: spacing.lg,
-    backgroundColor: colors.lightGray,
-    borderRadius: borderRadius.md,
-    borderLeft: `4px solid ${colors.primary}`
+
+  statCard: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    backgroundColor: colors.white,
+    borderRadius: '12px',
+    padding: '16px',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
   },
-  helpCardTitle: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
+
+  statIcon: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '40px',
+    height: '40px',
+    borderRadius: '10px',
+    flexShrink: 0,
+  },
+
+  statValue: {
+    fontSize: '16px',
+    fontWeight: 700,
     color: colors.gray900,
-    marginBottom: spacing.sm
-  },
-  helpCardText: {
     margin: 0,
-    fontSize: typography.sizes.sm,
-    color: colors.gray700,
-    lineHeight: 1.6
-  }
+    lineHeight: 1.2,
+  },
+
+  statLabel: {
+    fontSize: '12px',
+    fontWeight: 500,
+    color: colors.gray500,
+    margin: '3px 0 0 0',
+  },
+
+  // Section Card
+  sectionCard: {
+    backgroundColor: colors.white,
+    borderRadius: '12px',
+    padding: '24px',
+    marginBottom: '20px',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+  },
+
+  cardHeading: {
+    fontSize: '16px',
+    fontWeight: 700,
+    color: colors.gray900,
+    margin: '0 0 16px 0',
+  },
+
+  certList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+  },
+
+  // Alerts
+  alertError: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '12px 16px',
+    marginBottom: '16px',
+    borderRadius: '10px',
+    backgroundColor: colors.errorLight,
+    color: colors.error,
+    fontSize: '14px',
+    border: '1px solid #FECACA',
+  },
+
+  alertSuccess: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '12px 16px',
+    marginBottom: '16px',
+    borderRadius: '10px',
+    backgroundColor: colors.successLight,
+    color: colors.success,
+    fontSize: '14px',
+    border: '1px solid #A7F3D0',
+  },
+
+  alertDismiss: {
+    marginLeft: 'auto',
+    background: 'none',
+    border: 'none',
+    fontSize: '18px',
+    cursor: 'pointer',
+    color: 'inherit',
+    padding: '0 4px',
+    lineHeight: 1,
+    opacity: 0.7,
+  },
+
+  // Loading
+  loadingCard: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '16px',
+    backgroundColor: colors.white,
+    borderRadius: '12px',
+    padding: '48px 24px',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+  },
+
+  spinner: {
+    width: '32px',
+    height: '32px',
+    border: `3px solid ${colors.gray200}`,
+    borderTopColor: colors.primary,
+    borderRadius: '50%',
+    animation: 'spin 0.8s linear infinite',
+  },
+
+  loadingText: {
+    fontSize: '14px',
+    color: colors.gray500,
+    margin: 0,
+  },
+
+  // Empty
+  emptyCard: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '12px',
+    backgroundColor: colors.white,
+    borderRadius: '12px',
+    padding: '48px 24px',
+    textAlign: 'center',
+    boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+    marginBottom: '20px',
+  },
+
+  emptyTitle: {
+    fontSize: '16px',
+    fontWeight: 600,
+    color: colors.gray800,
+    margin: 0,
+  },
+
+  emptyText: {
+    fontSize: '14px',
+    color: colors.gray500,
+    margin: 0,
+    maxWidth: '360px',
+    lineHeight: 1.5,
+  },
+
+  // Help
+  helpGrid: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+  },
+
+  helpCard: {
+    display: 'flex',
+    gap: '12px',
+    padding: '14px 16px',
+    backgroundColor: '#F8FAFC',
+    borderRadius: '10px',
+    border: `1px solid ${colors.gray200}`,
+  },
+
+  helpTitle: {
+    fontSize: '14px',
+    fontWeight: 600,
+    color: colors.gray900,
+    margin: '0 0 4px 0',
+  },
+
+  helpText: {
+    fontSize: '13px',
+    color: colors.gray600,
+    margin: 0,
+    lineHeight: 1.55,
+  },
 };
 
 export default CertificateManagementPage;

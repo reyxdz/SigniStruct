@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { FiX, FiLoader } from 'react-icons/fi';
-import { colors, spacing, typography, borderRadius } from '../../theme';
+import { FiX, FiShield, FiClock } from 'react-icons/fi';
+import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
 import CertificateService from '../../services/certificateService';
 
 /**
@@ -32,18 +32,22 @@ const CertificateDetailsModal = ({ certificate, onClose }) => {
   }, [activeTab, certificate]);
 
   return (
-    <div style={styles.overlay}>
+    <div style={styles.overlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div style={styles.modal}>
+        {/* Header */}
         <div style={styles.header}>
-          <h2 style={styles.title}>Certificate Details</h2>
-          <button
-            style={styles.closeBtn}
-            onClick={onClose}
-          >
-            <FiX size={24} />
+          <div style={styles.headerLeft}>
+            <div style={styles.headerIcon}>
+              <FiShield size={18} />
+            </div>
+            <h2 style={styles.title}>Certificate Details</h2>
+          </div>
+          <button style={styles.closeBtn} onClick={onClose}>
+            <FiX size={20} />
           </button>
         </div>
 
+        {/* Tabs */}
         <div style={styles.tabs}>
           <button
             style={{
@@ -65,13 +69,14 @@ const CertificateDetailsModal = ({ certificate, onClose }) => {
           </button>
         </div>
 
+        {/* Content */}
         <div style={styles.content}>
           {activeTab === 'details' && (
-            <div style={styles.detailsTab}>
-              <DetailRow label="Certificate ID" value={certificate.certificate_id} />
+            <div style={styles.detailsGrid}>
+              <DetailRow label="Certificate ID" value={certificate.certificate_id} mono />
               <DetailRow label="Subject" value={certificate.subject || 'N/A'} />
-              <DetailRow label="Issuer" value={certificate.issuer || 'Self-Signed'} />
-              <DetailRow label="Serial Number" value={certificate.serial_number || 'N/A'} />
+              <DetailRow label="Issuer" value={certificate.issuer || 'SigniStruct'} />
+              <DetailRow label="Serial Number" value={certificate.serial_number || 'N/A'} mono />
               <DetailRow
                 label="Status"
                 value={certificate.status}
@@ -82,42 +87,36 @@ const CertificateDetailsModal = ({ certificate, onClose }) => {
                 value={new Date(certificate.created_at).toLocaleString()}
               />
               <DetailRow
-                label="Not Before"
+                label="Valid From"
                 value={new Date(certificate.not_before).toLocaleString()}
               />
               <DetailRow
-                label="Not After (Expires)"
+                label="Expires"
                 value={new Date(certificate.not_after).toLocaleString()}
               />
               {certificate.fingerprint_sha256 && (
                 <DetailRow
-                  label="SHA256 Fingerprint"
+                  label="SHA-256 Fingerprint"
                   value={certificate.fingerprint_sha256}
-                  monospace
-                />
-              )}
-              {certificate.certificate_type && (
-                <DetailRow
-                  label="Certificate Type"
-                  value={certificate.certificate_type}
+                  mono
+                  fullWidth
                 />
               )}
               {certificate.metadata && (
                 <DetailRow
                   label="Key Size"
-                  value={`${certificate.metadata.key_size || 2048}-bit`}
+                  value={`${certificate.metadata.key_size || 2048}-bit RSA`}
                 />
               )}
               {certificate.superseded_by && (
-                <DetailRow
-                  label="Superseded By"
-                  value={certificate.superseded_by}
-                />
+                <DetailRow label="Superseded By" value={certificate.superseded_by} mono />
               )}
               {certificate.revocation_reason && (
                 <DetailRow
                   label="Revocation Reason"
                   value={certificate.revocation_reason}
+                  error
+                  fullWidth
                 />
               )}
             </div>
@@ -126,30 +125,32 @@ const CertificateDetailsModal = ({ certificate, onClose }) => {
           {activeTab === 'history' && (
             <div style={styles.historyTab}>
               {isLoading ? (
-                <div style={styles.loading}>
-                  <FiLoader style={styles.spinner} />
-                  <p>Loading audit history...</p>
+                <div style={styles.loadingState}>
+                  <div style={styles.spinner} />
+                  <p style={styles.loadingText}>Loading audit history...</p>
                 </div>
               ) : auditHistory.length === 0 ? (
-                <div style={styles.noHistory}>
-                  No audit history found
+                <div style={styles.emptyState}>
+                  <FiClock size={28} style={{ color: colors.gray400 }} />
+                  <p style={styles.emptyText}>No audit history found</p>
                 </div>
               ) : (
                 <div style={styles.timeline}>
                   {auditHistory.map((entry, index) => (
                     <div key={index} style={styles.timelineItem}>
-                      <div style={styles.timelineMarker} />
+                      <div style={styles.timelineDot} />
+                      {index < auditHistory.length - 1 && <div style={styles.timelineLine} />}
                       <div style={styles.timelineContent}>
-                        <div style={styles.timelineAction}>{entry.action}</div>
-                        <div style={styles.timelineTime}>
+                        <p style={styles.timelineAction}>{entry.action}</p>
+                        <p style={styles.timelineTime}>
                           {new Date(entry.timestamp).toLocaleString()}
-                        </div>
+                        </p>
                         {entry.details && (
                           <div style={styles.timelineDetails}>
                             {Object.entries(entry.details).map(([key, value]) => (
-                              <div key={key} style={styles.detailItem}>
-                                <span style={styles.detailKey}>{key}:</span>
-                                <span style={styles.detailValue}>
+                              <div key={key} style={styles.timelineDetailRow}>
+                                <span style={styles.timelineDetailKey}>{key}:</span>
+                                <span style={styles.timelineDetailValue}>
                                   {typeof value === 'object' ? JSON.stringify(value) : String(value)}
                                 </span>
                               </div>
@@ -165,11 +166,9 @@ const CertificateDetailsModal = ({ certificate, onClose }) => {
           )}
         </div>
 
+        {/* Footer */}
         <div style={styles.footer}>
-          <button
-            style={styles.closeFooterBtn}
-            onClick={onClose}
-          >
+          <button style={styles.closeFooterBtn} onClick={onClose}>
             Close
           </button>
         </div>
@@ -179,15 +178,22 @@ const CertificateDetailsModal = ({ certificate, onClose }) => {
 };
 
 // Helper component for detail rows
-const DetailRow = ({ label, value, highlight = false, monospace = false }) => (
-  <div style={styles.detailRow}>
-    <span style={styles.detailLabel}>{label}:</span>
+const DetailRow = ({ label, value, highlight = false, mono = false, error = false, fullWidth = false }) => (
+  <div style={{
+    ...styles.detailRow,
+    ...(fullWidth && { gridColumn: '1 / -1' })
+  }}>
+    <span style={styles.detailLabel}>{label}</span>
     <span style={{
       ...styles.detailValue,
-      ...(highlight && { color: colors.success, fontWeight: 'bold' }),
-      ...(monospace && { fontFamily: 'monospace', fontSize: '11px' })
+      ...(highlight && { color: colors.success, fontWeight: 600 }),
+      ...(mono && { fontFamily: typography.monoFamily, fontSize: '12px' }),
+      ...(error && { color: colors.error })
     }}>
-      {value}
+      {highlight && typeof value === 'string'
+        ? value.charAt(0).toUpperCase() + value.slice(1)
+        : value
+      }
     </span>
   </div>
 );
@@ -199,192 +205,277 @@ const styles = {
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 1000
+    zIndex: 1000,
+    backdropFilter: 'blur(2px)',
   },
+
   modal: {
     backgroundColor: colors.white,
-    borderRadius: borderRadius.lg,
+    borderRadius: '14px',
     width: '90%',
-    maxWidth: '700px',
+    maxWidth: '620px',
     maxHeight: '85vh',
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
-    boxShadow: '0 20px 25px rgba(0, 0, 0, 0.15)'
+    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.15)',
   },
+
   header: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: spacing.lg,
-    borderBottom: `1px solid ${colors.border}`,
-    flexShrink: 0
+    padding: '20px 24px',
+    borderBottom: `1px solid ${colors.gray200}`,
+    flexShrink: 0,
   },
+
+  headerLeft: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+  },
+
+  headerIcon: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '36px',
+    height: '36px',
+    borderRadius: '10px',
+    backgroundColor: colors.primaryVeryLight,
+    color: colors.primary,
+    flexShrink: 0,
+  },
+
   title: {
     margin: 0,
-    fontSize: typography.sizes.xl,
-    fontWeight: typography.weights.semibold,
-    color: colors.gray900
+    fontSize: '17px',
+    fontWeight: 700,
+    color: colors.gray900,
   },
+
   closeBtn: {
     background: 'none',
     border: 'none',
     cursor: 'pointer',
-    padding: spacing.xs,
-    color: colors.gray600,
+    padding: '4px',
+    color: colors.gray400,
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    borderRadius: '6px',
+    transition: transitions.fast,
   },
+
   tabs: {
     display: 'flex',
-    borderBottom: `1px solid ${colors.border}`,
-    backgroundColor: colors.lightGray,
-    flexShrink: 0
+    borderBottom: `1px solid ${colors.gray200}`,
+    flexShrink: 0,
   },
+
   tab: {
     flex: 1,
-    padding: spacing.md,
+    padding: '12px 16px',
     border: 'none',
     backgroundColor: 'transparent',
     cursor: 'pointer',
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
-    color: colors.gray600,
-    borderBottom: `3px solid transparent`,
-    transition: 'all 0.2s'
+    fontSize: '14px',
+    fontWeight: 600,
+    color: colors.gray500,
+    borderBottom: '2px solid transparent',
+    transition: transitions.fast,
   },
+
   activeTab: {
     color: colors.primary,
     borderBottomColor: colors.primary,
-    backgroundColor: colors.white
   },
+
   content: {
     flex: 1,
     overflow: 'auto',
-    padding: spacing.lg
+    padding: '20px 24px',
   },
-  detailsTab: {
+
+  // Details Tab
+  detailsGrid: {
     display: 'grid',
-    gridTemplateColumns: '1fr',
-    gap: spacing.md
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: '14px',
   },
+
   detailRow: {
-    display: 'grid',
-    gridTemplateColumns: '150px 1fr',
-    gap: spacing.md,
-    paddingBottom: spacing.md,
-    borderBottom: `1px solid ${colors.border}`
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '3px',
   },
+
   detailLabel: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
-    color: colors.gray700
+    fontSize: '11px',
+    fontWeight: 600,
+    color: colors.gray500,
+    textTransform: 'uppercase',
+    letterSpacing: '0.4px',
   },
+
   detailValue: {
-    fontSize: typography.sizes.sm,
-    color: colors.gray600,
-    wordBreak: 'break-word'
+    fontSize: '14px',
+    color: colors.gray800,
+    fontWeight: 500,
+    wordBreak: 'break-word',
   },
+
+  // History Tab
   historyTab: {
-    minHeight: '300px'
+    minHeight: '250px',
   },
-  loading: {
+
+  loadingState: {
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: '300px',
-    color: colors.gray600
+    minHeight: '250px',
+    gap: '12px',
   },
+
   spinner: {
-    fontSize: '32px',
-    marginBottom: spacing.md,
-    animation: 'spin 1s linear infinite'
+    width: '28px',
+    height: '28px',
+    border: `3px solid ${colors.gray200}`,
+    borderTopColor: colors.primary,
+    borderRadius: '50%',
+    animation: 'spin 0.8s linear infinite',
   },
-  noHistory: {
+
+  loadingText: {
+    fontSize: '14px',
+    color: colors.gray500,
+    margin: 0,
+  },
+
+  emptyState: {
     display: 'flex',
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: '300px',
-    color: colors.gray600,
-    fontSize: typography.sizes.sm
+    minHeight: '250px',
+    gap: '8px',
   },
+
+  emptyText: {
+    fontSize: '14px',
+    color: colors.gray500,
+    margin: 0,
+  },
+
   timeline: {
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
   },
+
   timelineItem: {
     display: 'flex',
-    marginBottom: spacing.lg,
-    paddingBottom: spacing.lg,
-    borderBottom: `1px solid ${colors.border}`
+    position: 'relative',
+    paddingBottom: '20px',
   },
-  timelineMarker: {
-    width: '12px',
-    height: '12px',
+
+  timelineDot: {
+    width: '10px',
+    height: '10px',
     borderRadius: '50%',
     backgroundColor: colors.primary,
-    marginRight: spacing.md,
-    marginTop: '2px',
-    flexShrink: 0
+    marginRight: '16px',
+    marginTop: '4px',
+    flexShrink: 0,
+    zIndex: 1,
   },
+
+  timelineLine: {
+    position: 'absolute',
+    left: '4px',
+    top: '14px',
+    bottom: 0,
+    width: '2px',
+    backgroundColor: colors.gray200,
+  },
+
   timelineContent: {
-    flex: 1
+    flex: 1,
+    paddingBottom: '4px',
   },
+
   timelineAction: {
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
+    fontSize: '14px',
+    fontWeight: 600,
     color: colors.gray900,
-    marginBottom: spacing.xs
+    margin: '0 0 2px 0',
   },
+
   timelineTime: {
-    fontSize: typography.sizes.xs,
-    color: colors.gray600,
-    marginBottom: spacing.sm
+    fontSize: '12px',
+    color: colors.gray500,
+    margin: '0 0 8px 0',
   },
+
   timelineDetails: {
-    backgroundColor: colors.lightGray,
-    padding: spacing.sm,
-    borderRadius: borderRadius.sm,
-    fontSize: typography.sizes.xs
+    backgroundColor: '#F8FAFC',
+    padding: '10px 14px',
+    borderRadius: '8px',
+    border: `1px solid ${colors.gray200}`,
+    fontSize: '12px',
   },
-  detailItem: {
+
+  timelineDetailRow: {
     display: 'flex',
-    marginBottom: spacing.xs
+    marginBottom: '4px',
   },
-  detailKey: {
-    fontWeight: typography.weights.semibold,
-    marginRight: spacing.sm,
-    minWidth: '80px'
+
+  timelineDetailKey: {
+    fontWeight: 600,
+    color: colors.gray600,
+    marginRight: '8px',
+    minWidth: '80px',
   },
+
   timelineDetailValue: {
     color: colors.gray600,
-    flex: 1
-  },
-  footer: {
-    display: 'flex',
-    gap: spacing.md,
-    padding: spacing.lg,
-    borderTop: `1px solid ${colors.border}`,
-    flexShrink: 0
-  },
-  closeFooterBtn: {
     flex: 1,
-    padding: spacing.md,
-    borderRadius: borderRadius.md,
+    wordBreak: 'break-word',
+  },
+
+  footer: {
+    padding: '16px 24px',
+    borderTop: `1px solid ${colors.gray200}`,
+    backgroundColor: '#FAFBFC',
+    flexShrink: 0,
+  },
+
+  closeFooterBtn: {
+    width: '100%',
+    padding: '10px 16px',
+    borderRadius: '8px',
     border: 'none',
     backgroundColor: colors.primary,
     color: colors.white,
-    fontSize: typography.sizes.sm,
-    fontWeight: typography.weights.semibold,
+    fontSize: '14px',
+    fontWeight: 600,
     cursor: 'pointer',
-    transition: 'all 0.2s'
-  }
+    transition: transitions.fast,
+  },
 };
+
+// Inject spinner keyframes if not already present
+if (typeof document !== 'undefined' && !document.querySelector('[data-cert-modal-styles]')) {
+  const styleSheet = document.createElement('style');
+  styleSheet.setAttribute('data-cert-modal-styles', 'true');
+  styleSheet.textContent = `@keyframes spin { to { transform: rotate(360deg); } }`;
+  document.head.appendChild(styleSheet);
+}
 
 export default CertificateDetailsModal;
