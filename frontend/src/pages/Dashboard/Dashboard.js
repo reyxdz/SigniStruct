@@ -664,9 +664,9 @@ const Dashboard = () => {
             label="Draft Forms"
             hint="Still in progress"
             linkText="View all"
-            accentColor="#F59E0B"
-            accentBg="rgba(245, 158, 11, 0.1)"
-            gradientBg="linear-gradient(135deg, rgba(245,158,11,0.08) 0%, rgba(253,186,116,0.04) 100%)"
+            accentColor={colors.formAccent}
+            accentBg={colors.formAccentLight}
+            gradientBg={colors.gradientCardForm}
             icon={<FiEdit3 />}
             animIndex={5}
           />
@@ -675,9 +675,9 @@ const Dashboard = () => {
             label="Total Responses"
             hint="From all forms"
             linkText="View responses"
-            accentColor="#8B5CF6"
-            accentBg="rgba(139, 92, 246, 0.1)"
-            gradientBg="linear-gradient(135deg, rgba(139,92,246,0.08) 0%, rgba(167,139,250,0.04) 100%)"
+            accentColor={colors.formAccent}
+            accentBg={colors.formAccentLight}
+            gradientBg={colors.gradientCardForm}
             icon={<FiBarChart2 />}
             animIndex={6}
           />
@@ -709,9 +709,9 @@ const Dashboard = () => {
             label="Assigned to Sign"
             hint="Needs your signature"
             linkText="Sign now"
-            accentColor="#E11D48"
-            accentBg="rgba(225, 29, 72, 0.1)"
-            gradientBg="linear-gradient(135deg, rgba(225,29,72,0.08) 0%, rgba(251,113,133,0.04) 100%)"
+            accentColor={colors.docAccent}
+            accentBg={colors.docAccentLight}
+            gradientBg={colors.gradientCardDoc}
             icon={<FiAlertCircle />}
             animIndex={9}
           />
@@ -720,9 +720,9 @@ const Dashboard = () => {
             label="Draft Documents"
             hint="Not yet published"
             linkText="View all"
-            accentColor="#F59E0B"
-            accentBg="rgba(245, 158, 11, 0.1)"
-            gradientBg="linear-gradient(135deg, rgba(245,158,11,0.08) 0%, rgba(253,186,116,0.04) 100%)"
+            accentColor={colors.docAccent}
+            accentBg={colors.docAccentLight}
+            gradientBg={colors.gradientCardDoc}
             icon={<FiEdit3 />}
             animIndex={10}
           />
