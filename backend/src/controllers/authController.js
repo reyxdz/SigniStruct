@@ -64,15 +64,16 @@ exports.signup = async (req, res) => {
     // ==================== NEW: Phase 8.2 - RSA Key Generation ====================
     console.log(`[AUTH] Generating RSA certificate for user ${user._id}...`);
     
+    // Get encryption key once, use throughout
+    const encryptionKey = process.env.MASTER_ENCRYPTION_KEY;
+    if (!encryptionKey) {
+      console.error('[AUTH] ❌ MASTER_ENCRYPTION_KEY not configured in environment');
+      return res.status(500).json({ error: 'Server configuration error: encryption key missing' });
+    }
+    
     let certificateInfo = null;
     try {
       // Generate RSA key pair and create user certificate
-      // Use MASTER_ENCRYPTION_KEY for consistent encryption/decryption
-      const encryptionKey = process.env.MASTER_ENCRYPTION_KEY;
-      if (!encryptionKey) {
-        throw new Error('MASTER_ENCRYPTION_KEY not configured in environment');
-      }
-      
       certificateInfo = await RSAService.createUserCertificate(
         user._id,
         encryptionKey, // Use master key for consistent encryption
