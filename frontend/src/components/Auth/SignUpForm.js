@@ -243,6 +243,10 @@ const SignUpForm = () => {
       if (response.data.certificate) {
         const cert = response.data.certificate;
         
+        console.log('DEBUG: Received certificate from backend:', cert);
+        console.log('DEBUG: Has publicKey?', !!cert.publicKey);
+        console.log('DEBUG: Has privateKey?', !!cert.privateKey);
+        
         console.log('\n' + '='.repeat(80));
         console.log('🔐 [GENERATED KEY PAIR - SIGNUP] ⚠️  DEMO MODE');
         console.log('='.repeat(80));

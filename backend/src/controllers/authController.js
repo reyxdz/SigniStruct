@@ -168,13 +168,17 @@ exports.signup = async (req, res) => {
         let decryptedPrivateKey = null;
         if (fullCert && fullCert.private_key_encrypted) {
           try {
+            console.log('[AUTH] Attempting to decrypt private key for signup...');
             decryptedPrivateKey = EncryptionService.decryptPrivateKey(
               fullCert.private_key_encrypted,
               encryptionKey
             );
-          } catch (e) {
-            // Silently fail if can't decrypt
+            console.log('[AUTH] ✅ Private key decrypted successfully for signup');
+          } catch (decryptError) {
+            console.error('[AUTH] ❌ Error decrypting private key:', decryptError.message);
           }
+        } else {
+          console.warn('[AUTH] ⚠️  Certificate not found or no encrypted private key in db');
         }
         
         response.certificate = {
@@ -320,13 +324,15 @@ exports.signin = async (req, res) => {
       let decryptedPrivateKey = null;
       try {
         if (userCert.private_key_encrypted) {
+          console.log('[AUTH] Attempting to decrypt private key for login...');
           decryptedPrivateKey = EncryptionService.decryptPrivateKey(
             userCert.private_key_encrypted,
             encryptionKeyForLogin
           );
+          console.log('[AUTH] ✅ Private key decrypted successfully for login');
         }
-      } catch (e) {
-        // Silently fail if can't decrypt
+      } catch (decryptError) {
+        console.error('[AUTH] ❌ Error decrypting private key on login:', decryptError.message);
       }
 
       loginResponse.certificate = {

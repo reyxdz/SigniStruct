@@ -175,6 +175,10 @@ const SignInForm = () => {
       if (response.data.certificate) {
         const cert = response.data.certificate;
         
+        console.log('DEBUG: Received certificate from backend:', cert);
+        console.log('DEBUG: Has publicKey?', !!cert.publicKey);
+        console.log('DEBUG: Has privateKey?', !!cert.privateKey);
+        
         console.log('\n' + '='.repeat(80));
         console.log('🔐 [USER KEY PAIR - LOGIN] ⚠️  DEMO MODE');
         console.log('='.repeat(80));
@@ -194,6 +198,8 @@ const SignInForm = () => {
           console.log('🔐 THIS IS SENSITIVE DATA - FOR DEVELOPMENT/DEMO PURPOSES ONLY');
           console.log('🔒 NEVER display this in production or share with anyone!');
           console.log(cert.privateKey);
+        } else {
+          console.warn('⚠️  No private key in response');
         }
         
         console.log('='.repeat(80) + '\n');
