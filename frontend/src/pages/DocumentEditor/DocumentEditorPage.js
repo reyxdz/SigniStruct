@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../../services/api';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
+import { useToast } from '../../contexts/ToastContext';
 import { FiArrowLeft, FiSend } from 'react-icons/fi';
 import { EditorProvider, useEditor } from '../../contexts/EditorContext';
 import DocumentViewer from '../../components/DocumentEditor/DocumentViewer';
@@ -196,6 +197,7 @@ const DocumentEditorContent = ({ documentId, document, loading, error, onPublish
 const DocumentEditorPage = () => {
   const { documentId } = useParams();
   const navigate = useNavigate();
+  const { toast, confirm } = useToast();
 
   // Document state
   const [document, setDocument] = useState(null);
@@ -298,13 +300,13 @@ const DocumentEditorPage = () => {
       // Validate requirements using current fields from editor
       const validation = validatePublishRequirements(currentFields);
       if (!validation.valid) {
-        alert(`Cannot publish: ${validation.message}`);
+        toast.warning(`Cannot publish: ${validation.message}`);
         return;
       }
 
       // Show confirmation dialog
-      const confirmPublish = window.confirm(
-        `Are you sure you want to publish this document? Recipients will receive signing invitations via email.`
+      const confirmPublish = await confirm(
+        'Are you sure you want to publish this document? Recipients will receive signing invitations via email.'
       );
 
       if (!confirmPublish) {
@@ -321,11 +323,9 @@ const DocumentEditorPage = () => {
         console.log('  Recipients:', response.data.data.recipients);
         console.log('  Email results:', response.data.data.emailResults);
 
-        // Show success message with details
-        alert(
-          `Document published successfully!\n\n` +
-          `Recipients: ${response.data.data.recipientCount}\n` +
-          `${response.data.data.emailResults.filter(r => r.success).length} invitations sent successfully`
+        const emailsSent = response.data.data.emailResults.filter(r => r.success).length;
+        toast.success(
+          `Document published! ${response.data.data.recipientCount} recipient(s), ${emailsSent} invitation(s) sent.`
         );
 
         // Refresh document data to show updated status
@@ -336,7 +336,7 @@ const DocumentEditorPage = () => {
       console.error('  Response:', err.response?.data);
 
       const errorMessage = err.response?.data?.error || 'Failed to publish document. Please try again.';
-      alert(`Failed to publish document:\n\n${errorMessage}`);
+      toast.error(errorMessage);
     }
   };
 

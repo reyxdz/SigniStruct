@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { ToastProvider } from './contexts/ToastContext';
 import Header from './components/Navigation/Header';
 import Dashboard from './pages/Dashboard/Dashboard';
 import Forms from './pages/Forms/Forms';
@@ -23,11 +24,13 @@ function App() {
   const authenticatedRoutes = ['/dashboard', '/forms', '/documents', '/documents/:documentId/editor', '/documents/:documentId/verify', '/form-builder', '/document-sign', '/create-signature', '/certificates'];
   
   return (
-    <AuthProvider>
-      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <AppContent authenticatedRoutes={authenticatedRoutes} />
-      </Router>
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <AppContent authenticatedRoutes={authenticatedRoutes} />
+        </Router>
+      </AuthProvider>
+    </ToastProvider>
   );
 }
 

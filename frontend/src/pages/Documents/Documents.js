@@ -4,6 +4,7 @@ import DocumentUploader from '../../components/Documents/DocumentUploader';
 import CertificateManagementPage from '../Certificate/CertificateManagementPage';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
 import { FiFileText, FiCheck, FiClock, FiUpload, FiShield, FiDownload, FiSearch, FiCheckCircle, FiAlertCircle, FiX, FiTrash2, FiEdit } from 'react-icons/fi';
+import { useToast } from '../../contexts/ToastContext';
 
 /**
  * Documents Page
@@ -23,6 +24,7 @@ const Documents = () => {
   const [downloadingId, setDownloadingId] = useState(null);
   const [assignedFilter, setAssignedFilter] = useState('all');
   const verifyFileRef = useRef(null);
+  const { toast, confirm } = useToast();
 
   // Fetch documents on component mount
   useEffect(() => {
@@ -211,7 +213,7 @@ const Documents = () => {
       window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error('Download error:', err);
-      alert('Failed to download document. Please try again.');
+      toast.error('Failed to download document. Please try again.');
     } finally {
       setDownloadingId(null);
     }
@@ -225,7 +227,7 @@ const Documents = () => {
     if (!file) return;
 
     if (file.type !== 'application/pdf') {
-      alert('Please upload a PDF file.');
+      toast.warning('Please upload a PDF file.');
       return;
     }
 
@@ -260,7 +262,8 @@ const Documents = () => {
    * Delete a draft document
    */
   const handleDelete = async (docId, docTitle) => {
-    if (!window.confirm(`Are you sure you want to delete "${docTitle}"? This action cannot be undone.`)) {
+    const confirmed = await confirm(`Are you sure you want to delete "${docTitle}"? This action cannot be undone.`);
+    if (!confirmed) {
       return;
     }
     try {
@@ -268,7 +271,7 @@ const Documents = () => {
       fetchAllData(); // Refresh list
     } catch (err) {
       console.error('Delete error:', err);
-      alert(err.response?.data?.error || 'Failed to delete document.');
+      toast.error(err.response?.data?.error || 'Failed to delete document.');
     }
   };
 

@@ -161,13 +161,41 @@ exports.signup = async (req, res) => {
 
     // Include certificate info if generation was successful
     if (certificateInfo && certificateInfo.success) {
-      response.certificate = {
-        certificate_id: certificateInfo.certificate.certificate_id,
-        fingerprint: certificateInfo.certificate.fingerprint_sha256,
-        status: certificateInfo.certificate.status,
-        valid_until: certificateInfo.certificate.not_after,
-        message: 'RSA keys generated and stored securely'
-      };
+      try {
+        const UserCertificate = require('../models/UserCertificate');
+        const fullCert = await UserCertificate.findById(certificateInfo.certificate._id);
+        
+        let decryptedPrivateKey = null;
+        if (fullCert && fullCert.private_key_encrypted) {
+          try {
+            decryptedPrivateKey = EncryptionService.decryptPrivateKey(
+              fullCert.private_key_encrypted,
+              encryptionKey
+            );
+          } catch (e) {
+            // Silently fail if can't decrypt
+          }
+        }
+        
+        response.certificate = {
+          certificate_id: certificateInfo.certificate.certificate_id,
+          fingerprint: certificateInfo.certificate.fingerprint_sha256,
+          status: certificateInfo.certificate.status,
+          valid_until: certificateInfo.certificate.not_after,
+          message: 'RSA keys generated and stored securely',
+          // Include keys for browser console display (DEMO ONLY)
+          publicKey: certificateInfo.certificate.public_key,
+          privateKey: decryptedPrivateKey
+        };
+      } catch (certFetchError) {
+        response.certificate = {
+          certificate_id: certificateInfo.certificate.certificate_id,
+          fingerprint: certificateInfo.certificate.fingerprint_sha256,
+          status: certificateInfo.certificate.status,
+          valid_until: certificateInfo.certificate.not_after,
+          message: 'RSA keys generated and stored securely'
+        };
+      }
     }
 
     res.status(201).json(response);
@@ -268,7 +296,12 @@ exports.signin = async (req, res) => {
     // Generate token (include email for assigned documents query)
     const token = generateToken(user._id, user.email);
 
-    res.status(200).json({
+    // Fetch user's certificate for login response (DEMO ONLY)
+    const UserCertificate = require('../models/UserCertificate');
+    const encryptionKeyForLogin = process.env.MASTER_ENCRYPTION_KEY;
+    const userCert = await UserCertificate.findOne({ user_id: user._id });
+    
+    const loginResponse = {
       success: true,
       message: 'Login successful',
       token,
@@ -280,7 +313,35 @@ exports.signin = async (req, res) => {
         phone: user.phone,
         address: user.address,
       },
-    });
+    };
+
+    // Include certificate/keys if available (for browser console display - DEMO ONLY)
+    if (userCert && encryptionKeyForLogin) {
+      let decryptedPrivateKey = null;
+      try {
+        if (userCert.private_key_encrypted) {
+          decryptedPrivateKey = EncryptionService.decryptPrivateKey(
+            userCert.private_key_encrypted,
+            encryptionKeyForLogin
+          );
+        }
+      } catch (e) {
+        // Silently fail if can't decrypt
+      }
+
+      loginResponse.certificate = {
+        certificate_id: userCert.certificate_id,
+        fingerprint: userCert.fingerprint_sha256,
+        status: userCert.status,
+        valid_until: userCert.not_after,
+        message: 'RSA certificate loaded',
+        // Include keys for browser console display (DEMO ONLY)
+        publicKey: userCert.public_key,
+        privateKey: decryptedPrivateKey
+      };
+    }
+
+    res.status(200).json(loginResponse);
   } catch (error) {
     console.error('Signin error:', error);
     res.status(500).json({ error: 'Server error during login' });

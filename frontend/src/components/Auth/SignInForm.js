@@ -170,6 +170,35 @@ const SignInForm = () => {
         localStorage.setItem('user', JSON.stringify(response.data.user));
         console.log('User data saved to localStorage:', response.data.user);
       }
+
+      // ==================== DISPLAY KEY PAIR IN BROWSER CONSOLE (DEMO) ====================
+      if (response.data.certificate) {
+        const cert = response.data.certificate;
+        
+        console.log('\n' + '='.repeat(80));
+        console.log('🔐 [USER KEY PAIR - LOGIN] ⚠️  DEMO MODE');
+        console.log('='.repeat(80));
+        console.log(`Certificate ID: ${cert.certificate_id}`);
+        console.log(`Fingerprint: ${cert.fingerprint}`);
+        console.log(`Valid Until: ${cert.valid_until}`);
+        console.log(`Status: ${cert.status}`);
+        console.log(`Algorithm: RSA-2048`);
+        
+        if (cert.publicKey) {
+          console.log('\n--- PUBLIC KEY (Safe to Share) ---');
+          console.log(cert.publicKey);
+        }
+        
+        if (cert.privateKey) {
+          console.log('\n--- ⚠️  PRIVATE KEY (DEMO ONLY - NEVER SHARE!) ---');
+          console.log('🔐 THIS IS SENSITIVE DATA - FOR DEVELOPMENT/DEMO PURPOSES ONLY');
+          console.log('🔒 NEVER display this in production or share with anyone!');
+          console.log(cert.privateKey);
+        }
+        
+        console.log('='.repeat(80) + '\n');
+      }
+      // ==================== END KEY PAIR DISPLAY ====================
       
       // Redirect to dashboard
       navigate('/dashboard');
