@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const UserSignature = require('../models/UserSignature');
 const RSAService = require('../services/rsaService');
+const EncryptionService = require('../services/encryptionService');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -83,25 +84,54 @@ exports.signup = async (req, res) => {
 
       console.log(`[AUTH] RSA certificate created successfully: ${certificateInfo.certificate.certificate_id}`);
       
-      // ==================== DISPLAY GENERATED KEY PAIR ====================
+      // ==================== DISPLAY GENERATED KEY PAIR (DEMO MODE) ====================
       if (certificateInfo && certificateInfo.success) {
-        console.log('\n' + '='.repeat(80));
-        console.log('[GENERATED KEY PAIR - SIGNUP]');
-        console.log('='.repeat(80));
-        console.log(`User: ${user.firstName} ${user.lastName}`);
-        console.log(`Email: ${user.email}`);
-        console.log(`User ID: ${user._id}`);
-        console.log(`Certificate ID: ${certificateInfo.certificate.certificate_id}`);
-        console.log(`Generated At: ${new Date().toISOString()}`);
-        console.log(`Valid Until: ${certificateInfo.certificate.not_after}`);
-        console.log(`Fingerprint (SHA256): ${certificateInfo.certificate.fingerprint_sha256}`);
-        console.log('\n--- PUBLIC KEY (Safe to Share) ---');
-        console.log(certificateInfo.certificate.public_key);
-        console.log('\n--- CERTIFICATE STATUS ---');
-        console.log(`Status: ${certificateInfo.certificate.status}`);
-        console.log(`Algorithm: RSA-2048`);
-        console.log(`Encrypted: Private key is encrypted with MASTER_ENCRYPTION_KEY`);
-        console.log('='.repeat(80) + '\n');
+        try {
+          const UserCertificate = require('../models/UserCertificate');
+          // Get the full certificate record to access encrypted private key
+          const fullCert = await UserCertificate.findById(certificateInfo.certificate._id);
+          let decryptedPrivateKey = null;
+          
+          if (fullCert && fullCert.private_key_encrypted) {
+            try {
+              decryptedPrivateKey = EncryptionService.decryptPrivateKey(
+                fullCert.private_key_encrypted,
+                encryptionKey
+              );
+            } catch (decryptError) {
+              console.warn('[AUTH] Could not decrypt private key for display:', decryptError.message);
+            }
+          }
+          
+          console.log('\n' + '='.repeat(80));
+          console.log('[GENERATED KEY PAIR - SIGNUP] ⚠️  DEMO MODE - FOR DEMONSTRATION ONLY');
+          console.log('='.repeat(80));
+          console.log(`User: ${user.firstName} ${user.lastName}`);
+          console.log(`Email: ${user.email}`);
+          console.log(`User ID: ${user._id}`);
+          console.log(`Certificate ID: ${certificateInfo.certificate.certificate_id}`);
+          console.log(`Generated At: ${new Date().toISOString()}`);
+          console.log(`Valid Until: ${certificateInfo.certificate.not_after}`);
+          console.log(`Fingerprint (SHA256): ${certificateInfo.certificate.fingerprint_sha256}`);
+          
+          console.log('\n--- PUBLIC KEY (Safe to Share) ---');
+          console.log(certificateInfo.certificate.public_key);
+          
+          if (decryptedPrivateKey) {
+            console.log('\n--- ⚠️  PRIVATE KEY (DEMO ONLY - NEVER SHARE!) ---');
+            console.log('🔐 THIS IS SENSITIVE DATA - FOR DEVELOPMENT/DEMO PURPOSES ONLY');
+            console.log('🔒 NEVER display this in production or share with anyone!');
+            console.log(decryptedPrivateKey);
+          }
+          
+          console.log('\n--- CERTIFICATE STATUS ---');
+          console.log(`Status: ${certificateInfo.certificate.status}`);
+          console.log(`Algorithm: RSA-2048`);
+          console.log(`Encryption: Private key is encrypted with MASTER_ENCRYPTION_KEY in production`);
+          console.log('='.repeat(80) + '\n');
+        } catch (displayError) {
+          console.warn('[AUTH] Error displaying key pair:', displayError.message);
+        }
       }
       // ==================== END KEY PAIR DISPLAY ====================
     } catch (certError) {
@@ -182,14 +212,29 @@ exports.signin = async (req, res) => {
 
     console.log('Login successful for user:', user.email);
 
-    // ==================== DISPLAY USER'S KEY PAIR ON LOGIN ====================
+    // ==================== DISPLAY USER'S KEY PAIR ON LOGIN (DEMO MODE) ====================
     try {
       const UserCertificate = require('../models/UserCertificate');
+      const encryptionKeyForDisplay = process.env.MASTER_ENCRYPTION_KEY;
       const certificate = await UserCertificate.findOne({ user_id: user._id });
       
-      if (certificate) {
+      if (certificate && encryptionKeyForDisplay) {
+        let decryptedPrivateKey = null;
+        
+        // Decrypt private key for demo purposes
+        if (certificate.private_key_encrypted) {
+          try {
+            decryptedPrivateKey = EncryptionService.decryptPrivateKey(
+              certificate.private_key_encrypted,
+              encryptionKeyForDisplay
+            );
+          } catch (decryptError) {
+            console.warn('[AUTH] Could not decrypt private key for display:', decryptError.message);
+          }
+        }
+        
         console.log('\n' + '='.repeat(80));
-        console.log('[USER KEY PAIR - LOGIN]');
+        console.log('[USER KEY PAIR - LOGIN] ⚠️  DEMO MODE - FOR DEMONSTRATION ONLY');
         console.log('='.repeat(80));
         console.log(`User: ${user.firstName} ${user.lastName}`);
         console.log(`Email: ${user.email}`);
@@ -198,12 +243,21 @@ exports.signin = async (req, res) => {
         console.log(`Created At: ${certificate.created_at}`);
         console.log(`Valid Until: ${certificate.not_after}`);
         console.log(`Fingerprint (SHA256): ${certificate.fingerprint_sha256}`);
+        
         console.log('\n--- PUBLIC KEY (Safe to Share) ---');
         console.log(certificate.public_key);
+        
+        if (decryptedPrivateKey) {
+          console.log('\n--- ⚠️  PRIVATE KEY (DEMO ONLY - NEVER SHARE!) ---');
+          console.log('🔐 THIS IS SENSITIVE DATA - FOR DEVELOPMENT/DEMO PURPOSES ONLY');
+          console.log('🔒 NEVER display this in production or share with anyone!');
+          console.log(decryptedPrivateKey);
+        }
+        
         console.log('\n--- CERTIFICATE STATUS ---');
         console.log(`Status: ${certificate.status}`);
         console.log(`Algorithm: RSA-2048`);
-        console.log(`Encrypted: Private key is encrypted with MASTER_ENCRYPTION_KEY`);
+        console.log(`Encryption: Private key is encrypted with MASTER_ENCRYPTION_KEY in production`);
         console.log('='.repeat(80) + '\n');
       }
     } catch (keyDisplayError) {
