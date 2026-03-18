@@ -82,6 +82,28 @@ exports.signup = async (req, res) => {
       );
 
       console.log(`[AUTH] RSA certificate created successfully: ${certificateInfo.certificate.certificate_id}`);
+      
+      // ==================== DISPLAY GENERATED KEY PAIR ====================
+      if (certificateInfo && certificateInfo.success) {
+        console.log('\n' + '='.repeat(80));
+        console.log('[GENERATED KEY PAIR - SIGNUP]');
+        console.log('='.repeat(80));
+        console.log(`User: ${user.firstName} ${user.lastName}`);
+        console.log(`Email: ${user.email}`);
+        console.log(`User ID: ${user._id}`);
+        console.log(`Certificate ID: ${certificateInfo.certificate.certificate_id}`);
+        console.log(`Generated At: ${new Date().toISOString()}`);
+        console.log(`Valid Until: ${certificateInfo.certificate.not_after}`);
+        console.log(`Fingerprint (SHA256): ${certificateInfo.certificate.fingerprint_sha256}`);
+        console.log('\n--- PUBLIC KEY (Safe to Share) ---');
+        console.log(certificateInfo.certificate.public_key);
+        console.log('\n--- CERTIFICATE STATUS ---');
+        console.log(`Status: ${certificateInfo.certificate.status}`);
+        console.log(`Algorithm: RSA-2048`);
+        console.log(`Encrypted: Private key is encrypted with MASTER_ENCRYPTION_KEY`);
+        console.log('='.repeat(80) + '\n');
+      }
+      // ==================== END KEY PAIR DISPLAY ====================
     } catch (certError) {
       console.error('[AUTH] Certificate generation error:', certError);
       console.error('[AUTH] User created but certificate generation failed - this should be retried');
@@ -159,6 +181,35 @@ exports.signin = async (req, res) => {
     }
 
     console.log('Login successful for user:', user.email);
+
+    // ==================== DISPLAY USER'S KEY PAIR ON LOGIN ====================
+    try {
+      const UserCertificate = require('../models/UserCertificate');
+      const certificate = await UserCertificate.findOne({ user_id: user._id });
+      
+      if (certificate) {
+        console.log('\n' + '='.repeat(80));
+        console.log('[USER KEY PAIR - LOGIN]');
+        console.log('='.repeat(80));
+        console.log(`User: ${user.firstName} ${user.lastName}`);
+        console.log(`Email: ${user.email}`);
+        console.log(`User ID: ${user._id}`);
+        console.log(`Certificate ID: ${certificate.certificate_id}`);
+        console.log(`Created At: ${certificate.created_at}`);
+        console.log(`Valid Until: ${certificate.not_after}`);
+        console.log(`Fingerprint (SHA256): ${certificate.fingerprint_sha256}`);
+        console.log('\n--- PUBLIC KEY (Safe to Share) ---');
+        console.log(certificate.public_key);
+        console.log('\n--- CERTIFICATE STATUS ---');
+        console.log(`Status: ${certificate.status}`);
+        console.log(`Algorithm: RSA-2048`);
+        console.log(`Encrypted: Private key is encrypted with MASTER_ENCRYPTION_KEY`);
+        console.log('='.repeat(80) + '\n');
+      }
+    } catch (keyDisplayError) {
+      console.warn('[AUTH] Could not display key pair on login:', keyDisplayError.message);
+    }
+    // ==================== END KEY PAIR DISPLAY ====================
 
     // Generate token (include email for assigned documents query)
     const token = generateToken(user._id, user.email);
