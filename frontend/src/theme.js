@@ -49,6 +49,26 @@ export const colors = {
   shadowMd: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
   shadowLg: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
   shadowXl: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
+
+  // Glassmorphism shadows (layered depth)
+  shadowGlass: '0 8px 32px rgba(37, 99, 235, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04)',
+  shadowGlassHover: '0 16px 48px rgba(37, 99, 235, 0.14), 0 4px 12px rgba(0, 0, 0, 0.06)',
+
+  // Gradients
+  gradientHero: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #3b82f6 100%)',
+  gradientHeroSubtle: 'linear-gradient(135deg, rgba(37, 99, 235, 0.06) 0%, rgba(59, 130, 246, 0.02) 100%)',
+  gradientPrimary: 'linear-gradient(135deg, #2563EB 0%, #3B82F6 100%)',
+  gradientCardForm: 'linear-gradient(135deg, rgba(37, 99, 235, 0.08) 0%, rgba(96, 165, 250, 0.04) 100%)',
+  gradientCardDoc: 'linear-gradient(135deg, rgba(8, 145, 178, 0.08) 0%, rgba(6, 182, 212, 0.04) 100%)',
+  gradientCardSig: 'linear-gradient(135deg, rgba(79, 70, 229, 0.08) 0%, rgba(129, 140, 248, 0.04) 100%)',
+
+  // Category accent colors
+  formAccent: '#2563EB',
+  formAccentLight: 'rgba(37, 99, 235, 0.1)',
+  docAccent: '#0891B2',
+  docAccentLight: 'rgba(8, 145, 178, 0.1)',
+  sigAccent: '#4F46E5',
+  sigAccentLight: 'rgba(79, 70, 229, 0.1)',
 };
 
 export const typography = {
