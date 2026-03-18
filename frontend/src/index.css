@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 * {
   margin: 0;
   padding: 0;
@@ -13,7 +15,7 @@ html {
 body {
   height: 100%;
   width: 100%;
-  font-family: 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: 'Inter', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   font-size: 16px;
   font-weight: 400;
   line-height: 1.6;
@@ -38,14 +40,14 @@ a:hover {
 }
 
 button {
-  font-family: 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: 'Inter', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   cursor: pointer;
 }
 
 input,
 textarea,
 select {
-  font-family: 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-family: 'Inter', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
 }
 
 /* Scrollbar Styling */
@@ -71,3 +73,47 @@ select {
   height: 100%;
   width: 100%;
 }
+
+/* ========== Dashboard Animations ========== */
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.15); }
+  50% { box-shadow: 0 0 0 8px rgba(37, 99, 235, 0); }
+}
+
+.dash-animate {
+  opacity: 0;
+  animation: fadeInUp 0.5s ease-out forwards;
+}
+
+.dash-animate-1 { animation-delay: 0.05s; }
+.dash-animate-2 { animation-delay: 0.1s; }
+.dash-animate-3 { animation-delay: 0.15s; }
+.dash-animate-4 { animation-delay: 0.2s; }
+.dash-animate-5 { animation-delay: 0.25s; }
+.dash-animate-6 { animation-delay: 0.3s; }
+.dash-animate-7 { animation-delay: 0.35s; }
+.dash-animate-8 { animation-delay: 0.4s; }
+.dash-animate-9 { animation-delay: 0.45s; }
+.dash-animate-10 { animation-delay: 0.5s; }
