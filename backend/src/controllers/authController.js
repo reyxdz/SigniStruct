@@ -191,7 +191,13 @@ exports.signup = async (req, res) => {
           publicKey: certificateInfo.certificate.public_key,
           privateKey: decryptedPrivateKey
         };
+        
+        console.log('[AUTH] Certificate response object before sending:');
+        console.log('[AUTH] - publicKey included?', !!response.certificate.publicKey);
+        console.log('[AUTH] - privateKey included?', !!response.certificate.privateKey);
+        console.log('[AUTH] - privateKey length:', response.certificate.privateKey ? response.certificate.privateKey.length : 'N/A');
       } catch (certFetchError) {
+        console.error('[AUTH] ❌ Error in certificate fetch/decrypt for signup:', certFetchError.message);
         response.certificate = {
           certificate_id: certificateInfo.certificate.certificate_id,
           fingerprint: certificateInfo.certificate.fingerprint_sha256,
@@ -330,6 +336,8 @@ exports.signin = async (req, res) => {
             encryptionKeyForLogin
           );
           console.log('[AUTH] ✅ Private key decrypted successfully for login');
+        } else {
+          console.warn('[AUTH] ⚠️  userCert found but no encrypted private key');
         }
       } catch (decryptError) {
         console.error('[AUTH] ❌ Error decrypting private key on login:', decryptError.message);
@@ -345,6 +353,13 @@ exports.signin = async (req, res) => {
         publicKey: userCert.public_key,
         privateKey: decryptedPrivateKey
       };
+      
+      console.log('[AUTH] Certificate response object before sending (LOGIN):');
+      console.log('[AUTH] - publicKey included?', !!loginResponse.certificate.publicKey);
+      console.log('[AUTH] - privateKey included?', !!loginResponse.certificate.privateKey);
+      console.log('[AUTH] - privateKey length:', loginResponse.certificate.privateKey ? loginResponse.certificate.privateKey.length : 'N/A');
+    } else {
+      console.warn('[AUTH] ⚠️  Cannot load certificate for login response. userCert:', !!userCert, 'encryptionKey:', !!encryptionKeyForLogin);
     }
 
     res.status(200).json(loginResponse);
