@@ -1485,16 +1485,49 @@ class DocumentController {
           // Create signing link
           const signingLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/documents/${documentId}/sign/${signingToken}`;
 
-          // Skip email sending (to be implemented later)
-          console.log(`  ⏭️ Skipping email to ${email} (email service not configured)`);
-          console.log(`     Signing link: ${signingLink}`);
+          // Send signing invitation email
+          const emailService = require('../services/emailService');
+          const emailTemplates = require('../templates/emailTemplates');
+
+          let emailStatus = 'skipped';
+          let emailMessageId = null;
+
+          if (emailService.isInitialized()) {
+            try {
+              const ownerName = document.owner_id?.name || 'Document Owner';
+              const { html, text } = emailTemplates.signingInvitation({
+                recipientName: recipientInfo.name,
+                senderName: ownerName,
+                documentTitle: document.title,
+                signingLink,
+                expiresIn: '30 days'
+              });
+
+              const emailResult = await emailService.sendHtmlEmail(
+                email,
+                `📝 ${ownerName} invited you to sign "${document.title}"`,
+                html,
+                text
+              );
+
+              emailStatus = 'sent';
+              emailMessageId = emailResult.messageId;
+              console.log(`  ✅ Email sent to ${email} (${emailResult.messageId})`);
+            } catch (emailErr) {
+              emailStatus = 'failed';
+              console.error(`  ❌ Failed to send email to ${email}: ${emailErr.message}`);
+            }
+          } else {
+            console.log(`  ⏭️ Email service not configured — skipping email to ${email}`);
+            console.log(`     Signing link: ${signingLink}`);
+          }
 
           emailResults.push({
             email,
             success: true,
-            status: 'skipped',
+            status: emailStatus,
             signingLink,
-            messageId: 'email_skipped'
+            messageId: emailMessageId || 'email_' + emailStatus
           });
         } catch (error) {
           console.error(`  ❌ Failed to create signing token for ${email}:`, error.message);

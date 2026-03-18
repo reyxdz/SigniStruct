@@ -30,7 +30,7 @@
     "node-cron": "^4.2.1",
     "node-forge": "^1.3.3",
     "node-rsa": "^1.1.1",
-    "nodemailer": "^8.0.1",
+    "nodemailer": "^8.0.2",
     "pdf-lib": "^1.17.1",
     "pdf-parse": "^2.4.5",
     "pdfkit": "^0.17.2"
