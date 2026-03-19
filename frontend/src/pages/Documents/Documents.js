@@ -909,7 +909,9 @@ const Documents = () => {
                   padding: spacing.lg,
                   borderRadius: borderRadius.lg,
                   marginBottom: spacing.lg,
-                  background: verifyResult.verified
+                  background: verifyResult.content_integrity?.file_tamper_warning && verifyResult.content_integrity?.file_hash_matches === false
+                    ? 'linear-gradient(135deg, #DC2626 0%, #EF4444 100%)'
+                    : verifyResult.verified
                     ? 'linear-gradient(135deg, #059669 0%, #10B981 100%)'
                     : !verifyResult.is_signistruct_document
                     ? 'linear-gradient(135deg, #6B7280 0%, #9CA3AF 100%)'
@@ -919,25 +921,31 @@ const Documents = () => {
                   alignItems: 'center',
                   gap: spacing.md,
                 }}>
-                  {verifyResult.verified ? (
+                  {verifyResult.content_integrity?.file_hash_matches === false ? (
+                    <FiAlertCircle size={32} />
+                  ) : verifyResult.verified ? (
                     <FiCheckCircle size={32} />
                   ) : (
                     <FiAlertCircle size={32} />
                   )}
                   <div>
                     <p style={{ fontWeight: typography.weights.bold, fontSize: typography.sizes.lg, margin: 0 }}>
-                      {verifyResult.verified
+                      {verifyResult.content_integrity?.file_hash_matches === false
+                        ? '⚠ Document Tampered'
+                        : verifyResult.verified
                         ? 'All Signatures Verified'
                         : !verifyResult.is_signistruct_document
                         ? 'Not a SigniStruct Document'
                         : 'Verification Incomplete'}
                     </p>
                     <p style={{ margin: '4px 0 0 0', opacity: 0.9, fontSize: typography.sizes.sm }}>
-                      {verifyResult.message || (
-                        verifyResult.summary
-                          ? `${verifyResult.summary.verified_signatures} of ${verifyResult.summary.total_signatures} signature(s) verified`
-                          : ''
-                      )}
+                      {verifyResult.content_integrity?.file_hash_matches === false
+                        ? 'This file has been modified after download — do NOT trust it'
+                        : verifyResult.message || (
+                          verifyResult.summary
+                            ? `${verifyResult.summary.verified_signatures} of ${verifyResult.summary.total_signatures} signature(s) verified`
+                            : ''
+                        )}
                     </p>
                   </div>
                 </div>
@@ -996,7 +1004,7 @@ const Documents = () => {
                   </div>
                 )}
 
-                {/* Tamper Warning */}
+                {/* Tamper Warning (database hash mismatch) */}
                 {verifyResult.content_integrity?.tamper_warning && (
                   <div style={{
                     padding: spacing.md,
@@ -1017,6 +1025,50 @@ const Documents = () => {
                         {verifyResult.content_integrity.tamper_warning}
                       </p>
                     </div>
+                  </div>
+                )}
+
+                {/* File-Level Tampering Warning */}
+                {verifyResult.content_integrity?.file_tamper_warning && (
+                  <div style={{
+                    padding: spacing.md,
+                    borderRadius: borderRadius.md,
+                    marginBottom: spacing.lg,
+                    border: '2px solid #DC2626',
+                    backgroundColor: '#FEF2F2',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: spacing.sm,
+                  }}>
+                    <FiAlertCircle size={20} style={{ color: '#DC2626', flexShrink: 0, marginTop: '2px' }} />
+                    <div>
+                      <p style={{ margin: 0, fontWeight: typography.weights.bold, fontSize: typography.sizes.sm, color: '#DC2626' }}>
+                        🚨 File Integrity Compromised
+                      </p>
+                      <p style={{ margin: '4px 0 0 0', fontSize: typography.sizes.xs, color: '#991B1B' }}>
+                        {verifyResult.content_integrity.file_tamper_warning}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* File integrity status for unmodified files */}
+                {verifyResult.content_integrity?.file_hash_matches === true && (
+                  <div style={{
+                    padding: spacing.sm + ' ' + spacing.md,
+                    borderRadius: borderRadius.md,
+                    marginBottom: spacing.lg,
+                    border: '1px solid #A7F3D0',
+                    backgroundColor: '#ECFDF5',
+                    fontSize: typography.sizes.sm,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: spacing.sm,
+                  }}>
+                    <FiCheckCircle size={16} style={{ color: '#059669', flexShrink: 0 }} />
+                    <span style={{ color: '#065F46' }}>
+                      File integrity verified — PDF has not been modified since download ✓
+                    </span>
                   </div>
                 )}
 
