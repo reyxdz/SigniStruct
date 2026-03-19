@@ -796,14 +796,49 @@ exports.verifyUploadedDocument = async (req, res) => {
     // 5. Content integrity check — hash the uploaded file and compare
     const crypto = require('crypto');
     const uploadedFileHash = crypto.createHash('sha256').update(req.file.buffer).digest('hex');
-    const documentHashMatch = verificationData.document_hash === uploadedFileHash;
 
     console.log(`[${requestId}] Uploaded file hash: ${uploadedFileHash}`);
     console.log(`[${requestId}] Embedded document hash: ${verificationData.document_hash}`);
-    console.log(`[${requestId}] Hash match: ${documentHashMatch}`);
 
-    // Note: The hash won't match because we modified the PDF to embed metadata.
-    // So we also check the original document_hash against the database for true integrity.
+    // 5b. File-level integrity check (v1.1+)
+    // The signed_pdf_hash was computed from the first-pass PDF at download time.
+    // We hash the first-pass equivalent by stripping the signed_pdf_hash from
+    // the uploaded file's metadata, but a simpler approach: during download,
+    // a second pass re-embeds the hash, changing the file. So instead we
+    // compare the uploaded file hash against the embedded signed_pdf_hash
+    // to see if the file was modified AFTER download.
+    let fileIntegrityValid = null; // null = not applicable (v1.0 documents)
+    if (verificationData.signed_pdf_hash) {
+      // For v1.1+ documents, we can't directly compare because the two-pass
+      // save changes the file. However the signed_pdf_hash is the hash of
+      // the pass-1 PDF (before hash was embedded). The final PDF the user
+      // downloads is the pass-2 PDF. So we need a different approach:
+      // Re-parse the uploaded PDF, strip the signed_pdf_hash from the metadata,
+      // re-save, and compare that hash against signed_pdf_hash.
+      try {
+        const { PDFDocument: PDFDoc2 } = require('pdf-lib');
+        const uploadedPdfDoc = await PDFDoc2.load(req.file.buffer);
+
+        // Reconstruct pass-1 metadata (with signed_pdf_hash = null)
+        const pass1VerificationData = { ...verificationData, signed_pdf_hash: null };
+        const pass1MetadataJson = JSON.stringify(pass1VerificationData);
+        uploadedPdfDoc.setSubject('SigniStruct-Verification:' + pass1MetadataJson);
+
+        const reconstructedBytes = await uploadedPdfDoc.save();
+        const reconstructedHash = crypto.createHash('sha256').update(Buffer.from(reconstructedBytes)).digest('hex');
+
+        fileIntegrityValid = reconstructedHash === verificationData.signed_pdf_hash;
+
+        console.log(`[${requestId}] Reconstructed pass-1 hash: ${reconstructedHash}`);
+        console.log(`[${requestId}] Embedded signed_pdf_hash:  ${verificationData.signed_pdf_hash}`);
+        console.log(`[${requestId}] File integrity valid: ${fileIntegrityValid}`);
+      } catch (integrityErr) {
+        console.warn(`[${requestId}] File integrity check failed:`, integrityErr.message);
+        fileIntegrityValid = null; // Could not verify
+      }
+    } else {
+      console.log(`[${requestId}] No signed_pdf_hash found (v1.0 document) — skipping file integrity check`);
+    }
 
     // 6. Verify each signature using embedded public keys
     const signatureResults = [];
@@ -919,18 +954,30 @@ exports.verifyUploadedDocument = async (req, res) => {
     const contentIntegrity = {
       uploaded_file_hash: uploadedFileHash,
       embedded_document_hash: verificationData.document_hash,
-      // The downloaded PDF has embedded metadata so its hash differs from the original.
-      // True tampering is detected by checking if the embedded document_hash
-      // matches the database record's original hash.
+      // Database match: does the embedded original hash match the DB?
       document_hash_trusted: databaseMatch?.found ? databaseMatch.hash_matches : null,
       tamper_warning: databaseMatch?.found && !databaseMatch.hash_matches
         ? 'The original document hash does not match the database record. The document may have been modified before metadata was embedded.'
+        : null,
+      // File-level integrity: was the downloaded PDF modified after download?
+      file_hash_matches: fileIntegrityValid,
+      signed_pdf_hash: verificationData.signed_pdf_hash || null,
+      file_tamper_warning: fileIntegrityValid === false
+        ? 'The PDF file has been modified after it was downloaded from SigniStruct. The document content may have been altered or tampered with. Do NOT trust this document.'
+        : fileIntegrityValid === null && verificationData.signed_pdf_hash
+        ? 'Could not verify file-level integrity.'
         : null
     };
 
     // If database hash doesn't match, flag as potentially tampered
     if (databaseMatch?.found && !databaseMatch.hash_matches) {
       allValid = false;
+    }
+
+    // If file-level integrity check failed, flag as tampered
+    if (fileIntegrityValid === false) {
+      allValid = false;
+      console.warn(`[${requestId}] ⚠️ FILE TAMPERING DETECTED — uploaded file hash does not match signed_pdf_hash`);
     }
 
     console.log(`[${requestId}] Verification complete: ${verifiedCount}/${signatureResults.length} valid`);
