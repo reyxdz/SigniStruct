@@ -1,4 +1,5 @@
 const CryptoJS = require('crypto-js');
+const CryptoLogger = require('../utils/cryptoLogger');
 
 /**
  * Encryption/Decryption Service
@@ -18,7 +19,7 @@ class EncryptionService {
    * const encrypted = EncryptionService.encryptAES256('sensitive-data', 'my-super-secret-key');
    * // Returns: base64-encoded encrypted string
    */
-  static encryptAES256(plaintext, secretKey) {
+  static encryptAES256(plaintext, secretKey, req = null) {
     try {
       if (!plaintext || !secretKey) {
         throw new Error('Plaintext and secret key are required');
@@ -29,6 +30,13 @@ class EncryptionService {
 
       // Encrypt using AES-256
       const encrypted = CryptoJS.AES.encrypt(plaintextString, secretKey).toString();
+
+      CryptoLogger.log(req, 'AES', 'AES-256 Encrypt', {
+        algorithm: 'AES-256-CBC',
+        inputLength: plaintextString.length,
+        outputLength: encrypted.length,
+        outputPreview: encrypted.substring(0, 20) + '...'
+      });
 
       return encrypted;
     } catch (error) {
@@ -48,7 +56,7 @@ class EncryptionService {
    * const plaintext = EncryptionService.decryptAES256(encrypted, 'my-super-secret-key');
    * // Returns: original sensitive-data
    */
-  static decryptAES256(encryptedData, secretKey) {
+  static decryptAES256(encryptedData, secretKey, req = null) {
     try {
       if (!encryptedData || !secretKey) {
         throw new Error('Encrypted data and secret key are required');
@@ -61,6 +69,13 @@ class EncryptionService {
       if (!decryptedString) {
         throw new Error('Decryption resulted in empty string - key may be incorrect');
       }
+
+      CryptoLogger.log(req, 'AES', 'AES-256 Decrypt', {
+        algorithm: 'AES-256-CBC',
+        inputLength: encryptedData.length,
+        outputLength: decryptedString.length,
+        success: true
+      });
 
       return decryptedString;
     } catch (error) {
@@ -83,7 +98,7 @@ class EncryptionService {
    *   process.env.MASTER_ENCRYPTION_KEY
    * );
    */
-  static encryptPrivateKey(privateKey, encryptionKey) {
+  static encryptPrivateKey(privateKey, encryptionKey, req = null) {
     try {
       if (!privateKey || !encryptionKey) {
         throw new Error('Private key and encryption key are required');
@@ -93,7 +108,14 @@ class EncryptionService {
         throw new Error('Invalid private key format - must be PEM format');
       }
 
-      const encrypted = this.encryptAES256(privateKey, encryptionKey);
+      CryptoLogger.log(req, 'ENCRYPT', 'Encrypt Private Key', {
+        algorithm: 'AES-256',
+        keyFormat: 'PEM',
+        keyLength: privateKey.length,
+        purpose: 'Securing RSA private key for storage'
+      });
+
+      const encrypted = this.encryptAES256(privateKey, encryptionKey, req);
       return encrypted;
     } catch (error) {
       throw new Error(`Private key encryption failed: ${error.message}`);
@@ -115,13 +137,19 @@ class EncryptionService {
    *   process.env.MASTER_ENCRYPTION_KEY
    * );
    */
-  static decryptPrivateKey(encryptedKey, encryptionKey) {
+  static decryptPrivateKey(encryptedKey, encryptionKey, req = null) {
     try {
       if (!encryptedKey || !encryptionKey) {
         throw new Error('Encrypted key and encryption key are required');
       }
 
-      const decrypted = this.decryptAES256(encryptedKey, encryptionKey);
+      CryptoLogger.log(req, 'DECRYPT', 'Decrypt Private Key', {
+        algorithm: 'AES-256',
+        purpose: 'Retrieving RSA private key for signing',
+        encryptedLength: encryptedKey.length
+      });
+
+      const decrypted = this.decryptAES256(encryptedKey, encryptionKey, req);
 
       // Validate decrypted content is a valid private key
       if (!decrypted.includes('BEGIN') || !decrypted.includes('PRIVATE KEY')) {
@@ -146,13 +174,21 @@ class EncryptionService {
    * const hash = EncryptionService.sha256Hash('mydata');
    * // Returns: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855'
    */
-  static sha256Hash(data) {
+  static sha256Hash(data, req = null) {
     try {
       if (!data) {
         throw new Error('Data to hash is required');
       }
 
       const hash = CryptoJS.SHA256(data).toString();
+
+      CryptoLogger.log(req, 'HASH', 'SHA-256 Hash', {
+        algorithm: 'SHA-256',
+        inputLength: typeof data === 'string' ? data.length : 'N/A',
+        outputHash: hash.substring(0, 16) + '...',
+        hashLength: hash.length
+      });
+
       return hash;
     } catch (error) {
       throw new Error(`SHA-256 hashing failed: ${error.message}`);
@@ -172,13 +208,21 @@ class EncryptionService {
    * const signature = EncryptionService.hmacSha256('data', 'secret');
    * // Use signature later to verify: EncryptionService.verifyHmacSha256(data, signature, secret)
    */
-  static hmacSha256(data, secret) {
+  static hmacSha256(data, secret, req = null) {
     try {
       if (!data || !secret) {
         throw new Error('Data and secret are required');
       }
 
       const signature = CryptoJS.HmacSHA256(data, secret).toString();
+
+      CryptoLogger.log(req, 'HMAC', 'HMAC-SHA256', {
+        algorithm: 'HMAC-SHA256',
+        inputLength: data.length,
+        outputPreview: signature.substring(0, 16) + '...',
+        purpose: 'Data integrity verification'
+      });
+
       return signature;
     } catch (error) {
       throw new Error(`HMAC-SHA256 signing failed: ${error.message}`);
