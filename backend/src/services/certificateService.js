@@ -1,6 +1,7 @@
 const NodeRSA = require('node-rsa');
 const forge = require('node-forge');
 const crypto = require('crypto');
+const CryptoLogger = require('../utils/cryptoLogger');
 
 /**
  * Certificate Service
@@ -12,12 +13,25 @@ class CertificateService {
    * Generate RSA key pair (2048-bit)
    * @returns {Object} { publicKey, privateKey }
    */
-  static generateKeyPair() {
+  static generateKeyPair(req = null) {
+    CryptoLogger.log(req, 'RSA', 'Generate RSA-2048 Key Pair (CertificateService)', {
+      algorithm: 'RSA',
+      keySize: 2048,
+      format: 'PKCS#8 PEM'
+    });
+
     const key = new NodeRSA({ b: 2048 });
-    return {
+    const result = {
       publicKey: key.exportKey('pkcs8-public-pem'),
       privateKey: key.exportKey('pkcs8-private-pem')
     };
+
+    CryptoLogger.log(req, 'RSA', 'RSA Key Pair Generated', {
+      publicKeyLength: result.publicKey.length,
+      privateKeyLength: result.privateKey.length
+    });
+
+    return result;
   }
 
   /**
@@ -27,8 +41,15 @@ class CertificateService {
    * @param {number} validityYears - Certificate validity period in years (default: 5)
    * @returns {Object} Certificate object with metadata
    */
-  static createSelfSignedCertificate(keyPair, userInfo, validityYears = 5) {
+  static createSelfSignedCertificate(keyPair, userInfo, validityYears = 5, req = null) {
     try {
+      CryptoLogger.log(req, 'CERT', 'Create Self-Signed X.509 Certificate', {
+        subject: userInfo.name || 'SigniStruct User',
+        email: userInfo.email,
+        validityYears,
+        signatureAlgorithm: 'SHA-256 with RSA'
+      });
+
       // Import keys into forge format
       const privateKey = forge.pki.privateKeyFromPem(keyPair.privateKey);
       const publicKey = forge.pki.publicKeyFromPem(keyPair.publicKey);
@@ -65,10 +86,24 @@ class CertificateService {
       // Self-sign certificate
       cert.sign(privateKey, forge.md.sha256.create());
 
+      CryptoLogger.log(req, 'CERT', 'Certificate Signed (Self-Signed)', {
+        serialNumber: cert.serialNumber,
+        algorithm: 'SHA-256 with RSA',
+        validFrom: now.toISOString(),
+        validUntil: expiryDate.toISOString()
+      });
+
       // Export certificate to PEM
       const certPEM = forge.pki.certificateToPem(cert);
 
       // Generate certificate metadata
+      const fingerprint = this._generateFingerprint(certPEM);
+
+      CryptoLogger.log(req, 'HASH', 'Certificate Fingerprint (SHA-256)', {
+        algorithm: 'SHA-256',
+        fingerprintPreview: fingerprint.substring(0, 16) + '...'
+      });
+
       return {
         certificate_pem: certPEM,
         public_key: keyPair.publicKey,
@@ -78,7 +113,7 @@ class CertificateService {
         subject: `${userInfo.name} <${userInfo.email}>`,
         not_before: now,
         not_after: expiryDate,
-        fingerprint_sha256: this._generateFingerprint(certPEM),
+        fingerprint_sha256: fingerprint,
         status: 'active'
       };
     } catch (error) {
@@ -94,14 +129,28 @@ class CertificateService {
    * @param {string} userId - User ID for salt
    * @returns {string} Encrypted private key (Base64)
    */
-  static encryptPrivateKey(privateKey, encryptionKey, userId) {
+  static encryptPrivateKey(privateKey, encryptionKey, userId, req = null) {
     try {
       // Generate IV and use PBKDF2 to derive key from master key and user ID
       const salt = Buffer.from(userId.substring(0, 16).padEnd(16, '0'));
       const iv = crypto.randomBytes(16);
 
+      CryptoLogger.log(req, 'ENCRYPT', 'Encrypt Private Key (AES-256-CBC)', {
+        algorithm: 'AES-256-CBC',
+        keyDerivation: 'PBKDF2 (100,000 iterations, SHA-256)',
+        ivSize: '16 bytes (random)',
+        purpose: 'Encrypt RSA private key for secure storage'
+      });
+
       // Derive key using PBKDF2
       const derivedKey = crypto.pbkdf2Sync(encryptionKey, salt, 100000, 32, 'sha256');
+
+      CryptoLogger.log(req, 'KEY', 'PBKDF2 Key Derivation', {
+        algorithm: 'PBKDF2-HMAC-SHA256',
+        iterations: 100000,
+        keyLength: '256 bits (32 bytes)',
+        saltSource: 'User ID (first 16 chars)'
+      });
 
       // Create cipher and encrypt
       const cipher = crypto.createCipheriv('aes-256-cbc', derivedKey, iv);
@@ -110,6 +159,11 @@ class CertificateService {
 
       // Combine IV and encrypted data
       const combined = iv.toString('hex') + ':' + encrypted;
+
+      CryptoLogger.log(req, 'ENCRYPT', 'Private Key Encrypted Successfully', {
+        outputFormat: 'hex (IV:ciphertext)',
+        outputLength: combined.length
+      });
 
       return combined;
     } catch (error) {
@@ -124,8 +178,15 @@ class CertificateService {
    * @param {string} userId - User ID for salt
    * @returns {string} Decrypted private key in PEM format
    */
-  static decryptPrivateKey(encryptedKey, encryptionKey, userId) {
+  static decryptPrivateKey(encryptedKey, encryptionKey, userId, req = null) {
     try {
+      CryptoLogger.log(req, 'DECRYPT', 'Decrypt Private Key (AES-256-CBC)', {
+        algorithm: 'AES-256-CBC',
+        keyDerivation: 'PBKDF2 (100,000 iterations, SHA-256)',
+        inputLength: encryptedKey.length,
+        purpose: 'Retrieve RSA private key for signing operations'
+      });
+
       // Split IV and encrypted data
       const parts = encryptedKey.split(':');
       if (parts.length !== 2) {
@@ -139,6 +200,12 @@ class CertificateService {
       const salt = Buffer.from(userId.substring(0, 16).padEnd(16, '0'));
       const derivedKey = crypto.pbkdf2Sync(encryptionKey, salt, 100000, 32, 'sha256');
 
+      CryptoLogger.log(req, 'KEY', 'PBKDF2 Key Derivation (for decryption)', {
+        algorithm: 'PBKDF2-HMAC-SHA256',
+        iterations: 100000,
+        keyLength: '256 bits (32 bytes)'
+      });
+
       // Create decipher and decrypt
       const decipher = crypto.createDecipheriv('aes-256-cbc', derivedKey, iv);
       let decrypted = decipher.update(encrypted, 'hex', 'utf8');
@@ -148,6 +215,11 @@ class CertificateService {
         console.warn('Decrypted content preview:', decrypted.substring(0, 100));
         throw new Error(`Decryption failed: Invalid key format (got: ${decrypted.substring(0, 20)}...)`);
       }
+
+      CryptoLogger.log(req, 'DECRYPT', 'Private Key Decrypted Successfully', {
+        keyFormat: 'PEM',
+        keyLength: decrypted.length
+      });
 
       return decrypted;
     } catch (error) {
@@ -240,20 +312,34 @@ class CertificateService {
    * @param {string} masterEncryptionKey - Master key from environment
    * @returns {Object} Complete certificate package
    */
-  static generateCompleteCertificate(userInfo, masterEncryptionKey) {
+  static generateCompleteCertificate(userInfo, masterEncryptionKey, req = null) {
     try {
+      CryptoLogger.log(req, 'CERT', 'Full Certificate Generation Workflow — START', {
+        user: userInfo.name,
+        email: userInfo.email,
+        pipeline: '1) Generate RSA key pair → 2) Create X.509 certificate → 3) Encrypt private key'
+      });
+
       // Step 1: Generate key pair
-      const keyPair = this.generateKeyPair();
+      const keyPair = this.generateKeyPair(req);
 
       // Step 2: Create self-signed certificate
-      const certData = this.createSelfSignedCertificate(keyPair, userInfo);
+      const certData = this.createSelfSignedCertificate(keyPair, userInfo, 5, req);
 
       // Step 3: Encrypt private key
       const encryptedPrivateKey = this.encryptPrivateKey(
         keyPair.privateKey,
         masterEncryptionKey,
-        userInfo.userId
+        userInfo.userId,
+        req
       );
+
+      CryptoLogger.log(req, 'CERT', 'Full Certificate Generation — COMPLETE ✓', {
+        certificateId: certData.certificate_id,
+        fingerprint: certData.fingerprint_sha256?.substring(0, 16) + '...',
+        validUntil: certData.not_after?.toISOString(),
+        status: 'active'
+      });
 
       // Return complete certificate package (without unencrypted private key for security)
       return {
