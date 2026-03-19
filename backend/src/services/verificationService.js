@@ -12,6 +12,7 @@ const SignatureAuditLog = require('../models/SignatureAuditLog');
 const Document = require('../models/Document');
 const EncryptionService = require('./encryptionService');
 const SigningService = require('./signingService');
+const CryptoLogger = require('../utils/cryptoLogger');
 
 class VerificationService {
   /**
@@ -24,6 +25,8 @@ class VerificationService {
    */
   async verifyDocument(documentId, metadata = {}) {
     try {
+      const req = metadata._req || null;
+
       // Validate document exists
       const document = await Document.findById(documentId);
       if (!document) {
@@ -269,6 +272,8 @@ class VerificationService {
    */
   async verifySignature(signatureId, metadata = {}) {
     try {
+      const req = metadata._req || null;
+
       // Get signature with relationships
       const signature = await DocumentSignature.findById(signatureId)
         .populate('signer_id', 'email name')
@@ -286,7 +291,7 @@ class VerificationService {
       console.log(`[VERIFY] Crypto check: ${cryptoVerification.is_valid ? 'PASS' : 'FAIL'} (${cryptoVerification.error || 'OK'})`);
 
       // Check certificate validity
-      const certificateStatus = await this._verifyCertificate(signature.certificate_id);
+      const certificateStatus = await this._verifyCertificate(signature.certificate_id, req);
       console.log(`[VERIFY] Cert check: valid=${certificateStatus.is_valid}, revoked=${certificateStatus.is_revoked}, expired=${!certificateStatus.is_not_expired}`);
 
       // Determine overall signature validity
@@ -507,9 +512,10 @@ class VerificationService {
    * 
    * @private
    * @param {object} certificate - Certificate document
+   * @param {object|null} req - Express request object for crypto logging
    * @returns {Promise<object>} Certificate verification status
    */
-  async _verifyCertificate(certificate) {
+  async _verifyCertificate(certificate, req = null) {
     try {
       if (!certificate) {
         console.log(`[CERT] Certificate not found`);
@@ -531,6 +537,16 @@ class VerificationService {
 
       // Check validity fields - certificate.status should be 'active' for valid
       const isValid = certificate.status === 'active' || (certificate.is_valid !== false && certificate.status !== 'revoked' && certificate.status !== 'expired');
+
+      CryptoLogger.log(req, 'VERIFY', 'Certificate Validation', {
+        certificateId: certificate._id?.toString(),
+        status: certificate.status,
+        isValid,
+        isRevoked,
+        isNotExpired,
+        expiresAt: expiresAt.toISOString(),
+        daysUntilExpiry: Math.ceil((expiresAt - now) / (1000 * 60 * 60 * 24))
+      });
 
       console.log(`[CERT] ID: ${certificate._id}, status: ${certificate.status}, valid: ${isValid}, revoked: ${isRevoked}, not_expired: ${isNotExpired}`);
 
