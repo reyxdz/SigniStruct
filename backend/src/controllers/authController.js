@@ -86,6 +86,10 @@ exports.signup = async (req, res) => {
 
       console.log(`[AUTH] RSA certificate created successfully: ${certificateInfo.certificate.certificate_id}`);
       
+      // Link certificate to user record
+      user.certificate_id = certificateInfo.certificate._id;
+      await user.save();
+      
       // ==================== DISPLAY GENERATED KEY PAIR (DEMO MODE) ====================
       if (certificateInfo && certificateInfo.success) {
         try {
