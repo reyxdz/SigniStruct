@@ -972,6 +972,50 @@ const Documents = () => {
                   </div>
                 )}
 
+                {/* File-Level Tampering Warning */}
+                {verifyResult.content_integrity?.file_tamper_warning && (
+                  <div style={{
+                    padding: spacing.md,
+                    borderRadius: borderRadius.md,
+                    marginBottom: spacing.lg,
+                    border: '2px solid #DC2626',
+                    backgroundColor: '#FEF2F2',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: spacing.sm,
+                  }}>
+                    <FiAlertCircle size={20} style={{ color: '#DC2626', flexShrink: 0, marginTop: '2px' }} />
+                    <div>
+                      <p style={{ margin: 0, fontWeight: typography.weights.bold, fontSize: typography.sizes.sm, color: '#DC2626' }}>
+                        🚨 File Integrity Compromised
+                      </p>
+                      <p style={{ margin: '4px 0 0 0', fontSize: typography.sizes.xs, color: '#991B1B' }}>
+                        {verifyResult.content_integrity.file_tamper_warning}
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {/* File integrity status for unmodified files */}
+                {verifyResult.content_integrity?.file_hash_matches === true && (
+                  <div style={{
+                    padding: spacing.sm + ' ' + spacing.md,
+                    borderRadius: borderRadius.md,
+                    marginBottom: spacing.lg,
+                    border: '1px solid #A7F3D0',
+                    backgroundColor: '#ECFDF5',
+                    fontSize: typography.sizes.sm,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: spacing.sm,
+                  }}>
+                    <FiCheckCircle size={16} style={{ color: '#059669', flexShrink: 0 }} />
+                    <span style={{ color: '#065F46' }}>
+                      File integrity verified — PDF has not been modified since download ✓
+                    </span>
+                  </div>
+                )}
+
                 {/* Database Match */}
                 {verifyResult.database_match && (
                   <div style={{
@@ -1025,50 +1069,6 @@ const Documents = () => {
                         {verifyResult.content_integrity.tamper_warning}
                       </p>
                     </div>
-                  </div>
-                )}
-
-                {/* File-Level Tampering Warning */}
-                {verifyResult.content_integrity?.file_tamper_warning && (
-                  <div style={{
-                    padding: spacing.md,
-                    borderRadius: borderRadius.md,
-                    marginBottom: spacing.lg,
-                    border: '2px solid #DC2626',
-                    backgroundColor: '#FEF2F2',
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: spacing.sm,
-                  }}>
-                    <FiAlertCircle size={20} style={{ color: '#DC2626', flexShrink: 0, marginTop: '2px' }} />
-                    <div>
-                      <p style={{ margin: 0, fontWeight: typography.weights.bold, fontSize: typography.sizes.sm, color: '#DC2626' }}>
-                        🚨 File Integrity Compromised
-                      </p>
-                      <p style={{ margin: '4px 0 0 0', fontSize: typography.sizes.xs, color: '#991B1B' }}>
-                        {verifyResult.content_integrity.file_tamper_warning}
-                      </p>
-                    </div>
-                  </div>
-                )}
-
-                {/* File integrity status for unmodified files */}
-                {verifyResult.content_integrity?.file_hash_matches === true && (
-                  <div style={{
-                    padding: spacing.sm + ' ' + spacing.md,
-                    borderRadius: borderRadius.md,
-                    marginBottom: spacing.lg,
-                    border: '1px solid #A7F3D0',
-                    backgroundColor: '#ECFDF5',
-                    fontSize: typography.sizes.sm,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: spacing.sm,
-                  }}>
-                    <FiCheckCircle size={16} style={{ color: '#059669', flexShrink: 0 }} />
-                    <span style={{ color: '#065F46' }}>
-                      File integrity verified — PDF has not been modified since download ✓
-                    </span>
                   </div>
                 )}
 
