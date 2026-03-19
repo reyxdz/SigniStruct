@@ -131,7 +131,7 @@ const Documents = () => {
    * Get signer count for a document
    */
   const getSignerCount = (doc) => {
-    return doc.signers?.length || 0;
+    return doc.signerCount || doc.signers?.length || 0;
   };
 
   /**

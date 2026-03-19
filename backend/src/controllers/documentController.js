@@ -1125,33 +1125,41 @@ class DocumentController {
       console.log('  User ID:', userId);
       console.log('  User ID Type:', typeof userId);
 
-      // Fetch documents created by the user
+      // Fetch documents created by the user (include fields to count signers)
       const documents = await Document.find({ owner_id: userId })
-        .select('_id title owner_id signers status created_at updated_at')
-        .sort({ created_at: -1 });
+        .select('_id title owner_id signers status created_at updated_at fields')
+        .sort({ created_at: -1 })
+        .lean();
 
       console.log('✅ Query Complete');
       console.log('  Documents Found:', documents.length);
-      
-      if (documents.length > 0) {
-        console.log('  First Document:');
-        console.log('    _id:', documents[0]._id);
-        console.log('    owner_id:', documents[0].owner_id);
-        console.log('    title:', documents[0].title);
-      } else {
-        console.log('  ⚠️  No documents found for this user');
-        // Try to fetch ALL documents to see if any exist
-        const allDocs = await Document.find({}).limit(5);
-        console.log('  Total documents in DB:', allDocs.length);
-        if (allDocs.length > 0) {
-          console.log('  Sample document owner:', allDocs[0].owner_id);
+
+      // Enrich each document with the actual signer count from assignedRecipients
+      const enrichedDocuments = documents.map(doc => {
+        const recipientEmails = new Set();
+        if (doc.fields && Array.isArray(doc.fields)) {
+          doc.fields.forEach(field => {
+            if (field.assignedRecipients && Array.isArray(field.assignedRecipients)) {
+              field.assignedRecipients.forEach(r => {
+                if (r.recipientEmail) {
+                  recipientEmails.add(r.recipientEmail);
+                }
+              });
+            }
+          });
         }
-      }
+        // Return document without the heavy fields array, but with signerCount
+        const { fields, ...docWithoutFields } = doc;
+        return {
+          ...docWithoutFields,
+          signerCount: recipientEmails.size
+        };
+      });
 
       return res.status(200).json({
         success: true,
-        documents: documents || [],
-        count: documents.length
+        documents: enrichedDocuments || [],
+        count: enrichedDocuments.length
       });
     } catch (error) {
       console.error('❌ Get user documents error:', error);
