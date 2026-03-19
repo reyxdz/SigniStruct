@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { handleCryptoLogs } from '../utils/cryptoConsoleLogger';
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
@@ -24,9 +25,13 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle response errors
+// Handle response errors and crypto logging
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Print crypto operation logs if present in response
+    handleCryptoLogs(response);
+    return response;
+  },
   (error) => {
     // Don't redirect on token-based endpoints (signing, preview with token)
     // These use JWT tokens in the URL, not bearer tokens
