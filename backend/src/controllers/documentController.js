@@ -2586,10 +2586,11 @@ class DocumentController {
 
       // 7. Build verification metadata
       const verificationData = {
-        signistruct_version: '1.0',
+        signistruct_version: '1.1',
         document_id: documentId,
         document_title: document.title,
         document_hash: document.file_hash_sha256,
+        signed_pdf_hash: null, // placeholder — will be filled after first save
         signed_at: new Date().toISOString(),
         signatures: signatures.map(sig => ({
           signer_email: sig.signer_id?.email || sig.recipient_email || 'Unknown',
@@ -2614,15 +2615,33 @@ class DocumentController {
         }))
       };
 
-      // 8. Embed metadata into PDF
-      const metadataJson = JSON.stringify(verificationData);
+      // 8. Two-pass PDF save to embed the signed file hash
+      // Pass 1: Save the PDF with all signatures rendered but without the file hash
+      const crypto = require('crypto');
+
+      const pass1MetadataJson = JSON.stringify(verificationData);
       pdfDoc.setKeywords(['SigniStruct-Verified']);
-      pdfDoc.setSubject('SigniStruct-Verification:' + metadataJson);
+      pdfDoc.setSubject('SigniStruct-Verification:' + pass1MetadataJson);
       pdfDoc.setProducer('SigniStruct Digital Signing Platform');
 
-      const modifiedPdfBytes = await pdfDoc.save();
+      const pass1PdfBytes = await pdfDoc.save();
 
-      console.log(`  ✅ PDF prepared with signatures and metadata (${modifiedPdfBytes.length} bytes)`);
+      // Compute SHA-256 hash of the first-pass PDF
+      const signedPdfHash = crypto.createHash('sha256').update(Buffer.from(pass1PdfBytes)).digest('hex');
+      console.log(`  Pass 1 PDF hash: ${signedPdfHash}`);
+
+      // Pass 2: Re-embed metadata with the actual signed_pdf_hash
+      verificationData.signed_pdf_hash = signedPdfHash;
+      const pass2MetadataJson = JSON.stringify(verificationData);
+
+      const pdfDoc2 = await PDFDocument.load(pass1PdfBytes);
+      pdfDoc2.setKeywords(['SigniStruct-Verified']);
+      pdfDoc2.setSubject('SigniStruct-Verification:' + pass2MetadataJson);
+      pdfDoc2.setProducer('SigniStruct Digital Signing Platform');
+
+      const modifiedPdfBytes = await pdfDoc2.save();
+
+      console.log(`  ✅ PDF prepared with signatures, metadata, and file hash (${modifiedPdfBytes.length} bytes)`);
 
       // 9. Send as downloadable file
       const downloadName = `${document.title.replace(/[^a-zA-Z0-9\-_ ]/g, '')}_signed.pdf`;
