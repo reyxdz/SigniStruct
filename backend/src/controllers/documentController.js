@@ -210,7 +210,8 @@ class DocumentController {
         documentId,
         fieldContent,
         userId,
-        encryptionKey
+        encryptionKey,
+        req
       );
 
       console.log('✅ RSA Signature Generated');
@@ -429,7 +430,7 @@ class DocumentController {
       console.log('  Algorithm:', verification.algorithm);
 
       // Check if document content matches
-      const currentHash = SigningService.calculateDocumentHash(fieldContent);
+      const currentHash = SigningService.calculateDocumentHash(fieldContent, req);
       const contentMatches = currentHash === signature.content_hash;
 
       console.log('✅ Content Verification');
@@ -1584,7 +1585,8 @@ class DocumentController {
                   documentId,
                   field.value,  // The visual signature data stored on the field
                   userId,
-                  encryptionKey
+                  encryptionKey,
+                  req
                 );
                 console.log(`  🔐 RSA signature generated for field: ${field.label}`);
               } catch (cryptoError) {
@@ -1893,7 +1895,8 @@ class DocumentController {
             documentId,
             fieldValue,
             recipientUser._id.toString(),
-            encryptionKey
+            encryptionKey,
+            req
           );
           console.log(`  ✅ RSA signature generated for recipient`);
           console.log(`     Algorithm: ${cryptoSignature.algorithm}`);

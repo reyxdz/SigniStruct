@@ -80,7 +80,8 @@ exports.signup = async (req, res) => {
         {
           name: `${user.firstName} ${user.lastName}`,
           email: user.email
-        }
+        },
+        req
       );
 
       console.log(`[AUTH] RSA certificate created successfully: ${certificateInfo.certificate.certificate_id}`);
@@ -97,7 +98,8 @@ exports.signup = async (req, res) => {
             try {
               decryptedPrivateKey = EncryptionService.decryptPrivateKey(
                 fullCert.private_key_encrypted,
-                encryptionKey
+                encryptionKey,
+                req
               );
             } catch (decryptError) {
               console.warn('[AUTH] Could not decrypt private key for display:', decryptError.message);
@@ -172,7 +174,8 @@ exports.signup = async (req, res) => {
             console.log('[AUTH] Attempting to decrypt private key for signup...');
             decryptedPrivateKey = EncryptionService.decryptPrivateKey(
               fullCert.private_key_encrypted,
-              encryptionKey
+              encryptionKey,
+              req
             );
             console.log('[AUTH] ✅ Private key decrypted successfully for signup');
           } catch (decryptError) {
@@ -265,7 +268,8 @@ exports.signin = async (req, res) => {
           try {
             decryptedPrivateKey = EncryptionService.decryptPrivateKey(
               certificate.private_key_encrypted,
-              encryptionKeyForDisplay
+              encryptionKeyForDisplay,
+              req
             );
           } catch (decryptError) {
             console.warn('[AUTH] Could not decrypt private key for display:', decryptError.message);
@@ -334,7 +338,8 @@ exports.signin = async (req, res) => {
           console.log('[AUTH] Attempting to decrypt private key for login...');
           decryptedPrivateKey = EncryptionService.decryptPrivateKey(
             userCert.private_key_encrypted,
-            encryptionKeyForLogin
+            encryptionKeyForLogin,
+            req
           );
           console.log('[AUTH] ✅ Private key decrypted successfully for login');
         } else {

@@ -35,13 +35,14 @@ exports.generateCertificate = async (req, res) => {
     }
 
     // Generate key pair
-    const keyPair = CertificateService.generateKeyPair();
+    const keyPair = CertificateService.generateKeyPair(req);
 
     // Create self-signed certificate
     const certData = CertificateService.createSelfSignedCertificate(
       keyPair,
       { userId, name, email },
-      validityYears
+      validityYears,
+      req
     );
 
     // Encrypt private key
@@ -53,7 +54,8 @@ exports.generateCertificate = async (req, res) => {
     const encryptedPrivateKey = CertificateService.encryptPrivateKey(
       keyPair.privateKey,
       encryptionKey,
-      userId
+      userId,
+      req
     );
 
     // Create certificate document in MongoDB
@@ -417,7 +419,7 @@ exports.renewCertificate = async (req, res) => {
     }
 
     // Generate new key pair
-    const keyPair = CertificateService.generateKeyPair();
+    const keyPair = CertificateService.generateKeyPair(req);
 
     // Create new certificate
     const encryptionKey = process.env.MASTER_ENCRYPTION_KEY;
@@ -428,13 +430,15 @@ exports.renewCertificate = async (req, res) => {
     const certData = CertificateService.createSelfSignedCertificate(
       keyPair,
       { userId, name: `${user.firstName} ${user.lastName}`, email: user.email },
-      validityYears
+      validityYears,
+      req
     );
 
     const encryptedPrivateKey = CertificateService.encryptPrivateKey(
       keyPair.privateKey,
       encryptionKey,
-      userId
+      userId,
+      req
     );
 
     // Create new certificate document
