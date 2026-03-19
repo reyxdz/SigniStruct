@@ -14,6 +14,7 @@ const multiSignerRoutes = require('./routes/multiSignerRoutes');
 const signingRequestRoutes = require('./routes/signingRequestRoutes');
 const { initializeDatabaseSchema } = require('./utils/databaseInit');
 const { initializeEmailServices, setupEmailBackgroundJobs } = require('./config/emailConfig');
+const CryptoLogger = require('./utils/cryptoLogger');
 
 const app = express();
 
@@ -21,6 +22,26 @@ const app = express();
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// Crypto Logging Middleware
+// When CRYPTO_LOGGING=true, this initializes request-scoped log collection
+// and patches res.json() to automatically attach _crypto_logs to responses
+app.use((req, res, next) => {
+  CryptoLogger.init(req);
+
+  if (CryptoLogger.isEnabled()) {
+    const originalJson = res.json.bind(res);
+    res.json = (body) => {
+      const logs = CryptoLogger.getLogs(req);
+      if (logs.length > 0 && body && typeof body === 'object') {
+        body._crypto_logs = logs;
+      }
+      return originalJson(body);
+    };
+  }
+
+  next();
+});
 
 // MongoDB Connection
 const connectDB = async () => {
