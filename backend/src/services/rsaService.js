@@ -3,6 +3,7 @@ const crypto = require('crypto');
 const EncryptionService = require('./encryptionService');
 const UserCertificate = require('../models/UserCertificate');
 const SignatureAuditLog = require('../models/SignatureAuditLog');
+const CryptoLogger = require('../utils/cryptoLogger');
 
 /**
  * RSA Service
@@ -15,10 +16,16 @@ class RSAService {
    * @returns {Promise<{ publicKey, privateKey, keySize, algorithm }>}
    * @throws {Error} If key generation fails
    */
-  static async generateKeyPair() {
+  static async generateKeyPair(req = null) {
     try {
       console.log('[RSA] Generating new 2048-bit RSA key pair...');
       
+      CryptoLogger.log(req, 'RSA', 'Generate RSA Key Pair — START', {
+        algorithm: 'RSA',
+        keySize: 2048,
+        purpose: 'Creating public/private key pair for digital signatures'
+      });
+
       // Generate 2048-bit RSA key pair
       // 2048-bit is industry standard (4096 is more secure but slower)
       const key = new RSA({ b: 2048 });
@@ -28,6 +35,14 @@ class RSAService {
       
       console.log('[RSA] RSA key pair generated successfully');
       
+      CryptoLogger.log(req, 'RSA', 'Generate RSA Key Pair — COMPLETE', {
+        algorithm: 'RSA-2048',
+        publicKeyLength: publicKey.length,
+        privateKeyLength: privateKey.length,
+        publicKeyPreview: publicKey.substring(0, 50) + '...',
+        note: 'Public key can be shared. Private key must be kept secret.'
+      });
+
       return {
         publicKey,
         privateKey,
@@ -45,12 +60,20 @@ class RSAService {
    * @param {string} publicKey - Public key in PEM format
    * @returns {string} SHA256 fingerprint in hex format
    */
-  static generateKeyFingerprint(publicKey) {
+  static generateKeyFingerprint(publicKey, req = null) {
     try {
       const fingerprint = crypto
         .createHash('sha256')
         .update(publicKey)
         .digest('hex');
+
+      CryptoLogger.log(req, 'HASH', 'Generate Key Fingerprint (SHA-256)', {
+        algorithm: 'SHA-256',
+        input: 'Public Key (PEM)',
+        fingerprintPreview: fingerprint.substring(0, 16) + '...',
+        purpose: 'Unique identifier for the certificate'
+      });
+
       return fingerprint;
     } catch (error) {
       throw new Error(`Failed to generate key fingerprint: ${error.message}`);
@@ -83,24 +106,31 @@ class RSAService {
    * @returns {Promise<object>} Created certificate with public key info
    * @throws {Error} If certificate creation fails
    */
-  static async createUserCertificate(userId, encryptionKey, userInfo = {}) {
+  static async createUserCertificate(userId, encryptionKey, userInfo = {}, req = null) {
     try {
       console.log(`[RSA] Creating certificate for user ${userId}`);
       
+      CryptoLogger.log(req, 'CERT', 'Create User Certificate — START', {
+        userId: userId,
+        userName: userInfo.name || 'Unknown',
+        steps: '1) Generate RSA keys → 2) Encrypt private key → 3) Generate fingerprint → 4) Create certificate → 5) Save to DB'
+      });
+
       // Step 1: Generate key pair
-      const { publicKey, privateKey } = await this.generateKeyPair();
+      const { publicKey, privateKey } = await this.generateKeyPair(req);
       
       // Step 2: Encrypt private key
       console.log('[RSA] Encrypting private key...');
       const encryptedPrivateKey = EncryptionService.encryptPrivateKey(
         privateKey,
-        encryptionKey
+        encryptionKey,
+        req
       );
       
       // Step 3: Generate certificate metadata
       const certificateId = this.generateCertificateId();
       const serialNumber = this.generateSerialNumber();
-      const fingerprint = this.generateKeyFingerprint(publicKey);
+      const fingerprint = this.generateKeyFingerprint(publicKey, req);
       
       // Step 4: Create certificate subject (X.509 format)
       const name = userInfo.name || 'SigniStruct User';
@@ -360,10 +390,24 @@ ${Buffer.from(`Certificate for ${name}`).toString('base64')}
    * @returns {string} Signature in base64 format
    * @throws {Error} If signing fails
    */
-  static signData(data, privateKey) {
+  static signData(data, privateKey, req = null) {
     try {
+      CryptoLogger.log(req, 'SIGN', 'RSA Sign Data', {
+        algorithm: 'RSA-SHA256 (PKCS#1 v1.5)',
+        dataLength: data.length,
+        dataPreview: data.substring(0, 16) + '...',
+        outputFormat: 'base64'
+      });
+
       const key = new RSA(privateKey);
       const signature = key.sign(data, 'base64', 'utf8');
+
+      CryptoLogger.log(req, 'SIGN', 'RSA Sign Data — COMPLETE', {
+        signatureLength: signature.length,
+        signaturePreview: signature.substring(0, 20) + '...',
+        note: 'Data signed with RSA private key. Verify with corresponding public key.'
+      });
+
       return signature;
     } catch (error) {
       throw new Error(`Failed to sign data: ${error.message}`);
@@ -379,10 +423,23 @@ ${Buffer.from(`Certificate for ${name}`).toString('base64')}
    * @param {string} publicKey - Public key in PEM format
    * @returns {boolean} True if signature is valid, false otherwise
    */
-  static verifySignature(data, signature, publicKey) {
+  static verifySignature(data, signature, publicKey, req = null) {
     try {
+      CryptoLogger.log(req, 'VERIFY', 'RSA Verify Signature', {
+        algorithm: 'RSA-SHA256 (PKCS#1 v1.5)',
+        dataLength: data.length,
+        signatureLength: signature.length,
+        purpose: 'Verifying digital signature with signer\'s public key'
+      });
+
       const key = new RSA(publicKey);
       const isValid = key.verify(data, signature, 'utf8', 'base64');
+
+      CryptoLogger.log(req, 'VERIFY', `RSA Verify Signature — ${isValid ? 'VALID ✓' : 'INVALID ✗'}`, {
+        result: isValid ? 'Signature is mathematically valid' : 'Signature does NOT match',
+        isValid
+      });
+
       return isValid;
     } catch (error) {
       console.error('[RSA] Signature verification error:', error.message);
