@@ -2590,7 +2590,6 @@ class DocumentController {
         document_id: documentId,
         document_title: document.title,
         document_hash: document.file_hash_sha256,
-        signed_pdf_hash: null, // placeholder — will be filled after first save
         signed_at: new Date().toISOString(),
         signatures: signatures.map(sig => ({
           signer_email: sig.signer_id?.email || sig.recipient_email || 'Unknown',
@@ -2615,35 +2614,30 @@ class DocumentController {
         }))
       };
 
-      // 8. Two-pass PDF save to embed the signed file hash
-      // Pass 1: Save the PDF with all signatures rendered but without the file hash
-      const crypto = require('crypto');
-
-      const pass1MetadataJson = JSON.stringify(verificationData);
+      // 8. Embed metadata into PDF and save
+      const metadataJson = JSON.stringify(verificationData);
       pdfDoc.setKeywords(['SigniStruct-Verified']);
-      pdfDoc.setSubject('SigniStruct-Verification:' + pass1MetadataJson);
+      pdfDoc.setSubject('SigniStruct-Verification:' + metadataJson);
       pdfDoc.setProducer('SigniStruct Digital Signing Platform');
 
-      const pass1PdfBytes = await pdfDoc.save();
+      const modifiedPdfBytes = await pdfDoc.save();
 
-      // Compute SHA-256 hash of the first-pass PDF
-      const signedPdfHash = crypto.createHash('sha256').update(Buffer.from(pass1PdfBytes)).digest('hex');
-      console.log(`  Pass 1 PDF hash: ${signedPdfHash}`);
+      // 9. Compute the hash of the final signed PDF and store in database
+      // This is used by Upload & Verify to detect file-level tampering
+      const crypto = require('crypto');
+      const signedPdfHash = crypto.createHash('sha256').update(Buffer.from(modifiedPdfBytes)).digest('hex');
+      console.log(`  Signed PDF hash: ${signedPdfHash}`);
 
-      // Pass 2: Re-embed metadata with the actual signed_pdf_hash
-      verificationData.signed_pdf_hash = signedPdfHash;
-      const pass2MetadataJson = JSON.stringify(verificationData);
+      // Store in database for later verification
+      await Document.findByIdAndUpdate(documentId, {
+        signed_pdf_hash: signedPdfHash,
+        updated_at: new Date()
+      });
+      console.log(`  ✅ signed_pdf_hash saved to database`);
 
-      const pdfDoc2 = await PDFDocument.load(pass1PdfBytes);
-      pdfDoc2.setKeywords(['SigniStruct-Verified']);
-      pdfDoc2.setSubject('SigniStruct-Verification:' + pass2MetadataJson);
-      pdfDoc2.setProducer('SigniStruct Digital Signing Platform');
+      console.log(`  ✅ PDF prepared with signatures and metadata (${modifiedPdfBytes.length} bytes)`);
 
-      const modifiedPdfBytes = await pdfDoc2.save();
-
-      console.log(`  ✅ PDF prepared with signatures, metadata, and file hash (${modifiedPdfBytes.length} bytes)`);
-
-      // 9. Send as downloadable file
+      // 10. Send as downloadable file
       const downloadName = `${document.title.replace(/[^a-zA-Z0-9\-_ ]/g, '')}_signed.pdf`;
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="${downloadName}"`);

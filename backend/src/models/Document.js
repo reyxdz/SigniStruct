@@ -172,6 +172,13 @@ const documentSchema = new mongoose.Schema(
     completed_at: {
       type: Date,
       default: null
+    },
+
+    // SHA-256 hash of the signed/downloaded PDF (set during download)
+    // Used by Upload & Verify to detect file-level tampering
+    signed_pdf_hash: {
+      type: String,
+      default: null
     }
   },
   {

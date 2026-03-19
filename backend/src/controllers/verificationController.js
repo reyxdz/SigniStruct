@@ -800,45 +800,9 @@ exports.verifyUploadedDocument = async (req, res) => {
     console.log(`[${requestId}] Uploaded file hash: ${uploadedFileHash}`);
     console.log(`[${requestId}] Embedded document hash: ${verificationData.document_hash}`);
 
-    // 5b. File-level integrity check (v1.1+)
-    // The signed_pdf_hash was computed from the first-pass PDF at download time.
-    // We hash the first-pass equivalent by stripping the signed_pdf_hash from
-    // the uploaded file's metadata, but a simpler approach: during download,
-    // a second pass re-embeds the hash, changing the file. So instead we
-    // compare the uploaded file hash against the embedded signed_pdf_hash
-    // to see if the file was modified AFTER download.
-    let fileIntegrityValid = null; // null = not applicable (v1.0 documents)
-    if (verificationData.signed_pdf_hash) {
-      // For v1.1+ documents, we can't directly compare because the two-pass
-      // save changes the file. However the signed_pdf_hash is the hash of
-      // the pass-1 PDF (before hash was embedded). The final PDF the user
-      // downloads is the pass-2 PDF. So we need a different approach:
-      // Re-parse the uploaded PDF, strip the signed_pdf_hash from the metadata,
-      // re-save, and compare that hash against signed_pdf_hash.
-      try {
-        const { PDFDocument: PDFDoc2 } = require('pdf-lib');
-        const uploadedPdfDoc = await PDFDoc2.load(req.file.buffer);
-
-        // Reconstruct pass-1 metadata (with signed_pdf_hash = null)
-        const pass1VerificationData = { ...verificationData, signed_pdf_hash: null };
-        const pass1MetadataJson = JSON.stringify(pass1VerificationData);
-        uploadedPdfDoc.setSubject('SigniStruct-Verification:' + pass1MetadataJson);
-
-        const reconstructedBytes = await uploadedPdfDoc.save();
-        const reconstructedHash = crypto.createHash('sha256').update(Buffer.from(reconstructedBytes)).digest('hex');
-
-        fileIntegrityValid = reconstructedHash === verificationData.signed_pdf_hash;
-
-        console.log(`[${requestId}] Reconstructed pass-1 hash: ${reconstructedHash}`);
-        console.log(`[${requestId}] Embedded signed_pdf_hash:  ${verificationData.signed_pdf_hash}`);
-        console.log(`[${requestId}] File integrity valid: ${fileIntegrityValid}`);
-      } catch (integrityErr) {
-        console.warn(`[${requestId}] File integrity check failed:`, integrityErr.message);
-        fileIntegrityValid = null; // Could not verify
-      }
-    } else {
-      console.log(`[${requestId}] No signed_pdf_hash found (v1.0 document) — skipping file integrity check`);
-    }
+    // 5b. File-level integrity check will be done via database lookup (step 7)
+    // The signed_pdf_hash is stored in the Document record during download
+    let fileIntegrityValid = null; // null = not checked yet
 
     // 6. Verify each signature using embedded public keys
     const signatureResults = [];
@@ -938,6 +902,17 @@ exports.verifyUploadedDocument = async (req, res) => {
             status: dbDocument.status,
             hash_matches: dbDocument.file_hash_sha256 === verificationData.document_hash
           };
+
+          // File-level integrity check: compare uploaded file hash against
+          // the signed_pdf_hash stored in the database during download
+          if (dbDocument.signed_pdf_hash) {
+            fileIntegrityValid = uploadedFileHash === dbDocument.signed_pdf_hash;
+            console.log(`[${requestId}] DB signed_pdf_hash:    ${dbDocument.signed_pdf_hash}`);
+            console.log(`[${requestId}] Uploaded file hash:    ${uploadedFileHash}`);
+            console.log(`[${requestId}] File integrity valid:  ${fileIntegrityValid}`);
+          } else {
+            console.log(`[${requestId}] No signed_pdf_hash in DB (document was never downloaded) — skipping file integrity check`);
+          }
         } else {
           databaseMatch = { found: false };
         }
