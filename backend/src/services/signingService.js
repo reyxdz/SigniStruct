@@ -7,6 +7,7 @@ const SignatureAuditLog = require('../models/SignatureAuditLog');
 const CertificateService = require('./certificateService');
 const EncryptionService = require('./encryptionService');
 const mongoose = require('mongoose');
+const CryptoLogger = require('../utils/cryptoLogger');
 
 /**
  * Digital Signature Service
@@ -254,7 +255,7 @@ class SigningService {
    * @returns {string} SHA-256 hash in hexadecimal format
    * @throws {Error} If hash calculation fails
    */
-  static calculateDocumentHash(content) {
+  static calculateDocumentHash(content, req = null) {
     try {
       const hash = crypto.createHash('sha256');
       
@@ -270,7 +271,17 @@ class SigningService {
         hash.update(String(content));
       }
       
-      return hash.digest('hex');
+      const hashResult = hash.digest('hex');
+
+      CryptoLogger.log(req, 'HASH', 'Calculate Document Hash (SHA-256)', {
+        algorithm: 'SHA-256',
+        inputType: Buffer.isBuffer(content) ? 'Buffer' : typeof content,
+        inputLength: Buffer.isBuffer(content) ? content.length : (typeof content === 'string' ? content.length : JSON.stringify(content).length),
+        hashPreview: hashResult.substring(0, 16) + '...',
+        purpose: 'Create unique fingerprint of document content'
+      });
+
+      return hashResult;
     } catch (error) {
       throw new Error(`Failed to calculate document hash: ${error.message}`);
     }
@@ -293,10 +304,16 @@ class SigningService {
    * @returns {Promise<Object>} Cryptographic signature with metadata
    * @throws {Error} If signing fails
    */
-  static async signField(documentId, fieldContent, userId, encryptionKey) {
+  static async signField(documentId, fieldContent, userId, encryptionKey, req = null) {
     try {
+      CryptoLogger.log(req, 'SIGN', 'Sign Field — START', {
+        documentId,
+        userId,
+        pipeline: '1) Hash field content → 2) Get certificate → 3) Decrypt private key → 4) RSA-sign the hash → 5) Generate integrity hash'
+      });
+
       // 1. Calculate hash of field content
-      const contentHash = this.calculateDocumentHash(fieldContent);
+      const contentHash = this.calculateDocumentHash(fieldContent, req);
       console.log(`[SIGN] Field hash calculated: ${contentHash.substring(0, 16)}...`);
 
       // 2. Get user's certificate and private key
@@ -304,6 +321,13 @@ class SigningService {
       if (!certificate) {
         throw new Error(`No certificate found for user ${userId}`);
       }
+
+      CryptoLogger.log(req, 'CERT', 'Retrieve Signer Certificate', {
+        certificateId: certificate._id.toString(),
+        status: certificate.status,
+        expiresAt: certificate.not_after?.toISOString(),
+        fingerprint: certificate.fingerprint_sha256?.substring(0, 16) + '...'
+      });
 
       // Verify certificate is valid
       const now = new Date();
@@ -322,14 +346,15 @@ class SigningService {
       try {
         privateKey = EncryptionService.decryptPrivateKey(
           certificate.private_key_encrypted,
-          encryptionKey
+          encryptionKey,
+          req
         );
       } catch (error) {
         throw new Error(`Failed to decrypt private key: ${error.message}`);
       }
 
       // 4. Sign the hash with private key (RSA-SHA256)
-      const signatureHex = this._signHash(contentHash, privateKey);
+      const signatureHex = this._signHash(contentHash, privateKey, req);
       console.log(`[SIGN] Signature created: ${signatureHex.substring(0, 16)}...`);
 
       // 5. Calculate integrity hash of signature itself
@@ -337,6 +362,13 @@ class SigningService {
         .createHash('sha256')
         .update(signatureHex)
         .digest('hex');
+
+      CryptoLogger.log(req, 'HASH', 'Signature Integrity Hash (SHA-256)', {
+        algorithm: 'SHA-256',
+        input: 'RSA Signature (hex)',
+        hashPreview: signatureHash.substring(0, 16) + '...',
+        purpose: 'Integrity check for the signature itself'
+      });
 
       // 6. Return signature data
       const result = {
@@ -350,6 +382,13 @@ class SigningService {
         certificate_id: certificate._id,
         verified: true // Mark as cryptographically signed
       };
+
+      CryptoLogger.log(req, 'SIGN', 'Sign Field — COMPLETE ✓', {
+        documentId,
+        algorithm: 'RSA-SHA256',
+        contentHashPreview: contentHash.substring(0, 16) + '...',
+        signaturePreview: signatureHex.substring(0, 16) + '...'
+      });
 
       console.log(`[SIGN] Signature data complete for field in document ${documentId}`);
       return result;
@@ -678,8 +717,14 @@ class SigningService {
    * @returns {string} Signature in hexadecimal format
    * @private
    */
-  static _signHash(hash, privateKeyPEM) {
+  static _signHash(hash, privateKeyPEM, req = null) {
     try {
+      CryptoLogger.log(req, 'SIGN', 'RSA Sign Hash (low-level)', {
+        algorithm: 'RSA-SHA256 (PKCS#1 v1.5)',
+        hashPreview: hash.substring(0, 16) + '...',
+        outputFormat: 'hex'
+      });
+
       // Create RSA key from PEM
       const key = new NodeRSA(privateKeyPEM);
 
@@ -688,6 +733,11 @@ class SigningService {
 
       // Sign the hash
       const signature = key.sign(hashBuffer, 'hex');
+
+      CryptoLogger.log(req, 'SIGN', 'RSA Sign Hash — COMPLETE', {
+        signatureLength: signature.length,
+        signaturePreview: signature.substring(0, 20) + '...'
+      });
 
       return signature;
     } catch (error) {
@@ -705,8 +755,14 @@ class SigningService {
    * @returns {boolean} True if signature is valid, false otherwise
    * @private
    */
-  static _verifyHashSignature(hash, signatureHex, publicKeyPEM) {
+  static _verifyHashSignature(hash, signatureHex, publicKeyPEM, req = null) {
     try {
+      CryptoLogger.log(req, 'VERIFY', 'RSA Verify Hash Signature (low-level)', {
+        algorithm: 'RSA-SHA256 (PKCS#1 v1.5)',
+        hashPreview: hash.substring(0, 16) + '...',
+        signaturePreview: signatureHex.substring(0, 20) + '...'
+      });
+
       // Create RSA key from PEM
       const key = new NodeRSA(publicKeyPEM);
 
@@ -718,6 +774,11 @@ class SigningService {
 
       // Verify signature
       const isValid = key.verify(hashBuffer, signatureBuffer, 'hex', 'hex');
+
+      CryptoLogger.log(req, 'VERIFY', `RSA Verify Hash — ${isValid ? 'VALID ✓' : 'INVALID ✗'}`, {
+        result: isValid ? 'Hash signature is mathematically valid' : 'Hash signature does NOT match',
+        isValid
+      });
 
       return isValid;
     } catch (error) {
