@@ -18,7 +18,12 @@ const documentSchema = new mongoose.Schema(
     },
     file_url: {
       type: String,
-      required: true
+      default: null
+    },
+    // GridFS file ID for permanent storage in MongoDB
+    gridfs_file_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: null
     },
     original_filename: {
       type: String,

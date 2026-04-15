@@ -1,33 +1,8 @@
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
 
-// Ensure upload directories exist
-const uploadDir = process.env.DOCUMENT_UPLOAD_DIR || './uploads/documents';
-const tempDir = process.env.TEMP_UPLOAD_DIR || './uploads/temp';
-
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-if (!fs.existsSync(tempDir)) {
-  fs.mkdirSync(tempDir, { recursive: true });
-}
-
-// Configure storage for PDF uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    // Store PDFs in the documents upload directory
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    // Generate unique filename with timestamp
-    const timestamp = Date.now();
-    const random = Math.random().toString(36).substring(7);
-    const filename = `${timestamp}-${random}.pdf`;
-    cb(null, filename);
-  }
-});
+// Configure memory storage for PDF uploads (stored in GridFS, not disk)
+const storage = multer.memoryStorage();
 
 // File filter - only accept PDF files
 const fileFilter = (req, file, cb) => {
@@ -45,7 +20,7 @@ const fileFilter = (req, file, cb) => {
   cb(null, true);
 };
 
-// Create multer instance with PDF-specific configuration
+// Create multer instance with memory storage
 const uploadPDF = multer({
   storage,
   fileFilter,
@@ -82,7 +57,5 @@ const handlePDFUploadError = (err, req, res, next) => {
 
 module.exports = {
   uploadPDF,
-  handlePDFUploadError,
-  uploadDir,
-  tempDir
+  handlePDFUploadError
 };

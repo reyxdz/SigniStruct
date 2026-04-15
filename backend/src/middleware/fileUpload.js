@@ -1,46 +1,11 @@
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
 
-// Ensure upload directories exist
-const ensureDirectoriesExist = () => {
-  const dirs = [
-    process.env.DOCUMENT_UPLOAD_DIR,
-    process.env.SIGNATURE_UPLOAD_DIR,
-    process.env.TEMP_UPLOAD_DIR
-  ];
+// Configure memory storage for document uploads
+const documentStorage = multer.memoryStorage();
 
-  dirs.forEach(dir => {
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-      console.log(`Created upload directory: ${dir}`);
-    }
-  });
-};
-
-ensureDirectoriesExist();
-
-// Configure storage for document uploads
-const documentStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, process.env.DOCUMENT_UPLOAD_DIR);
-  },
-  filename: (req, file, cb) => {
-    const uniqueName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${path.extname(file.originalname).substring(1)}`;
-    cb(null, uniqueName);
-  }
-});
-
-// Configure storage for signature uploads
-const signatureStorage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, process.env.SIGNATURE_UPLOAD_DIR);
-  },
-  filename: (req, file, cb) => {
-    const uniqueName = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}.${path.extname(file.originalname).substring(1)}`;
-    cb(null, uniqueName);
-  }
-});
+// Configure memory storage for signature uploads
+const signatureStorage = multer.memoryStorage();
 
 // File filter for documents (PDF only)
 const documentFileFilter = (req, file, cb) => {

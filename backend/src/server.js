@@ -14,34 +14,29 @@ const multiSignerRoutes = require('./routes/multiSignerRoutes');
 const signingRequestRoutes = require('./routes/signingRequestRoutes');
 const { initializeDatabaseSchema } = require('./utils/databaseInit');
 const { initializeEmailServices, setupEmailBackgroundJobs } = require('./config/emailConfig');
-const CryptoLogger = require('./utils/cryptoLogger');
+const { initGridFS } = require('./utils/gridfs');
 
 const app = express();
 
 // Middleware
-app.use(cors());
+const allowedOrigins = [
+  'http://localhost:3000',
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true
+}));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-
-// Crypto Logging Middleware
-// When CRYPTO_LOGGING=true, this initializes request-scoped log collection
-// and patches res.json() to automatically attach _crypto_logs to responses
-app.use((req, res, next) => {
-  CryptoLogger.init(req);
-
-  if (CryptoLogger.isEnabled()) {
-    const originalJson = res.json.bind(res);
-    res.json = (body) => {
-      const logs = CryptoLogger.getLogs(req);
-      if (logs.length > 0 && body && typeof body === 'object') {
-        body._crypto_logs = logs;
-      }
-      return originalJson(body);
-    };
-  }
-
-  next();
-});
 
 // MongoDB Connection
 const connectDB = async () => {
@@ -51,6 +46,9 @@ const connectDB = async () => {
     
     // Initialize database schema and create indexes
     await initializeDatabaseSchema();
+    
+    // Initialize GridFS bucket for file storage
+    initGridFS();
     
     // Initialize email services
     await initializeEmailServices();
@@ -76,6 +74,10 @@ app.use('/api/audit-logs', auditRoutes);
 app.use('/api/multi-signer', multiSignerRoutes);
 app.use('/api/signing-requests', signingRequestRoutes);
 
+// File serving route
+const fileRoutes = require('./routes/fileRoutes');
+app.use('/api/files', fileRoutes);
+
 // Sample route
 app.get('/api/health', (req, res) => {
   res.json({ status: 'Server is running', timestamp: new Date() });
@@ -93,6 +95,7 @@ app.use((req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });
+

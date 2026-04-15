@@ -14,7 +14,7 @@
   },
   "keywords": [
     "mern",
-    "mongodb",\mongod.exe" -ArgumentList "--config `"C:\Program Files\MongoDB\Server\8.2\bin\mongod.cfg`"" -WindowStyle HiddenStart-Process -FilePath "C:\Program Files\MongoDB\Server\8.2\bin\mongod.exe" -ArgumentList "--config `"C:\Program Files\MongoDB\Server\8.2\bin\mongod.cfg`"" -WindowStyle HiddenStart-Process -FilePath "C:\Program Files\MongoDB\Server\8.2\bin
+    "mongodb",
     "express",
     "react",
     "nodejs"

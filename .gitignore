@@ -13,3 +13,6 @@ build/
 *.swp
 *.swo
 *~
+uploads/
+backend/.env
+frontend/.env

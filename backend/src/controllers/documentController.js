@@ -615,22 +615,28 @@ class DocumentController {
         });
       }
 
-      // Build file path from file_url
-      // file_url format: /uploads/documents/filename.pdf
-      const fileName = document.file_url.split('/').pop();
-      const filePath = path.join(__dirname, '../../uploads/documents', fileName);
-
-      // Check if file exists
-      if (!fs.existsSync(filePath)) {
-        return res.status(404).json({
-          success: false,
-          error: 'Document file not found on server'
-        });
-      }
-
       // Read file and convert to base64
-      const fileBuffer = fs.readFileSync(filePath);
-      const base64Data = fileBuffer.toString('base64');
+      let base64Data;
+      if (document.gridfs_file_id) {
+        const { downloadFromGridFS } = require('../utils/gridfs');
+        const fileBuffer = await downloadFromGridFS(document.gridfs_file_id);
+        base64Data = fileBuffer.toString('base64');
+      } else {
+        // Fallback for legacy files
+        const fs = require('fs');
+        const path = require('path');
+        const fileName = document.file_url.split('/').pop();
+        const filePath = path.join(__dirname, '../../uploads/documents', fileName);
+
+        if (!fs.existsSync(filePath)) {
+          return res.status(404).json({
+            success: false,
+            error: 'Document file not found on server'
+          });
+        }
+        const fileBuffer = fs.readFileSync(filePath);
+        base64Data = fileBuffer.toString('base64');
+      }
 
       // Return document with file data as base64
       return res.status(200).json({
@@ -713,21 +719,28 @@ class DocumentController {
         });
       }
 
-      // Build file path from file_url
-      const fileName = document.file_url.split('/').pop();
-      const filePath = path.join(__dirname, '../../uploads/documents', fileName);
-
-      // Check if file exists
-      if (!fs.existsSync(filePath)) {
-        return res.status(404).json({
-          success: false,
-          error: 'Document file not found on server'
-        });
-      }
-
       // Read file and convert to base64
-      const fileBuffer = fs.readFileSync(filePath);
-      const base64Data = fileBuffer.toString('base64');
+      let base64Data;
+      if (document.gridfs_file_id) {
+        const { downloadFromGridFS } = require('../utils/gridfs');
+        const fileBuffer = await downloadFromGridFS(document.gridfs_file_id);
+        base64Data = fileBuffer.toString('base64');
+      } else {
+        // Fallback for legacy files
+        const fs = require('fs');
+        const path = require('path');
+        const fileName = document.file_url.split('/').pop();
+        const filePath = path.join(__dirname, '../../uploads/documents', fileName);
+
+        if (!fs.existsSync(filePath)) {
+          return res.status(404).json({
+            success: false,
+            error: 'Document file not found on server'
+          });
+        }
+        const fileBuffer = fs.readFileSync(filePath);
+        base64Data = fileBuffer.toString('base64');
+      }
 
       // Return document with file data as base64
       return res.status(200).json({
@@ -1301,8 +1314,6 @@ class DocumentController {
       // CRITICAL: Check if req.user exists
       if (!req.user || !req.user.id) {
         console.error('❌ CRITICAL: req.user is not set during upload!');
-        console.error('  req.user:', req.user);
-        console.error('  req.headers.authorization:', req.headers.authorization ? 'Present' : 'Missing');
         return res.status(401).json({
           success: false,
           error: 'Authentication failed: req.user not set'
@@ -1313,10 +1324,8 @@ class DocumentController {
       const { title, description } = req.body;
 
       console.log('📄 Document Upload Started');
-      console.log('  User ID:', userId);
-      console.log('  User ID Type:', typeof userId);
       console.log('  Title:', title);
-      console.log('  File:', req.file?.filename);
+      console.log('  File:', req.file?.originalname);
 
       // Validate title
       if (!title || !title.trim()) {
@@ -1327,23 +1336,29 @@ class DocumentController {
       }
 
       // Validate file was uploaded
-      if (!req.file) {
+      if (!req.file || !req.file.buffer) {
         return res.status(400).json({
           success: false,
           error: 'No file provided'
         });
       }
 
-      // Generate a simple hash from filename (in production, use crypto for actual file hash)
       const crypto = require('crypto');
-      const fileHash = crypto.createHash('sha256').update(req.file.filename + Date.now()).digest('hex');
+      const fileHash = crypto.createHash('sha256').update(req.file.buffer).digest('hex');
+
+      // Upload to GridFS
+      const gridfs_file_id = await uploadToGridFS(req.file.buffer, req.file.originalname, {
+        contentType: req.file.mimetype,
+        uploadedBy: userId
+      });
 
       // Create new document
       const newDocument = new Document({
         owner_id: userId,
         title: title.trim(),
         description: description?.trim() || '',
-        file_url: `/uploads/documents/${req.file.filename}`,
+        gridfs_file_id: gridfs_file_id,
+        file_url: `/api/files/${gridfs_file_id}`, // Update frontend facing URL
         original_filename: req.file.originalname,
         file_hash_sha256: fileHash,
         file_size: req.file.size,
@@ -1352,19 +1367,10 @@ class DocumentController {
         signers: []
       });
 
-      console.log('  Document Model Created');
-      console.log('    owner_id (Model):', newDocument.owner_id);
-      console.log('    owner_id Type (Model):', typeof newDocument.owner_id);
-
       console.log('  Saving to database...');
-      // Save document to database
       const savedDocument = await newDocument.save();
 
-      console.log('✅ Document Saved');
-      console.log('  Saved Document ID:', savedDocument._id);
-      console.log('  Saved owner_id:', savedDocument.owner_id);
-      console.log('  Saved owner_id Type:', typeof savedDocument.owner_id);
-      console.log('  File URL:', savedDocument.file_url);
+      console.log('✅ Document Saved', savedDocument._id);
 
       return res.status(201).json({
         success: true,
@@ -2418,15 +2424,22 @@ class DocumentController {
         return res.status(403).json({ success: false, error: 'You do not have permission to download this document' });
       }
 
-      // 3. Read the PDF file from disk
-      const fileName = document.file_url.split('/').pop();
-      const filePath = path.join(__dirname, '../../uploads/documents', fileName);
+      // 3. Read the PDF file from GridFS or disk (fallback)
+      let pdfBytes;
+      if (document.gridfs_file_id) {
+        const { downloadFromGridFS } = require('../utils/gridfs');
+        pdfBytes = await downloadFromGridFS(document.gridfs_file_id);
+      } else {
+        const fs = require('fs');
+        const path = require('path');
+        const fileName = document.file_url.split('/').pop();
+        const filePath = path.join(__dirname, '../../uploads/documents', fileName);
 
-      if (!fs.existsSync(filePath)) {
-        return res.status(404).json({ success: false, error: 'Document file not found on server' });
+        if (!fs.existsSync(filePath)) {
+          return res.status(404).json({ success: false, error: 'Document file not found on server' });
+        }
+        pdfBytes = fs.readFileSync(filePath);
       }
-
-      const pdfBytes = fs.readFileSync(filePath);
 
       // 4. Get all signatures with certificates
       const signatures = await DocumentSignature.find({ document_id: documentId, status: 'signed' })
@@ -2681,14 +2694,23 @@ class DocumentController {
         return res.status(400).json({ success: false, error: 'Only draft documents can be deleted' });
       }
 
-      // Delete file from disk
-      const fs = require('fs');
-      const path = require('path');
-      const fileName = document.file_url?.split('/').pop();
-      if (fileName) {
-        const filePath = path.join(__dirname, '../../uploads/documents', fileName);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
+      // Delete file from GridFS or disk (fallback)
+      if (document.gridfs_file_id) {
+        const { deleteFromGridFS } = require('../utils/gridfs');
+        try {
+          await deleteFromGridFS(document.gridfs_file_id);
+        } catch (err) {
+          console.warn(`⚠️ Failed to delete from GridFS: ${err.message}`);
+        }
+      } else if (document.file_url) {
+        const fs = require('fs');
+        const path = require('path');
+        const fileName = document.file_url.split('/').pop();
+        if (fileName) {
+          const filePath = path.join(__dirname, '../../uploads/documents', fileName);
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+          }
         }
       }
 
