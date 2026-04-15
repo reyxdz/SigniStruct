@@ -4,6 +4,7 @@ const UserSignature = require('../models/UserSignature');
 const User = require('../models/User');
 const SigningService = require('../services/signingService');
 const { validationResult } = require('express-validator');
+const { uploadToGridFS } = require('../utils/gridfs');
 
 /**
  * Document Controller
