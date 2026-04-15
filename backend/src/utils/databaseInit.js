@@ -13,6 +13,9 @@ async function initializeDatabaseSchema() {
     // Ensure the collections exist
     await ensureCollectionsExist();
 
+    // Drop stale unique indexes that are no longer needed
+    await dropStaleIndexes();
+
     // Create indexes
     await createIndexes();
 
@@ -50,6 +53,26 @@ async function ensureCollectionsExist() {
     } catch (error) {
       console.log(`⚠ Could not create collection ${collection}: ${error.message}`);
     }
+  }
+}
+
+/**
+ * Drop stale indexes that are no longer needed
+ */
+async function dropStaleIndexes() {
+  const db = mongoose.connection.db;
+  try {
+    const col = db.collection('documents');
+    const indexes = await col.indexes();
+    // Drop unique index on file_hash_sha256 if it exists
+    const hashIndex = indexes.find(idx => idx.key && idx.key.file_hash_sha256 && idx.unique);
+    if (hashIndex) {
+      await col.dropIndex(hashIndex.name);
+      console.log(`✓ Dropped stale unique index: ${hashIndex.name}`);
+    }
+  } catch (error) {
+    // Ignore errors if index doesn't exist
+    console.log(`⚠ dropStaleIndexes: ${error.message}`);
   }
 }
 

@@ -31,8 +31,7 @@ const documentSchema = new mongoose.Schema(
     },
     file_hash_sha256: {
       type: String,
-      required: true,
-      unique: true
+      required: true
     },
     file_size: {
       type: Number,
