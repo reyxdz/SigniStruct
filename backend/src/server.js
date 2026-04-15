@@ -28,6 +28,8 @@ app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
+    // Allow all origins if FRONTEND_URL is set to wildcard
+    if (process.env.FRONTEND_URL === '*') return callback(null, true);
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
