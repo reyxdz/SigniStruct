@@ -137,6 +137,7 @@ const Documents = () => {
   /**
    * Get document status display
    */
+  // eslint-disable-next-line no-unused-vars
   const getStatusDisplay = (status) => {
     const statusMap = {
       draft: 'Draft',

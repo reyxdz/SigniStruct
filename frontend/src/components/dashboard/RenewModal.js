@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { FiX, FiRotateCcw, FiShield, FiKey, FiCalendar, FiInfo } from 'react-icons/fi';
-import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
+import { FiX, FiRotateCcw, FiShield, FiCalendar, FiInfo } from 'react-icons/fi';
+import { colors, typography, transitions } from '../../theme';
 
 /**
  * RenewModal Component

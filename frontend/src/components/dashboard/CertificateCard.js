@@ -1,6 +1,6 @@
 import React from 'react';
-import { FiDownload, FiRotateCcw, FiTrash2, FiEye, FiShield, FiCalendar } from 'react-icons/fi';
-import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
+import { FiDownload, FiRotateCcw, FiTrash2, FiEye, FiShield } from 'react-icons/fi';
+import { colors, typography, transitions } from '../../theme';
 import CertificateService from '../../services/certificateService';
 
 /**

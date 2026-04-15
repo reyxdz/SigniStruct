@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../../services/api';
-import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
+import { colors, spacing, typography, borderRadius } from '../../theme';
 import { FiFileText, FiFile, FiBarChart2, FiUpload, FiEdit3, FiPlus, FiClock, FiCheckCircle, FiAlertCircle, FiArrowRight, FiSend, FiPenTool } from 'react-icons/fi';
 
 const Dashboard = () => {

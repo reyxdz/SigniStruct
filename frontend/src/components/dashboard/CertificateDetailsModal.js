@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FiX, FiShield, FiClock } from 'react-icons/fi';
-import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
+import { colors, typography, transitions } from '../../theme';
 import CertificateService from '../../services/certificateService';
 
 /**
