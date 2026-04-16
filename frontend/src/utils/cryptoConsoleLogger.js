@@ -97,4 +97,6 @@ export function handleCryptoLogs(response) {
   }
 }
 
-export default { printCryptoLogs, handleCryptoLogs };
+const logger = { printCryptoLogs, handleCryptoLogs };
+
+export default logger;

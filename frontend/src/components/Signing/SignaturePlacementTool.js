@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './SignaturePlacementTool.css';
 
 
-import { LuCheck, LuX, LuEye, LuLightbulb } from 'react-icons/lu';
+import { LuCheck, LuX, LuLightbulb } from 'react-icons/lu';
 
 /**
  * SignaturePlacementTool Component

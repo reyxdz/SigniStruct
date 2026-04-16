@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './SigningRequestsList.css';
 
 
-import { LuHourglass, LuCheck, LuX, LuClock, LuRefreshCw, LuMailbox } from 'react-icons/lu';
+import { LuHourglass, LuCheck, LuX, LuClock, LuMailbox } from 'react-icons/lu';
 
 const SigningRequestsList = ({ onRequestAction }) => {
   const [requests, setRequests] = useState([]);
