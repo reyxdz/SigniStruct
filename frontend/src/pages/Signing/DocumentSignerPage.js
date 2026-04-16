@@ -9,7 +9,7 @@ import DocumentSigningService from '../../services/documentSigningService';
 import './DocumentSignerPage.css';
 
 
-import { LuFileSignature, LuX, LuCircleX, LuCircleCheck, LuCheck, LuAlertTriangle } from 'react-icons/lu';
+import { LuFileSignature, LuX, LuCircleX, LuCircleCheck, LuCheck, LuTriangleAlert } from 'react-icons/lu';
 
 /**
  * DocumentSignerPage

@@ -2,7 +2,7 @@ import React from 'react';
 import './AuditTrail.css';
 
 
-import { LuPenTool, LuCheck, LuX, LuLock, LuClipboardCheck, LuUpload, LuTrash2, LuAlertTriangle, LuMailbox, LuUser, LuMail, LuGlobe, LuHourglass, LuBan } from 'react-icons/lu';
+import { LuPenTool, LuCheck, LuX, LuLock, LuClipboardCheck, LuUpload, LuTrash2, LuTriangleAlert, LuMailbox, LuUser, LuMail, LuGlobe, LuHourglass, LuBan } from 'react-icons/lu';
 
 /**
  * AuditTrail Component
@@ -134,7 +134,7 @@ const AuditTrail = ({ events = [], loading = false, error = null, onRetry = null
     return (
       <div className="audit-trail-container error">
         <div className="error-state">
-          <div className="error-icon"><LuAlertTriangle /></div>
+          <div className="error-icon"><LuTriangleAlert /></div>
           <div className="error-content">
             <p className="error-title">Failed to Load Audit Trail</p>
             <p className="error-message">{error}</p>

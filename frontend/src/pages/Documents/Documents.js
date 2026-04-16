@@ -7,7 +7,7 @@ import { FiFileText, FiCheck, FiClock, FiUpload, FiShield, FiDownload, FiSearch,
 import { useToast } from '../../contexts/ToastContext';
 
 
-import { LuX, LuSearch, LuAlertTriangle, LuSiren, LuCheck } from 'react-icons/lu';
+import { LuX, LuSearch, LuTriangleAlert, LuSiren, LuCheck } from 'react-icons/lu';
 
 /**
  * Documents Page
@@ -931,7 +931,7 @@ const Documents = () => {
                   <div>
                     <p style={{ fontWeight: typography.weights.bold, fontSize: typography.sizes.lg, margin: 0 }}>
                       {verifyResult.content_integrity?.file_hash_matches === false
-                        ? <><LuAlertTriangle /> Document Tampered</>
+                        ? <><LuTriangleAlert /> Document Tampered</>
                         : verifyResult.verified
                         ? 'All Signatures Verified'
                         : !verifyResult.is_signistruct_document
@@ -1036,7 +1036,7 @@ const Documents = () => {
                           Document found in SigniStruct database
                           {verifyResult.database_match.hash_matches
                             ? <> — file hash matches <LuCheck /></>
-                            : <> — file hash does not match <LuAlertTriangle /></>}
+                            : <> — file hash does not match <LuTriangleAlert /></>}
                         </span>
                       </>
                     ) : (

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './SigningWorkflow.css';
 
 
-import { LuX, LuAlertTriangle, LuCheck } from 'react-icons/lu';
+import { LuX, LuTriangleAlert, LuCheck } from 'react-icons/lu';
 
 /**
  * SigningWorkflow Component
@@ -222,7 +222,7 @@ const SigningWorkflow = ({
           {/* Error Message */}
           {error && (
             <div className="alert alert-error">
-              <span className="alert-icon"><LuAlertTriangle /></span>
+              <span className="alert-icon"><LuTriangleAlert /></span>
               <span className="alert-text">{error}</span>
             </div>
           )}

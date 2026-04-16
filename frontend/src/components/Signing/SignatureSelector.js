@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import './SignatureSelector.css';
 
 
-import { LuAlertTriangle, LuCheck, LuFileSignature, LuLightbulb } from 'react-icons/lu';
+import { LuTriangleAlert, LuCheck, LuFileSignature, LuLightbulb } from 'react-icons/lu';
 
 /**
  * SignatureSelector Component
@@ -36,7 +36,7 @@ const SignatureSelector = ({ onSelectSignature, selectedSignature, signatures = 
 
       {error && (
         <div className="error-message">
-          <span className="error-icon"><LuAlertTriangle /></span> {error}
+          <span className="error-icon"><LuTriangleAlert /></span> {error}
         </div>
       )}
 
