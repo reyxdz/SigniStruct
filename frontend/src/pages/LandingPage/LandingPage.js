@@ -272,7 +272,7 @@ const LandingPage = () => {
       <section style={landingStyles.hero}>
         <div style={landingStyles.heroContent}>
           <h1 style={landingStyles.heroTitle}>
-            The All-in-One Form & Document Platform
+            The All-in-One Document Platform
           </h1>
           <p style={landingStyles.heroSubtitle}>
             Create powerful forms, manage documents, and collect signatures all in one place. 

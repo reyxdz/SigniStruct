@@ -638,51 +638,6 @@ const Dashboard = () => {
       {/* ========== Main Content ========== */}
       <div style={s.main}>
 
-        {/* ---------- Forms Statistics ---------- */}
-        <SectionHeader
-          icon={<FiFileText size={18} />}
-          title="Forms"
-          badgeBg={colors.formAccentLight}
-          badgeColor={colors.formAccent}
-          count={formsData.published + formsData.draft}
-          animIndex={3}
-        />
-        <div style={s.cardsGrid}>
-          <StatCard
-            value={formsData.published}
-            label="Published Forms"
-            hint="Active & collecting"
-            linkText="View all"
-            accentColor={colors.formAccent}
-            accentBg={colors.formAccentLight}
-            gradientBg={colors.gradientCardForm}
-            icon={<FiCheckCircle />}
-            animIndex={4}
-          />
-          <StatCard
-            value={formsData.draft}
-            label="Draft Forms"
-            hint="Still in progress"
-            linkText="View all"
-            accentColor={colors.formAccent}
-            accentBg={colors.formAccentLight}
-            gradientBg={colors.gradientCardForm}
-            icon={<FiEdit3 />}
-            animIndex={5}
-          />
-          <StatCard
-            value={formsData.totalResponses}
-            label="Total Responses"
-            hint="From all forms"
-            linkText="View responses"
-            accentColor={colors.formAccent}
-            accentBg={colors.formAccentLight}
-            gradientBg={colors.gradientCardForm}
-            icon={<FiBarChart2 />}
-            animIndex={6}
-          />
-        </div>
-
         {/* ---------- Documents Statistics ---------- */}
         <SectionHeader
           icon={<FiFile size={18} />}

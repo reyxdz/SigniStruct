@@ -151,47 +151,7 @@ const Header = ({ user, onLogout }) => {
     <header style={headerStyles.header}>
       <div style={headerStyles.container}>
         {/* Logo and Brand */}
-        <a href="/dashboard" style={{ textDecoration: 'none' }}>
-          <div style={headerStyles.brand}>
-            <img
-              src={require('../../assets/images/signify_logo.png')}
-              alt="SigniStruct"
-              style={headerStyles.logo}
-            />
-            <span style={headerStyles.brandText}>SigniStruct</span>
-          </div>
-        </a>
-
-        {/* Navigation Menu */}
-        <nav style={headerStyles.nav}>
-          <a
-            href="/dashboard"
-            style={headerStyles.navLink}
-            onMouseOver={(e) => {
-              e.target.style.color = colors.primary;
-              e.target.style.backgroundColor = colors.primaryVeryLight;
-            }}
-            onMouseOut={(e) => {
-              e.target.style.color = colors.gray700;
-              e.target.style.backgroundColor = 'transparent';
-            }}
-          >
-            Dashboard
-          </a>
-          <a
-            href="/forms"
-            style={headerStyles.navLink}
-            onMouseOver={(e) => {
-              e.target.style.color = colors.primary;
-              e.target.style.backgroundColor = colors.primaryVeryLight;
-            }}
-            onMouseOut={(e) => {
-              e.target.style.color = colors.gray700;
-              e.target.style.backgroundColor = 'transparent';
-            }}
-          >
-            Forms
-          </a>
+        
           <a
             href="/documents"
             style={headerStyles.navLink}
