@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
 import { FiSettings } from 'react-icons/fi';
 
+
+import { LuUser, LuLogOut } from 'react-icons/lu';
+
 const Header = ({ user, onLogout }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -251,7 +254,7 @@ const Header = ({ user, onLogout }) => {
                   e.target.style.color = colors.gray700;
                 }}
               >
-                👤 Profile Settings
+                <LuUser /> Profile Settings
               </a>
               <a
                 href="/account"
@@ -283,7 +286,7 @@ const Header = ({ user, onLogout }) => {
                   e.target.style.backgroundColor = 'transparent';
                 }}
               >
-                🚪 Logout
+                <LuLogOut /> Logout
               </button>
             </div>
           )}

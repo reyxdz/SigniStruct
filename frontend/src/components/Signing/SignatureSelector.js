@@ -1,6 +1,9 @@
 import React, { useEffect } from 'react';
 import './SignatureSelector.css';
 
+
+import { LuAlertTriangle, LuCheck, LuFileSignature, LuLightbulb } from 'react-icons/lu';
+
 /**
  * SignatureSelector Component
  * Allows user to select or create a signature for document signing
@@ -33,7 +36,7 @@ const SignatureSelector = ({ onSelectSignature, selectedSignature, signatures = 
 
       {error && (
         <div className="error-message">
-          <span className="error-icon">⚠️</span> {error}
+          <span className="error-icon"><LuAlertTriangle /></span> {error}
         </div>
       )}
 
@@ -71,7 +74,7 @@ const SignatureSelector = ({ onSelectSignature, selectedSignature, signatures = 
                 )}
               </div>
               {selectedSignature === signature._id && (
-                <div className="selected-checkmark">✓</div>
+                <div className="selected-checkmark"><LuCheck /></div>
               )}
             </div>
           ))}
@@ -79,7 +82,7 @@ const SignatureSelector = ({ onSelectSignature, selectedSignature, signatures = 
       ) : (
         <div className="no-signatures">
           <div className="empty-state">
-            <p>📝 No signatures found</p>
+            <p><LuFileSignature /> No signatures found</p>
             <p className="subtitle">
               Please create a signature first before signing documents
             </p>
@@ -89,7 +92,7 @@ const SignatureSelector = ({ onSelectSignature, selectedSignature, signatures = 
 
       <div className="selector-footer">
         <p className="info-text">
-          💡 Tip: You can create or manage signatures in your profile settings
+          <LuLightbulb /> Tip: You can create or manage signatures in your profile settings
         </p>
       </div>
     </div>

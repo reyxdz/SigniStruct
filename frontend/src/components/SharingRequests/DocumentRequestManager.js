@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import ConfirmModal from '../common/ConfirmModal';
 import './DocumentRequestManager.css';
 
+
+import { LuHourglass, LuCheck, LuX, LuBan, LuClock, LuMail } from 'react-icons/lu';
+
 const DocumentRequestManager = ({ documentId, documentTitle, onClose }) => {
   const [requests, setRequests] = useState([]);
   const [stats, setStats] = useState(null);
@@ -161,11 +164,11 @@ const DocumentRequestManager = ({ documentId, documentTitle, onClose }) => {
 
   const getStatusIcon = (status) => {
     const icons = {
-      pending: '⏳',
-      accepted: '✓',
-      declined: '✗',
-      revoked: '🚫',
-      expired: '⏰'
+      pending: <LuHourglass />,
+      accepted: <LuCheck />,
+      declined: <LuX />,
+      revoked: <LuBan />,
+      expired: <LuClock />
     };
     return icons[status] || '?';
   };
@@ -298,9 +301,7 @@ const DocumentRequestManager = ({ documentId, documentTitle, onClose }) => {
                         className="btn-icon"
                         onClick={() => handleSendReminder(request._id, request.recipient_email)}
                         title="Send reminder"
-                      >
-                        📧
-                      </button>
+                      ><LuMail /></button>
                     )}
                   </td>
                   <td className="actions-cell">
@@ -314,7 +315,7 @@ const DocumentRequestManager = ({ documentId, documentTitle, onClose }) => {
                       </button>
                     )}
                     {request.status !== 'pending' && (
-                      <span className="status-final">✓</span>
+                      <span className="status-final"><LuCheck /></span>
                     )}
                   </td>
                 </tr>

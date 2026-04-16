@@ -5,6 +5,9 @@ import SignInForm from '../../components/Auth/SignInForm';
 import { FiArrowLeft } from 'react-icons/fi';
 import logoImg from '../../assets/images/signify_logo.png';
 
+
+import { LuCheck } from 'react-icons/lu';
+
 const SignIn = () => {
   const navigate = useNavigate();
 
@@ -125,19 +128,19 @@ const SignIn = () => {
           </p>
           <div style={signInPageStyles.features}>
             <div style={signInPageStyles.featureItem}>
-              <span style={{ fontSize: '1.5rem' }}>✓</span>
+              <span style={{ fontSize: '1.5rem' }}><LuCheck /></span>
               <span>100% Free - Forever</span>
             </div>
             <div style={signInPageStyles.featureItem}>
-              <span style={{ fontSize: '1.5rem' }}>✓</span>
+              <span style={{ fontSize: '1.5rem' }}><LuCheck /></span>
               <span>Create unlimited forms & documents</span>
             </div>
             <div style={signInPageStyles.featureItem}>
-              <span style={{ fontSize: '1.5rem' }}>✓</span>
+              <span style={{ fontSize: '1.5rem' }}><LuCheck /></span>
               <span>Bank-level security included</span>
             </div>
             <div style={signInPageStyles.featureItem}>
-              <span style={{ fontSize: '1.5rem' }}>✓</span>
+              <span style={{ fontSize: '1.5rem' }}><LuCheck /></span>
               <span>No payment info needed</span>
             </div>
           </div>

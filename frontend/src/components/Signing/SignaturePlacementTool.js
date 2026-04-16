@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import './SignaturePlacementTool.css';
 
+
+import { LuCheck, LuX, LuEye, LuLightbulb } from 'react-icons/lu';
+
 /**
  * SignaturePlacementTool Component
  * Manages the signature placement process
@@ -37,7 +40,7 @@ const SignaturePlacementTool = ({
           onClick={onTogglePlacement}
           disabled={isLoading}
         >
-          {isActive ? '✓ Placement Mode ON' : '+ Add Signature'}
+          {isActive ? <><LuCheck /> Placement Mode ON</> : '+ Add Signature'}
         </button>
       </div>
 
@@ -69,7 +72,7 @@ const SignaturePlacementTool = ({
                   disabled={isLoading}
                   title="Remove this placement"
                 >
-                  ✕ Remove
+                  <LuX /> Remove
                 </button>
               </li>
             ))}
@@ -105,7 +108,7 @@ const SignaturePlacementTool = ({
           onClick={() => setShowPreview(!showPreview)}
           disabled={signaturePlacements.length === 0 || isLoading}
         >
-          {showPreview ? '✕ Hide Preview' : '👁️ Preview All'}
+          {showPreview ? <><LuX /> Hide Preview</> : '<LuEye /> Preview All'}
         </button>
 
         <button
@@ -118,14 +121,14 @@ const SignaturePlacementTool = ({
               <span className="spinner-mini"></span> Signing...
             </>
           ) : (
-            <>✓ Confirm & Sign</>
+            <><LuCheck /> Confirm & Sign</>
           )}
         </button>
       </div>
 
       <div className="tool-help">
         <p className="help-text">
-          <strong>💡 Tip:</strong> Each signature placement is tied to a specific
+          <strong><LuLightbulb /> Tip:</strong> Each signature placement is tied to a specific
           page. Switch pages to place signatures on different pages.
         </p>
       </div>

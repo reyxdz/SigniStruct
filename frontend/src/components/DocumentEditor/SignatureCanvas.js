@@ -144,7 +144,7 @@ const SignatureCanvasModal = ({ onSignatureComplete, onCancel }) => {
    */
   const handleCompleteSignature = () => {
     if (isEmpty) {
-      alert('⚠️ Please draw your signature before submitting.');
+      alert('[Warning] Please draw your signature before submitting.');
       return;
     }
 

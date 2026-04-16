@@ -8,6 +8,7 @@ import {
   FiPhone,
   FiAlertCircle
 } from 'react-icons/fi';
+import { LuCheck, LuLightbulb } from 'react-icons/lu';
 import { FaSignature } from 'react-icons/fa';
 import './LeftPanel.css';
 
@@ -280,7 +281,7 @@ const LeftPanel = () => {
       </div>
 
       <div style={styles.footer}>
-        <p style={styles.hint}>💡 Drag tools to PDF to add fields</p>
+        <p style={styles.hint}><LuLightbulb /> Drag tools to PDF to add fields</p>
       </div>
     </div>
   );

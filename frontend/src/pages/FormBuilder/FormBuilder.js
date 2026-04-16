@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
 import { FiSave, FiArrowRight, FiGrid, FiX, FiSettings } from 'react-icons/fi';
 
+
+import { LuSparkles } from 'react-icons/lu';
+
 const FormBuilder = ({ formId }) => {
   const [formName, setFormName] = useState('Untitled Form');
   const [fields, setFields] = useState([]);
@@ -307,7 +310,7 @@ const FormBuilder = ({ formId }) => {
             <h2 style={builderStyles.formTitle}>{formName}</h2>
             {fields.length === 0 ? (
               <p style={builderStyles.emptyCanvas}>
-                ✨ Add fields to your form using the toolbar on the left
+                <><LuSparkles /> Add fields to your form using the toolbar on the left</>
               </p>
             ) : (
               fields.map(field => (

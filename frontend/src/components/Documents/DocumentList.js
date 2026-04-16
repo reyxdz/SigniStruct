@@ -3,6 +3,9 @@ import api from '../../services/api';
 import ConfirmModal from '../common/ConfirmModal';
 import './DocumentList.css';
 
+
+import { LuFileText, LuCheck } from 'react-icons/lu';
+
 const DocumentList = ({ refreshTrigger }) => {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -170,7 +173,7 @@ const DocumentList = ({ refreshTrigger }) => {
         </div>
       ) : documents.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-icon">📄</div>
+          <div className="empty-icon"><LuFileText /></div>
           <h3>No documents found</h3>
           <p>Upload your first document to get started</p>
         </div>
@@ -181,7 +184,7 @@ const DocumentList = ({ refreshTrigger }) => {
               {/* Card Header */}
               <div className="card-header" onClick={() => toggleExpand(doc._id)}>
                 <div className="header-content">
-                  <div className="doc-icon">📄</div>
+                  <div className="doc-icon"><LuFileText /></div>
                   <div className="doc-info">
                     <h3 className="doc-title">{doc.title}</h3>
                     <div className="doc-meta">
@@ -248,7 +251,7 @@ const DocumentList = ({ refreshTrigger }) => {
                                 color: signer.status === 'signed' ? '#28a745' : '#ffc107'
                               }}
                             >
-                              {signer.status === 'signed' ? '✓ Signed' : '○ Pending'}
+                              {signer.status === 'signed' ? <><LuCheck /> Signed</> : '○ Pending'}
                             </span>
                           </div>
                         ))}

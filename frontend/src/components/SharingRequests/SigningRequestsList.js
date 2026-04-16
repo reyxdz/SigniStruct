@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './SigningRequestsList.css';
 
+
+import { LuHourglass, LuCheck, LuX, LuClock, LuRefreshCw, LuMailbox } from 'react-icons/lu';
+
 const SigningRequestsList = ({ onRequestAction }) => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -122,10 +125,10 @@ const SigningRequestsList = ({ onRequestAction }) => {
 
   const getStatusBadge = (status) => {
     const statusConfig = {
-      pending: { label: 'Pending', icon: '⏳' },
-      accepted: { label: 'Accepted', icon: '✓' },
-      declined: { label: 'Declined', icon: '✗' },
-      expired: { label: 'Expired', icon: '⏰' }
+      pending: { label: 'Pending', icon: <LuHourglass /> },
+      accepted: { label: 'Accepted', icon: <LuCheck /> },
+      declined: { label: 'Declined', icon: <LuX /> },
+      expired: { label: 'Expired', icon: <LuClock /> }
     };
     return statusConfig[status] || { label: status, icon: '?' };
   };
@@ -181,7 +184,7 @@ const SigningRequestsList = ({ onRequestAction }) => {
 
       {filteredRequests.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-icon">📭</div>
+          <div className="empty-icon"><LuMailbox /></div>
           <p>No {filter !== 'all' ? filter : ''} requests</p>
           <small>Check back later for signing requests from document owners</small>
         </div>

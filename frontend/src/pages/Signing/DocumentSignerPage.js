@@ -8,6 +8,9 @@ import ConfirmModal from '../../components/common/ConfirmModal';
 import DocumentSigningService from '../../services/documentSigningService';
 import './DocumentSignerPage.css';
 
+
+import { LuFileSignature, LuX, LuXCircle, LuCheckCircle, LuCheck, LuAlertTriangle } from 'react-icons/lu';
+
 /**
  * DocumentSignerPage
  * Main page for signing documents with digital signatures
@@ -218,19 +221,17 @@ const DocumentSignerPage = () => {
     <div className="document-signer-page">
       <div className="signer-header">
         <div className="header-content">
-          <h1>📝 Sign Document</h1>
+          <h1><LuFileSignature /> Sign Document</h1>
           <p className="subtitle">
             Place and confirm your digital signature on the document
           </p>
         </div>
-        <button className="close-button" onClick={handleCancel}>
-          ✕
-        </button>
+        <button className="close-button" onClick={handleCancel}><LuX /></button>
       </div>
 
       {error && (
         <div className="error-banner">
-          <span className="error-icon">❌</span>
+          <span className="error-icon"><LuXCircle /></span>
           <div className="error-content">
             <p className="error-message">{error}</p>
             <button
@@ -245,12 +246,12 @@ const DocumentSignerPage = () => {
 
       {success && (
         <div className="success-banner">
-          <span className="success-icon">✅</span>
+          <span className="success-icon"><LuCheckCircle /></span>
           <div className="success-content">
             <p className="success-message">{success}</p>
             {verificationResult && (
               <p className="verification-status">
-                Document Status: <strong>{verificationResult.is_valid ? '✓ Valid' : '✕ Invalid'}</strong>
+                Document Status: <strong>{verificationResult.is_valid ? <><LuCheck /> Valid</> : <><LuX /> Invalid</>}</strong>
               </p>
             )}
           </div>

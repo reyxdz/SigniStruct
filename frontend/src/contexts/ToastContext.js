@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
 import { colors, spacing, typography, borderRadius, transitions } from '../theme';
 
+import { LuCheckCircle, LuXCircle, LuAlertTriangle, LuHelpCircle, LuX } from 'react-icons/lu';
+
 const ToastContext = createContext(null);
 
 let toastId = 0;
@@ -55,11 +57,11 @@ export const ToastProvider = ({ children }) => {
   }, []);
 
   const iconMap = {
-    success: '✅',
-    error: '❌',
-    warning: '⚠️',
+    success: <LuCheckCircle />,
+    error: <LuXCircle />,
+    warning: <LuAlertTriangle />,
     info: 'ℹ️',
-    confirm: '❓',
+    confirm: <LuHelpCircle />,
   };
 
   const bgMap = {
@@ -169,9 +171,7 @@ export const ToastProvider = ({ children }) => {
                 }}
                 onMouseOver={(e) => e.currentTarget.style.color = 'rgba(255,255,255,1)'}
                 onMouseOut={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.6)'}
-              >
-                ✕
-              </button>
+              ><LuX /></button>
             )}
           </div>
         ))}

@@ -10,6 +10,9 @@ import LeftPanel from '../../components/DocumentEditor/LeftPanel';
 import RightPanel from '../../components/DocumentEditor/RightPanel';
 import './DocumentEditorPage.css';
 
+
+import { LuCheck, LuRefreshCw } from 'react-icons/lu';
+
 /**
  * DocumentEditorContent
  * Inner component that uses EditorContext
@@ -132,10 +135,10 @@ const DocumentEditorContent = ({ documentId, document, loading, error, onPublish
             <div style={styles.documentMeta}>
               <p style={styles.documentStatus}>Status: {document?.status || 'draft'}</p>
               {saveStatus === 'saving' && (
-                <p style={{...styles.documentStatus, color: colors.orange, fontSize: '12px'}}>🔄 Autosaving...</p>
+                <p style={{...styles.documentStatus, color: colors.orange, fontSize: '12px'}}><LuRefreshCw /> Autosaving...</p>
               )}
               {saveStatus === 'saved' && (
-                <p style={{...styles.documentStatus, color: colors.green, fontSize: '12px'}}>✓ All changes saved</p>
+                <p style={{...styles.documentStatus, color: colors.green, fontSize: '12px'}}><LuCheck /> All changes saved</p>
               )}
             </div>
           </div>

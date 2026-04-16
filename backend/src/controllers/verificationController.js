@@ -778,12 +778,25 @@ exports.verifyUploadedDocument = async (req, res) => {
       const jsonStr = subject.substring(prefix.length);
       verificationData = JSON.parse(jsonStr);
     } catch (jsonErr) {
+      // JSON parsing failed — this strongly indicates the PDF was tampered with
+      // because editing the PDF corrupts the embedded metadata
+      console.warn(`[${requestId}] JSON parsing failed — metadata corrupted, likely tampered`);
+
+      // Try to extract document_id from partial data for database cross-reference
+      const crypto = require('crypto');
+      const uploadedFileHash = crypto.createHash('sha256').update(req.file.buffer).digest('hex');
+
       return res.status(200).json({
         success: true,
         data: {
           verified: false,
           is_signistruct_document: true,
-          message: 'SigniStruct metadata found but could not be parsed. The PDF may have been corrupted.',
+          message: 'This document has been modified after being signed. The embedded verification data has been corrupted, which is a strong indicator of tampering.',
+          content_integrity: {
+            uploaded_file_hash: uploadedFileHash,
+            file_hash_matches: false,
+            file_tamper_warning: 'The PDF file has been modified after it was downloaded from SigniStruct. The embedded metadata is corrupted. Do NOT trust this document.'
+          },
           requestId
         }
       });

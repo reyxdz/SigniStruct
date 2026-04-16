@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import './SigningWorkflow.css';
 
+
+import { LuX, LuAlertTriangle, LuCheck } from 'react-icons/lu';
+
 /**
  * SigningWorkflow Component
  * Allows users to set up multi-signer workflow for a document
@@ -195,9 +198,7 @@ const SigningWorkflow = ({
                       onClick={() => removeSigner(signer.id)}
                       className="btn-remove"
                       title="Remove signer"
-                    >
-                      ✕
-                    </button>
+                    ><LuX /></button>
                   </div>
                 ))}
               </div>
@@ -221,7 +222,7 @@ const SigningWorkflow = ({
           {/* Error Message */}
           {error && (
             <div className="alert alert-error">
-              <span className="alert-icon">⚠</span>
+              <span className="alert-icon"><LuAlertTriangle /></span>
               <span className="alert-text">{error}</span>
             </div>
           )}
@@ -229,7 +230,7 @@ const SigningWorkflow = ({
           {/* Success Message */}
           {success && (
             <div className="alert alert-success">
-              <span className="alert-icon">✓</span>
+              <span className="alert-icon"><LuCheck /></span>
               <span className="alert-text">{success}</span>
             </div>
           )}

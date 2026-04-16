@@ -6,6 +6,9 @@ import { colors, spacing, typography, borderRadius, transitions } from '../../th
 import { FiFileText, FiCheck, FiClock, FiUpload, FiShield, FiDownload, FiSearch, FiCheckCircle, FiAlertCircle, FiX, FiTrash2, FiEdit } from 'react-icons/fi';
 import { useToast } from '../../contexts/ToastContext';
 
+
+import { LuX, LuSearch, LuAlertTriangle, LuSiren, LuCheck } from 'react-icons/lu';
+
 /**
  * Documents Page
  * Displays user's documents with filtering and search capabilities
@@ -568,7 +571,7 @@ const Documents = () => {
         <div style={{ ...documentsStyles.searchContainer, display: 'flex', alignItems: 'center', gap: spacing.md }}>
           <input
             type="text"
-            placeholder="🔍 Search documents..."
+            placeholder="Search documents..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={documentsStyles.searchInput}
@@ -860,9 +863,7 @@ const Documents = () => {
               <button
                 style={documentsStyles.closeButton}
                 onClick={() => setShowUploadModal(false)}
-              >
-                ✕
-              </button>
+              ><LuX /></button>
             </div>
             <DocumentUploader onUploadSuccess={handleUploadSuccess} />
           </div>
@@ -884,14 +885,12 @@ const Documents = () => {
               <button
                 style={documentsStyles.closeButton}
                 onClick={() => { setShowVerifyModal(false); setVerifyResult(null); }}
-              >
-                ✕
-              </button>
+              ><LuX /></button>
             </div>
 
             {verifyLoading ? (
               <div style={{ textAlign: 'center', padding: spacing['3xl'] }}>
-                <div style={{ fontSize: '48px', marginBottom: spacing.md }}>🔍</div>
+                <div style={{ fontSize: '48px', marginBottom: spacing.md }}><LuSearch /></div>
                 <p style={{ color: colors.gray600, fontSize: typography.sizes.md }}>Verifying document signatures...</p>
                 <p style={{ color: colors.gray400, fontSize: typography.sizes.sm, marginTop: spacing.xs }}>This may take a moment</p>
               </div>
@@ -932,7 +931,7 @@ const Documents = () => {
                   <div>
                     <p style={{ fontWeight: typography.weights.bold, fontSize: typography.sizes.lg, margin: 0 }}>
                       {verifyResult.content_integrity?.file_hash_matches === false
-                        ? '⚠ Document Tampered'
+                        ? <><LuAlertTriangle /> Document Tampered</>
                         : verifyResult.verified
                         ? 'All Signatures Verified'
                         : !verifyResult.is_signistruct_document
@@ -1012,7 +1011,7 @@ const Documents = () => {
                   }}>
                     <FiCheckCircle size={16} style={{ color: '#059669', flexShrink: 0 }} />
                     <span style={{ color: '#065F46' }}>
-                      File integrity verified — PDF has not been modified since download ✓
+                      File integrity verified — PDF has not been modified since download <LuCheck />
                     </span>
                   </div>
                 )}
@@ -1036,8 +1035,8 @@ const Documents = () => {
                         <span style={{ color: '#065F46' }}>
                           Document found in SigniStruct database
                           {verifyResult.database_match.hash_matches
-                            ? ' — file hash matches ✓'
-                            : ' — file hash does not match ⚠️'}
+                            ? <> — file hash matches <LuCheck /></>
+                            : <> — file hash does not match <LuAlertTriangle /></>}
                         </span>
                       </>
                     ) : (
@@ -1122,7 +1121,7 @@ const Documents = () => {
                         )}
                         {sig.certificate_info && (
                           <div style={{ marginTop: spacing.sm, fontSize: typography.sizes.xs, color: colors.gray500 }}>
-                            <span>Certificate: {sig.certificate_valid ? '✓ Valid' : '✗ Invalid'}</span>
+                            <span>Certificate: {sig.certificate_valid ? <><LuCheck /> Valid</> : <><LuX /> Invalid</>}</span>
                             <span style={{ margin: '0 8px' }}>•</span>
                             <span>Algorithm: {sig.algorithm}</span>
                             {sig.signed_at && (

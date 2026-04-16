@@ -6,6 +6,9 @@ import SignatureCanvas from '../../components/DocumentEditor/SignatureCanvas';
 import { colors, spacing, typography, borderRadius } from '../../theme';
 import { FiAlertCircle } from 'react-icons/fi';
 
+
+import { LuCheck } from 'react-icons/lu';
+
 /**
  * DocumentSign Component
  * Allows authenticated users to sign documents they own
@@ -358,7 +361,7 @@ const DocumentSign = () => {
                       cursor: 'pointer',
                     }}
                   >
-                    {fieldValues[field.id] ? '✓ Signed' : 'Add Signature'}
+                    {fieldValues[field.id] ? <><LuCheck /> Signed</> : 'Add Signature'}
                   </button>
                 ) : (
                   <input

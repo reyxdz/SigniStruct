@@ -5,6 +5,9 @@ import SignatureUploader from '../../components/Signature/SignatureUploader';
 import ConfirmModal from '../../components/common/ConfirmModal';
 import './CreateSignaturePage.css';
 
+
+import { LuPencil, LuUpload, LuPrinter } from 'react-icons/lu';
+
 /**
  * CreateSignaturePage
  * Main page for creating or uploading user signatures
@@ -202,10 +205,10 @@ const CreateSignaturePage = () => {
                     <div className="signature-card-header">
                       <span className="signature-type">
                         {signature.signature_type === 'handwritten'
-                          ? '✏️ Drawn'
+                          ? <><LuPencil /> Drawn</>
                           : signature.signature_type === 'uploaded'
-                          ? '📤 Uploaded'
-                          : '🖨️ Printed'}
+                          ? <><LuUpload /> Uploaded</>
+                          : <><LuPrinter /> Printed</>}
                       </span>
                       {signature.is_default && (
                         <span className="default-badge">Default</span>

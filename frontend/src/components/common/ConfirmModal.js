@@ -1,6 +1,9 @@
 import React from 'react';
 import './ConfirmModal.css';
 
+
+import { LuX } from 'react-icons/lu';
+
 /**
  * ConfirmModal Component
  * Reusable confirmation dialog with themed styling
@@ -27,7 +30,7 @@ const ConfirmModal = ({
             onClick={onCancel}
             aria-label="Close modal"
           >
-            ✕
+            <LuX />
           </button>
         </div>
 

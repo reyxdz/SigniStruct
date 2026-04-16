@@ -228,7 +228,7 @@ const Forms = () => {
         <div style={formsStyles.searchContainer}>
           <input
             type="text"
-            placeholder="🔍 Search forms..."
+            placeholder="Search forms..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             style={formsStyles.searchInput}

@@ -4,6 +4,9 @@ import AuditTrail from '../../components/Audit/AuditTrail';
 import DocumentAuditService from '../../services/documentAuditService';
 import './AuditPage.css';
 
+
+import { LuClipboardCheck, LuPin } from 'react-icons/lu';
+
 /**
  * AuditPage Component
  * 
@@ -206,7 +209,7 @@ const AuditPage = () => {
       {/* Header */}
       <div className="audit-header">
         <div className="header-content">
-          <h1>📋 Audit Trail</h1>
+          <h1><LuClipboardCheck /> Audit Trail</h1>
           <p className="subtitle">
             View and monitor all document signing and verification events
           </p>
@@ -416,7 +419,7 @@ const AuditPage = () => {
 
             <div className="export-filters-note">
               <p>
-                <strong>📌 Note:</strong> Export will include{' '}
+                <strong><LuPin /> Note:</strong> Export will include{' '}
                 {filters.documentId
                   ? 'the selected document'
                   : filters.userId

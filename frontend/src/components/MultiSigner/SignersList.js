@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './SignersList.css';
 
+
+import { LuCheck, LuX, LuUsers, LuMessageSquare } from 'react-icons/lu';
+
 /**
  * SignersList Component
  * Displays list of signers with their status in multi-signer workflow
@@ -16,11 +19,11 @@ const SignersList = ({
   const getStatusIcon = (status) => {
     switch (status) {
       case 'signed':
-        return '✓';
+        return <LuCheck />;
       case 'pending':
         return '⏳';
       case 'declined':
-        return '✕';
+        return <LuX />;
       case 'expired':
         return '⏱';
       default:
@@ -72,7 +75,7 @@ const SignersList = ({
     return (
       <div className="signers-list-container empty">
         <div className="empty-state">
-          <p className="empty-icon">👥</p>
+          <p className="empty-icon"><LuUsers /></p>
           <p className="empty-text">No signers added yet</p>
         </div>
       </div>
@@ -136,7 +139,7 @@ const SignersList = ({
 
               {signer.comments_count > 0 && (
                 <div className="comments-badge">
-                  💬 {signer.comments_count} comment{signer.comments_count !== 1 ? 's' : ''}
+                  <LuMessageSquare /> {signer.comments_count} comment{signer.comments_count !== 1 ? 's' : ''}
                 </div>
               )}
             </div>
@@ -156,7 +159,7 @@ const SignersList = ({
               )}
 
               {signer.status === 'signed' && (
-                <div className="signed-checkmark">✓ Signed</div>
+                <div className="signed-checkmark"><LuCheck /> Signed</div>
               )}
             </div>
 

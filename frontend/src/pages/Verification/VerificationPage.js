@@ -4,6 +4,8 @@ import api from '../../services/api';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
 import { FiArrowLeft, FiCheck, FiX, FiDownload, FiAlertCircle, FiCheckCircle } from 'react-icons/fi';
 
+import { LuCheck, LuX, LuCheckCircle, LuXCircle } from 'react-icons/lu';
+
 /**
  * Verification Page
  * Displays document verification results with tamper detection
@@ -160,7 +162,7 @@ const VerificationPage = () => {
             <div style={styles.detailRow}>
               <span style={styles.detailLabel}>Overall Status:</span>
               <span style={{...styles.detailValue, color: isValid ? colors.success : colors.warning}}>
-                {isValid ? '✓ All Signatures Valid' : `${verification.verified_count}/${verification.signature_count} Signatures Valid`}
+                {isValid ? <><LuCheck /> All Signatures Valid</> : `${verification.verified_count}/${verification.signature_count} Signatures Valid`}
               </span>
             </div>
             <div style={styles.detailRow}>
@@ -196,7 +198,7 @@ const VerificationPage = () => {
                   <>
                     <FiCheckCircle style={{ color: colors.success, fontSize: '24px' }} />
                     <div>
-                      <p style={{...styles.integrityLabel, color: colors.success}}>✓ Document Intact</p>
+                      <p style={{...styles.integrityLabel, color: colors.success}}><LuCheck /> Document Intact</p>
                       <p style={styles.integrityDetails}>No tampering detected</p>
                     </div>
                   </>
@@ -204,7 +206,7 @@ const VerificationPage = () => {
                   <>
                     <FiX style={{ color: colors.error, fontSize: '24px' }} />
                     <div>
-                      <p style={{...styles.integrityLabel, color: colors.error}}>✗ Document Tampered</p>
+                      <p style={{...styles.integrityLabel, color: colors.error}}><LuX /> Document Tampered</p>
                       <p style={styles.integrityDetails}>Document content has been modified</p>
                     </div>
                   </>
@@ -230,7 +232,7 @@ const VerificationPage = () => {
               {/* Signed Signatures Section */}
               {verification.signatures.filter(sig => sig.is_valid || (sig.status !== 'pending')).length > 0 && (
                 <div style={styles.signatureSection}>
-                  <h4 style={styles.sectionTitle}>✅ Signed & Verified</h4>
+                  <h4 style={styles.sectionTitle}><LuCheckCircle /> Signed & Verified</h4>
                   <div style={styles.signaturesList}>
                     {verification.signatures
                       .filter(sig => sig.is_valid && sig.status !== 'pending')
@@ -257,7 +259,7 @@ const VerificationPage = () => {
                             <div style={styles.detailRow}>
                               <span style={styles.detailLabel}>Status:</span>
                               <span style={{...styles.detailValue, color: colors.success}}>
-                                ✓ Verified
+                                <><LuCheck /> Verified</>
                               </span>
                             </div>
                             {sig.signed_at && (
@@ -272,7 +274,7 @@ const VerificationPage = () => {
                               <div style={styles.detailRow}>
                                 <span style={styles.detailLabel}>Certificate:</span>
                                 <span style={{...styles.detailValue, color: sig.certificate_valid ? colors.success : colors.error}}>
-                                  {sig.certificate_valid ? '✓ Active' : '✗ Invalid'}
+                                  {sig.certificate_valid ? <><LuCheck /> Active</> : <><LuX /> Invalid</>}
                                 </span>
                               </div>
                             )}
@@ -336,7 +338,7 @@ const VerificationPage = () => {
               {/* Invalid Signatures Section */}
               {verification.signatures.filter(sig => !sig.is_valid && sig.status !== 'pending' && !sig.errors?.some(e => e.includes('not yet'))).length > 0 && (
                 <div style={styles.signatureSection}>
-                  <h4 style={styles.sectionTitle}>✗ Invalid Signatures</h4>
+                  <h4 style={styles.sectionTitle}><LuXCircle /> Invalid Signatures</h4>
                   <div style={styles.signaturesList}>
                     {verification.signatures
                       .filter(sig => !sig.is_valid && sig.status !== 'pending' && !sig.errors?.some(e => e.includes('not yet')))
@@ -363,7 +365,7 @@ const VerificationPage = () => {
                             <div style={styles.detailRow}>
                               <span style={styles.detailLabel}>Status:</span>
                               <span style={{...styles.detailValue, color: colors.error}}>
-                                ✗ Invalid
+                                <><LuX /> Invalid</>
                               </span>
                             </div>
                             {sig.signed_at && (

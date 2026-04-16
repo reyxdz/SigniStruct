@@ -1,6 +1,9 @@
 import React from 'react';
 import './AuditTrail.css';
 
+
+import { LuPenTool, LuCheck, LuX, LuLock, LuClipboardCheck, LuUpload, LuTrash2, LuAlertTriangle, LuMailbox, LuUser, LuMail, LuGlobe, LuHourglass, LuBan } from 'react-icons/lu';
+
 /**
  * AuditTrail Component
  * 
@@ -12,55 +15,55 @@ const AuditTrail = ({ events = [], loading = false, error = null, onRetry = null
   const actionMetadata = {
     SIGNATURE_CREATED: {
       label: 'Signature Created',
-      icon: '✍️',
+      icon: <LuPenTool />,
       color: 'primary',
       category: 'signature'
     },
     SIGNATURE_VERIFIED: {
       label: 'Signature Verified',
-      icon: '✓',
+      icon: <LuCheck />,
       color: 'success',
       category: 'verification'
     },
     SIGNATURE_REVOKED: {
       label: 'Signature Revoked',
-      icon: '✕',
+      icon: <LuX />,
       color: 'danger',
       category: 'signature'
     },
     CERTIFICATE_GENERATED: {
       label: 'Certificate Generated',
-      icon: '🔐',
+      icon: <LuLock />,
       color: 'primary',
       category: 'certificate'
     },
     CERTIFICATE_VERIFIED: {
       label: 'Certificate Verified',
-      icon: '✓',
+      icon: <LuCheck />,
       color: 'success',
       category: 'verification'
     },
     CERTIFICATE_REVOKED: {
       label: 'Certificate Revoked',
-      icon: '✕',
+      icon: <LuX />,
       color: 'danger',
       category: 'certificate'
     },
     DOCUMENT_VERIFIED: {
       label: 'Document Verified',
-      icon: '📋',
+      icon: <LuClipboardCheck />,
       color: 'success',
       category: 'verification'
     },
     DOCUMENT_UPLOADED: {
       label: 'Document Uploaded',
-      icon: '📤',
+      icon: <LuUpload />,
       color: 'primary',
       category: 'document'
     },
     DOCUMENT_DELETED: {
       label: 'Document Deleted',
-      icon: '🗑️',
+      icon: <LuTrash2 />,
       color: 'danger',
       category: 'document'
     }
@@ -105,12 +108,12 @@ const AuditTrail = ({ events = [], loading = false, error = null, onRetry = null
    */
   const getStatusBadge = (status) => {
     const statusMap = {
-      VALID: { color: 'success', label: '✓ Valid' },
-      INVALID: { color: 'danger', label: '✕ Invalid' },
-      PENDING: { color: 'warning', label: '⧖ Pending' },
-      SUCCESS: { color: 'success', label: '✓ Success' },
-      FAILED: { color: 'danger', label: '✕ Failed' },
-      REVOKED: { color: 'danger', label: '✕ Revoked' }
+      VALID: { color: 'success', label: <><LuCheck /> Valid</> },
+      INVALID: { color: 'danger', label: <><LuX /> Invalid</> },
+      PENDING: { color: 'warning', label: <><LuHourglass /> Pending</> },
+      SUCCESS: { color: 'success', label: <><LuCheck /> Success</> },
+      FAILED: { color: 'danger', label: <><LuX /> Failed</> },
+      REVOKED: { color: 'danger', label: <><LuBan /> Revoked</> }
     };
 
     return statusMap[status] || { color: 'default', label: status };
@@ -131,7 +134,7 @@ const AuditTrail = ({ events = [], loading = false, error = null, onRetry = null
     return (
       <div className="audit-trail-container error">
         <div className="error-state">
-          <div className="error-icon">⚠️</div>
+          <div className="error-icon"><LuAlertTriangle /></div>
           <div className="error-content">
             <p className="error-title">Failed to Load Audit Trail</p>
             <p className="error-message">{error}</p>
@@ -150,7 +153,7 @@ const AuditTrail = ({ events = [], loading = false, error = null, onRetry = null
     return (
       <div className="audit-trail-container empty">
         <div className="empty-state">
-          <div className="empty-icon">📭</div>
+          <div className="empty-icon"><LuMailbox /></div>
           <p className="empty-title">No Audit Events</p>
           <p className="empty-text">No audit trail events to display</p>
         </div>
@@ -196,21 +199,21 @@ const AuditTrail = ({ events = [], loading = false, error = null, onRetry = null
                 <div className="event-details">
                   {event.user && (
                     <div className="detail-row">
-                      <span className="detail-label">👤 User:</span>
+                      <span className="detail-label"><LuUser /> User:</span>
                       <span className="detail-value">{event.user}</span>
                     </div>
                   )}
 
                   {event.user_email && (
                     <div className="detail-row">
-                      <span className="detail-label">✉️ Email:</span>
+                      <span className="detail-label"><LuMail /> Email:</span>
                       <span className="detail-value">{event.user_email}</span>
                     </div>
                   )}
 
                   {event.ip_address && event.ip_address !== 'unknown' && (
                     <div className="detail-row">
-                      <span className="detail-label">🌐 IP Address:</span>
+                      <span className="detail-label"><LuGlobe /> IP Address:</span>
                       <span className="detail-value">{event.ip_address}</span>
                     </div>
                   )}

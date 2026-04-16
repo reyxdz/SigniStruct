@@ -3,6 +3,9 @@ import DocumentUploader from '../../components/Documents/DocumentUploader';
 import DocumentList from '../../components/Documents/DocumentList';
 import './DocumentsPage.css';
 
+
+import { LuClipboardCheck, LuFileText, LuLock, LuPenTool, LuScroll } from 'react-icons/lu';
+
 const DocumentsPage = () => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [activeTab, setActiveTab] = useState('list');
@@ -40,7 +43,7 @@ const DocumentsPage = () => {
               className={`tab-button ${activeTab === 'list' ? 'active' : ''}`}
               onClick={() => setActiveTab('list')}
             >
-              <span className="tab-icon">📋</span>
+              <span className="tab-icon"><LuClipboardCheck /></span>
               My Documents
             </button>
           </li>
@@ -76,25 +79,25 @@ const DocumentsPage = () => {
       {/* Info Section */}
       <div className="info-section">
         <div className="info-card">
-          <div className="info-icon">📄</div>
+          <div className="info-icon"><LuFileText /></div>
           <h3>Supported Formats</h3>
           <p>PDF documents up to 50MB</p>
         </div>
 
         <div className="info-card">
-          <div className="info-icon">🔒</div>
+          <div className="info-icon"><LuLock /></div>
           <h3>Secure Storage</h3>
           <p>Files are encrypted and backed up securely</p>
         </div>
 
         <div className="info-card">
-          <div className="info-icon">✍️</div>
+          <div className="info-icon"><LuPenTool /></div>
           <h3>Easy Signing</h3>
           <p>Add multiple signers and track their progress</p>
         </div>
 
         <div className="info-card">
-          <div className="info-icon">📜</div>
+          <div className="info-icon"><LuScroll /></div>
           <h3>Audit Trail</h3>
           <p>Complete history of all document activities</p>
         </div>

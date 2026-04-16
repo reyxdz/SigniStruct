@@ -1,6 +1,9 @@
 import React, { useRef } from 'react';
 import './DocumentViewer.css';
 
+
+import { LuFileText, LuX, LuCheck, LuMousePointer2, LuChevronLeft, LuChevronRight, LuMousePointer } from 'react-icons/lu';
+
 /**
  * DocumentViewer Component
  * Displays document content and handles signature placement overlay
@@ -53,7 +56,7 @@ const DocumentViewer = ({
         <h3 className="document-title">{document?.title || 'Document'}</h3>
         <div className="document-info">
           <span className="info-badge">
-            📄 {document?.num_pages || 1} Page(s)
+            <LuFileText /> {document?.num_pages || 1} Page(s)
           </span>
           <span className="file-size">
             {document?.file_size ? `${(document.file_size / 1024 / 1024).toFixed(2)} MB` : 'N/A'}
@@ -63,7 +66,7 @@ const DocumentViewer = ({
 
       {error && (
         <div className="viewer-error">
-          <span className="error-icon">❌</span>
+          <span className="error-icon"><LuX /></span>
           {error}
         </div>
       )}
@@ -93,7 +96,7 @@ const DocumentViewer = ({
             {/* PDF Preview or Document Content */}
             <div className="document-placeholder">
               <div className="placeholder-content">
-                <span className="file-icon">📄</span>
+                <span className="file-icon"><LuFileText /></span>
                 <p className="file-name">{document.original_filename || document.title}</p>
                 <p className="file-path">{document.file_url}</p>
                 <p className="upload-date">
@@ -123,14 +126,14 @@ const DocumentViewer = ({
                     justifyContent: 'center'
                   }}
                 >
-                  <span className="signature-label">✓ Signature</span>
+                  <span className="signature-label"><LuCheck /> Signature</span>
                 </div>
               ))}
 
             {/* Placement hint */}
             {isPlacingSignature && (
               <div className="placement-hint">
-                <p className="hint-text">👆 Click where you want to place the signature</p>
+                <p className="hint-text"><LuMousePointer2 /> Click where you want to place the signature</p>
               </div>
             )}
           </div>
@@ -149,7 +152,7 @@ const DocumentViewer = ({
             onClick={() => onPageChange?.(currentPage - 1)}
             disabled={currentPage === 1}
           >
-            ❮ Previous
+            <LuChevronLeft /> Previous
           </button>
           <span className="page-counter">
             Page {currentPage} of {document.num_pages}
@@ -159,14 +162,14 @@ const DocumentViewer = ({
             onClick={() => onPageChange?.(currentPage + 1)}
             disabled={currentPage === document.num_pages}
           >
-            Next ❯
+            Next <LuChevronRight />
           </button>
         </div>
       )}
 
       {isPlacingSignature && (
         <div className="placement-mode-active">
-          <p className="mode-indicator">🖱️ Signature Placement Mode Active</p>
+          <p className="mode-indicator"><LuMousePointer /> Signature Placement Mode Active</p>
         </div>
       )}
     </div>  
