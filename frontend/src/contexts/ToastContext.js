@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useRef } from 'react';
 import { colors, spacing, typography, borderRadius, transitions } from '../theme';
 
-import { LuCheckCircle, LuXCircle, LuAlertTriangle, LuHelpCircle, LuX } from 'react-icons/lu';
+import { LuCircleCheck, LuCircleX, LuAlertTriangle, LuCircleHelp, LuX } from 'react-icons/lu';
 
 const ToastContext = createContext(null);
 
@@ -57,11 +57,11 @@ export const ToastProvider = ({ children }) => {
   }, []);
 
   const iconMap = {
-    success: <LuCheckCircle />,
-    error: <LuXCircle />,
+    success: <LuCircleCheck />,
+    error: <LuCircleX />,
     warning: <LuAlertTriangle />,
     info: 'ℹ️',
-    confirm: <LuHelpCircle />,
+    confirm: <LuCircleHelp />,
   };
 
   const bgMap = {

@@ -9,7 +9,7 @@ import DocumentSigningService from '../../services/documentSigningService';
 import './DocumentSignerPage.css';
 
 
-import { LuFileSignature, LuX, LuXCircle, LuCheckCircle, LuCheck, LuAlertTriangle } from 'react-icons/lu';
+import { LuFileSignature, LuX, LuCircleX, LuCircleCheck, LuCheck, LuAlertTriangle } from 'react-icons/lu';
 
 /**
  * DocumentSignerPage
@@ -231,7 +231,7 @@ const DocumentSignerPage = () => {
 
       {error && (
         <div className="error-banner">
-          <span className="error-icon"><LuXCircle /></span>
+          <span className="error-icon"><LuCircleX /></span>
           <div className="error-content">
             <p className="error-message">{error}</p>
             <button
@@ -246,7 +246,7 @@ const DocumentSignerPage = () => {
 
       {success && (
         <div className="success-banner">
-          <span className="success-icon"><LuCheckCircle /></span>
+          <span className="success-icon"><LuCircleCheck /></span>
           <div className="success-content">
             <p className="success-message">{success}</p>
             {verificationResult && (

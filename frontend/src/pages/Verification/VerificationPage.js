@@ -4,7 +4,7 @@ import api from '../../services/api';
 import { colors, spacing, typography, borderRadius, transitions } from '../../theme';
 import { FiArrowLeft, FiCheck, FiX, FiDownload, FiAlertCircle, FiCheckCircle } from 'react-icons/fi';
 
-import { LuCheck, LuX, LuCheckCircle, LuXCircle } from 'react-icons/lu';
+import { LuCheck, LuX, LuCircleCheck, LuCircleX } from 'react-icons/lu';
 
 /**
  * Verification Page
@@ -232,7 +232,7 @@ const VerificationPage = () => {
               {/* Signed Signatures Section */}
               {verification.signatures.filter(sig => sig.is_valid || (sig.status !== 'pending')).length > 0 && (
                 <div style={styles.signatureSection}>
-                  <h4 style={styles.sectionTitle}><LuCheckCircle /> Signed & Verified</h4>
+                  <h4 style={styles.sectionTitle}><LuCircleCheck /> Signed & Verified</h4>
                   <div style={styles.signaturesList}>
                     {verification.signatures
                       .filter(sig => sig.is_valid && sig.status !== 'pending')
@@ -338,7 +338,7 @@ const VerificationPage = () => {
               {/* Invalid Signatures Section */}
               {verification.signatures.filter(sig => !sig.is_valid && sig.status !== 'pending' && !sig.errors?.some(e => e.includes('not yet'))).length > 0 && (
                 <div style={styles.signatureSection}>
-                  <h4 style={styles.sectionTitle}><LuXCircle /> Invalid Signatures</h4>
+                  <h4 style={styles.sectionTitle}><LuCircleX /> Invalid Signatures</h4>
                   <div style={styles.signaturesList}>
                     {verification.signatures
                       .filter(sig => !sig.is_valid && sig.status !== 'pending' && !sig.errors?.some(e => e.includes('not yet')))
