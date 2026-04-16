@@ -7,7 +7,7 @@ import { FiFileText, FiCheck, FiClock, FiUpload, FiShield, FiDownload, FiSearch,
 import { useToast } from '../../contexts/ToastContext';
 
 
-import { LuX, LuSearch, LuTriangleAlert, LuSiren, LuCheck } from 'react-icons/lu';
+import { LuX, LuSearch, LuTriangleAlert, LuCheck } from 'react-icons/lu';
 
 /**
  * Documents Page

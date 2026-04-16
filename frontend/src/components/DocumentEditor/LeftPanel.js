@@ -8,7 +8,7 @@ import {
   FiPhone,
   FiAlertCircle
 } from 'react-icons/fi';
-import { LuCheck, LuLightbulb } from 'react-icons/lu';
+import { LuLightbulb } from 'react-icons/lu';
 import { FaSignature } from 'react-icons/fa';
 import './LeftPanel.css';
 
